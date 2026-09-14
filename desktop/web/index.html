@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pocket Pet | Pokémon-Tamagotchi</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header><a href="/" class="wordmark">POCKET PET<span>Pokémon-Tamagotchi</span></a><span class="edition">Werkstatt 01 / PC-Simulator</span></header>
+  <main>
+    <section class="play-area" aria-label="Spielgerät">
+      <div class="device">
+        <div class="device-label"><span>POCKET PET</span><span>01</span></div>
+        <div class="screen-frame"><canvas id="screen" width="240" height="320" tabindex="0" aria-label="Spielanzeige. Pfeil links, Enter und Pfeil rechts steuern das Spiel."></canvas></div>
+        <div class="buttons" role="group" aria-label="Drei Gerätetasten">
+          <button id="left" aria-label="Links, vorheriger Eintrag"><span>◀</span></button>
+          <button id="confirm" aria-label="OK, bestätigen">OK</button>
+          <button id="right" aria-label="Rechts, nächster Eintrag"><span>▶</span></button>
+        </div>
+        <div class="button-legend"><span>LINKS</span><span>BESTÄTIGEN</span><span>RECHTS</span></div>
+      </div>
+      <p class="screen-note">240 × 320 Pixel <span>•</span> Drei Tasten. Dein kleiner Begleiter.</p>
+    </section>
+    <section class="companion" aria-labelledby="title">
+      <p class="eyebrow">Ein Abenteuer im Kleinen</p>
+      <h1 id="title">Hallo,<br><span id="pet-name">kleines Ei.</span></h1>
+      <p class="intro">Füttern, spielen, füreinander da sein.<br>Aus guter Pflege wird eine Freundschaft.</p>
+      <div class="live-status"><span id="status-label">Verbindung wird hergestellt …</span><span id="game-clock">08:00</span></div>
+      <p id="message" role="status" aria-live="polite">Der Spielkern startet.</p>
+      <p id="error" role="alert" hidden></p>
+      <dl class="summary"><div><dt>Alter</dt><dd id="age">0 h</dd></div><div><dt>Freundschaft</dt><dd id="bond">20 / 100</dd></div><div><dt>Erfahrung</dt><dd id="xp">0 EP</dd></div></dl>
+      <details open>
+        <summary>So spielst du</summary>
+        <p><kbd>←</kbd> <kbd>Enter</kbd> <kbd>→</kbd> sind deine drei Tasten. Mit <strong>OK</strong> öffnest du das Menü, mit Links und Rechts wählst du eine Aktion.</p>
+        <p>Im Minispiel: Unter die fallende Beere bewegen und <strong>OK</strong> drücken, sobald sie im Fangbereich ist. Fünf Versuche pro Runde.</p>
+        <p>Dein Ei schlüpft nach zehn Spielminuten. Für einen schnellen Start kannst du unten zehn Minuten vorspulen.</p>
+      </details>
+      <div class="time-controls">
+        <label for="speed">Simulator-Zeit</label>
+        <select id="speed"><option value="0">Pause</option><option value="1" selected>Echtzeit</option><option value="60">1 Sekunde = 1 Minute</option><option value="3600">1 Sekunde = 1 Stunde</option></select>
+        <div class="utility-buttons"><button id="skip">+ 10 Minuten</button><button id="save">Spiel speichern</button></div>
+        <p id="save-status">Automatisches Speichern alle 30 Sekunden und nach jeder Aktion.</p>
+      </div>
+    </section>
+  </main>
+  <footer><span>Ein privates Fanprojekt. Eigene Software &amp; Platzhaltergrafik.</span><a href="#about" id="about-link">Über diesen Prototyp</a></footer>
+  <dialog id="about"><h2>Über Pocket Pet</h2><p>Die Spielregeln laufen in C++. Der Browser zeigt das Display und leitet drei Tasten weiter. Display und ESP32-Treiber folgen nach Auswahl der Hardware.</p><p>Alles bleibt auf diesem Rechner. Keine Konten, keine Analyse-Dienste, keine externen Schriftarten. Der Spielstand liegt im lokalen saves-Ordner. Das Programm läuft weiter, solange der lokale Server läuft.</p><p>Pokémon-Namen gehören ihren jeweiligen Rechteinhabern. Dieses Fanprojekt ist nicht offiziell. Die Grafiken sind selbst gezeichnete Platzhalter.</p><form method="dialog"><button>Schließen</button></form></dialog>
+  <p id="accessible-state" class="sr-only"></p>
+</body>
+</html>

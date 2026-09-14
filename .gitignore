@@ -1,0 +1,8 @@
+/build/
+/.tools/
+/output/
+/saves/
+__pycache__/
+*.pyc
+/node_modules/
+/.zig-cache/
