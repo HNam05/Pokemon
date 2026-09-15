@@ -8,7 +8,7 @@
   <script src="/app.js" defer></script>
 </head>
 <body>
-  <header><a href="/" class="wordmark">POCKET PET<span>Pokémon-Tamagotchi</span></a><span class="edition">Werkstatt 01 / PC-Simulator</span></header>
+  <header><a href="/" class="wordmark">POCKET PET<span>Pokémon-Tamagotchi</span></a><span class="edition">Werkstatt 02 / PC-Simulator</span></header>
   <main>
     <section class="play-area" aria-label="Spielgerät">
       <div class="device">
@@ -19,7 +19,7 @@
           <button id="confirm" aria-label="OK, bestätigen">OK</button>
           <button id="right" aria-label="Rechts, nächster Eintrag"><span>▶</span></button>
         </div>
-        <div class="button-legend"><span>LINKS</span><span>BESTÄTIGEN</span><span>RECHTS</span></div>
+        <div class="button-legend"><span id="left-label">LINKS</span><span>OK / HALTEN: ZURÜCK</span><span id="right-label">RECHTS</span></div>
       </div>
       <p class="screen-note">240 × 320 Pixel <span>•</span> Drei Tasten. Dein kleiner Begleiter.</p>
     </section>
@@ -29,12 +29,14 @@
       <p class="intro">Füttern, spielen, füreinander da sein.<br>Aus guter Pflege wird eine Freundschaft.</p>
       <div class="live-status"><span id="status-label">Verbindung wird hergestellt …</span><span id="game-clock">08:00</span></div>
       <p id="message" role="status" aria-live="polite">Der Spielkern startet.</p>
+      <p id="care-hint">Dein Begleiter wartet auf dich.</p>
       <p id="error" role="alert" hidden></p>
       <dl class="summary"><div><dt>Alter</dt><dd id="age">0 h</dd></div><div><dt>Freundschaft</dt><dd id="bond">20 / 100</dd></div><div><dt>Erfahrung</dt><dd id="xp">0 EP</dd></div></dl>
       <details open>
         <summary>So spielst du</summary>
-        <p><kbd>←</kbd> <kbd>Enter</kbd> <kbd>→</kbd> sind deine drei Tasten. Mit <strong>OK</strong> öffnest du das Menü, mit Links und Rechts wählst du eine Aktion.</p>
+        <p><kbd>← / ↑</kbd> <kbd>Enter</kbd> <kbd>→ / ↓</kbd> sind deine drei Tasten. Im Menü scrollen die Seitentasten hoch und runter, beim Spielen bewegen sie dich links und rechts. <strong>OK</strong> bestätigt, <strong>OK halten</strong> führt zurück.</p>
         <p>Im Minispiel: Unter die fallende Beere bewegen und <strong>OK</strong> drücken, sobald sie im Fangbereich ist. Fünf Versuche pro Runde.</p>
+        <p>Entons Denkpause: Drei Zeichen merken und mit den drei Tasten wiederholen. Nach drei Runden weiß Enton bestimmt noch, worum es ging. Vielleicht.</p>
         <p>Dein Ei schlüpft nach zehn Spielminuten. Für einen schnellen Start kannst du unten zehn Minuten vorspulen.</p>
       </details>
       <div class="time-controls">

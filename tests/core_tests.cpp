@@ -1,5 +1,7 @@
 #include "pet/game.hpp"
 #include "pet/save.hpp"
+#include "pet/sprite.hpp"
+#include "pet/profile.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -10,15 +12,16 @@ void check(bool success, const char* description) {
     if (!success) { std::cerr << "FAIL: " << description << '\n'; std::exit(1); }
 }
 void select(pet::Game& game, pet::Action action) {
-    while (game.screen() != pet::Screen::Home) game.button(pet::Button::Confirm);
+    if (game.screen() != pet::Screen::Home) game.back();
     game.button(pet::Button::Confirm);
-    while (game.selection() != static_cast<unsigned>(action)) game.button(pet::Button::Right);
+    while (game.menu_action(game.selection()) != action) game.button(pet::Button::Right);
     game.button(pet::Button::Confirm);
 }
 pet::State hatched() {
     pet::State state;
     state.species = pet::Species::Eevee;
     state.age_minutes = 10;
+    state.starter_chosen = true;
     return state;
 }
 }
@@ -26,6 +29,10 @@ pet::State hatched() {
 int main() {
     using namespace pet;
     Game game;
+    check(game.screen() == Screen::Starter, "fresh game asks for starter");
+    game.advance(60000, 3600);
+    check(game.state().age_minutes == 0, "starter selection cannot age unattended");
+    game.button(Button::Confirm);
     game.advance(9000, 60);
     check(game.state().species == Species::Egg, "not hatched before ten minutes");
     game.advance(1000, 60);
@@ -38,7 +45,7 @@ int main() {
     select(game, Action::Sleep);
     check(game.state().sleeping, "sleep toggle");
     select(game, Action::Play);
-    check(game.screen() == Screen::Home, "cannot play while asleep");
+    check(game.screen() == Screen::Menu, "blocked action stays in menu and explains why");
     game.advance(60000, 30);
     check(game.state().energy == 100 && !game.state().sleeping, "rest and automatic wake");
 
@@ -121,6 +128,71 @@ int main() {
     check(!Game::valid(state), "invalid random state rejected");
     state = hatched(); state.minute_of_day = 1440;
     check(!Game::valid(state), "invalid clock rejected");
+
+    Game duck;
+    duck.button(Button::Right);
+    check(duck.state().starter == Species::Psyduck, "right selects Enton");
+    const auto chosen = encode(duck.state());
+    State choice;
+    check(decode(chosen.data(), chosen.size(), choice), "unconfirmed choice can be saved");
+    Game resumed;
+    resumed.restore(choice);
+    check(resumed.screen() == Screen::Starter && resumed.state().starter == Species::Psyduck, "restore unfinished selection");
+    duck.button(Button::Confirm);
+    duck.advance(10000, 60);
+    check(duck.state().species == Species::Psyduck, "Enton hatches");
+    select(duck, Action::Evolve);
+    check(!duck.can_evolve() && duck.state().species == Species::Psyduck, "Enton never becomes Eevee evolution");
+    select(duck, Action::Guide);
+    check(duck.screen() == Screen::Guide && duck.menu_start() > 0, "scroll reaches last menu entries");
+    duck.back(); check(duck.screen() == Screen::Menu, "back preserves menu context");
+    check(duck.menu_action(duck.selection()) == Action::Guide, "selection retained");
+    select(duck, Action::Think);
+    const auto memory_age = duck.state().age_minutes;
+    duck.button(Button::Left);
+    check(duck.mini().entered == 0, "memory playback ignores input");
+    for (int round = 0; round < 3; ++round) {
+        duck.advance(2400, 3600);
+        check(duck.mini().recalling, "memory enters recall");
+        for (int i = 0; i < 3; ++i) duck.button(static_cast<Button>(duck.mini().pattern[i]));
+    }
+    check(duck.screen() == Screen::Result && duck.mini().score == 3 && duck.state().experience == 9, "memory success rewards once");
+    check(duck.state().age_minutes == memory_age, "memory keeps care clock frozen");
+    duck.back(); check(duck.state().experience == 9, "back cannot duplicate memory rewards");
+    select(duck, Action::Think); duck.advance(60000);
+    check(duck.screen() == Screen::Result && duck.mini().score == 0, "memory times out with long tick");
+    select(duck, Action::Think); duck.advance(2400);
+    duck.button(static_cast<Button>((duck.mini().pattern[0]+1)%3));
+    check(duck.screen() == Screen::Result && duck.mini().score == 0, "wrong memory answer fails");
+    select(duck, Action::Think);
+    const auto paid_energy = duck.state().energy;
+    duck.back(); check(duck.screen() == Screen::Home && duck.state().energy == paid_energy, "cancel keeps paid game cost");
+
+    Profile profile;
+    check(profile.set_name("Ada",3), "name accepted");
+    check(!profile.set_name("X\nY",3) && std::string(profile.name()) == "Ada", "invalid name rejected transactionally");
+    check(!profile.set_name("\xc0\xaf",2), "overlong UTF-8 rejected");
+    check(!profile.set_name("\xed\xa0\x80",3), "UTF-8 surrogate rejected");
+    check(!profile.set_name("\xf4\x90\x80\x80",4), "Unicode overflow rejected");
+    check(profile.set_name("J\xc3\xb6rg",5), "UTF-8 name accepted");
+    check(!profile.set_name("1234567890123456789012345",25), "name has fixed storage bound");
+    check(profile.set_name("",0), "empty profile supported");
+    check(sprite_storage_bytes() == 908, "all packed art and palettes total 908 bytes");
+    for (unsigned species = 0; species <= 4; ++species) {
+        const auto sprite = sprite_for(static_cast<Species>(species));
+        for (unsigned y = 0; y < sprite.height; ++y)
+            for (unsigned x = 0; x < sprite.width; ++x)
+                check(sprite.at(x,y) < sprite.colors, "sprite index within palette");
+        check(sprite.at(sprite.width,0) == 0, "out of bounds sprite pixel transparent");
+    }
+    static_assert(sizeof(Game) <= 128, "Core RAM budget exceeded");
+    static_assert(sizeof(Profile) == 25, "Profile RAM budget exceeded");
+    state = hatched(); state.health = 35; game.restore(state);
+    check(game.needs_attention() && std::string(game.care_hint()) == "Medizin, dann weiter pflegen.", "low health has actionable care hint");
+    state = hatched(); state.hygiene = 24; game.restore(state);
+    check(game.needs_attention() && std::string(game.care_hint()) == "Bitte saubermachen.", "low hygiene attention matches recommendation");
+    std::cout << "RAM host: Game=" << sizeof(Game) << " State=" << sizeof(State)
+              << " Profile=" << sizeof(Profile) << "; sprites=" << sprite_storage_bytes() << " bytes\n";
 
     // Long, deterministic adversarial sequence: invariants hold through care and time jumps.
     game.restore(hatched());

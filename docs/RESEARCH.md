@@ -38,6 +38,15 @@ Erster spielbarer Umfang: Ei → Evoli → Psiana oder Nachtara, eine Pflegeober
 
 Im Minispiel pausiert die Pflegezeit; seine Reaktionszeit bleibt in jedem Zeitraffermodus gleich. „Pause“ friert beide Uhren ein; Menüaktionen bleiben möglich. Ein gestartetes Spiel lässt sich durch Warten abschließen. Nach Programmneustart wird die Home-Ansicht wiederhergestellt; bezahlte Spielkosten bleiben bestehen, ein unterbrochenes Spiel bringt keine Belohnung.
 
+## Erweiterung M2, 14.–15.09.2026
+
+- Evoli oder Enton auswählen, bevor die Ei-Uhr startet. Enton nutzt dieselben Pflegewerte; seine Entwicklung folgt später.
+- Zehn Menüeinträge, fünf sichtbare Zeilen; Links/Rechts bedeuten vorheriges/nächstes und im Menü hoch/runter. Kurzes OK bestätigt beim Loslassen, langes OK führt zurück oder bricht ein Spiel ohne Belohnung ab.
+- Neue Pflegehilfe und konkrete Hinweise. Aufmerksamkeitsgrenzen: satt <25, Energie <25, Freude <30, Hygiene <25, Gesundheit <40, Krankheit oder Abfall.
+- Zweites Spiel: Entons Denkpause. Drei Zeichen à 600 ms plus 200 ms Pause ansehen, innerhalb von zehn Sekunden über die drei Tasten wiederholen. Drei erfolgreiche Runden geben +12 Freude, +6 Bindung und +9 EP. Kosten wie Beerenfang, bei Fehler/Abbruch keine Belohnung. Pflegezeit währenddessen pausiert.
+- Persönlicher Name als getrennte lokale Gerätekonfiguration, getrennte Spielstände für zwei Geräte.
+- Palettensprites als gemeinsame C++-Daten und explizite Speicherbudgets. Offizielle Espressif-Quellen und Hardwarestrategie in [UX_HARDWARE.md](UX_HARDWARE.md).
+
 ## Offline-Verhalten
 
 Der Server betreibt das Pet auch bei geschlossenem Browser. Beim Serverneustart werden maximal acht Stunden reale Abwesenheit nachgeholt, nie mit dem vorherigen Zeitrafferfaktor. Eine rückwärts korrigierte PC-Uhr erzeugt keine negative Spielzeit. Nach acht Stunden greift ein Abwesenheitslimit; das Tier stirbt nicht. Der Simulator startet immer in Echtzeit. Tests können eine manuelle Uhr verwenden.

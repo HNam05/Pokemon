@@ -4,7 +4,7 @@ Ein Pokémon-inspiriertes Tamagotchi für einen späteren ESP32 im aufklappbaren
 
 ## Jetzt spielbar
 
-Ei ausbrüten, Evoli füttern und säubern, schlafen lassen, Krankheiten behandeln, Beeren fangen, Freundschaft aufbauen und zu Psiana oder Nachtara entwickeln. Mit 240×320-Display-Simulation, Zeitraffer, Speicherständen und selbst gezeichneten Pixel-Platzhaltern.
+Evoli oder Enton als Begleiter wählen, Ei ausbrüten, füttern und säubern, schlafen lassen, Krankheiten behandeln, Beeren fangen und Entons Denkpause spielen. Evoli kann sich zu Psiana oder Nachtara entwickeln. Mit scrollendem Menü, persönlichen Profilen, 240×320-Display-Simulation und kompakten gemeinsamen C++-Pixelgrafiken.
 
 **Stand:** erster Desktop-Prototyp. ESP32-Treiber, endgültige Grafik und Hardwarevalidierung folgen nach Auswahl der Komponenten.
 
@@ -33,13 +33,24 @@ Auf einem anderen Rechner entweder die CMake-Variante nutzen oder eine passende 
 
 | Taste | Home | Menü | Beerenfang |
 |---|---|---|---|
-| Links / ← | Status | Vorheriger Eintrag | Linke Spur |
+| Links / ← oder ↑ | Status | Eine Zeile hoch | Linke Spur |
 | Mitte / Enter | Menü | Bestätigen | Beere fangen |
-| Rechts / → | Status | Nächster Eintrag | Rechte Spur |
+| Rechts / → oder ↓ | Status | Eine Zeile runter | Rechte Spur |
 
-Alle Aktionen sind mit drei Tasten erreichbar. Status und Ergebnis mit beliebiger Taste verlassen. Im Menü gibt es „Zurück“. Im Minispiel die Beere im markierten Fangbereich mit OK fangen; fünf Versuche. `F` öffnet die Vollbildansicht, `Esc` verlässt sie.
+Alle Aktionen sind mit drei Tasten erreichbar. Fünf Menüzeilen bleiben sichtbar; längere Listen scrollen mit. Kurzes OK bestätigt beim Loslassen, **OK halten (700 ms)** führt zurück. Im Menü gibt es zusätzlich „Zurück“. Im Beerenfang die Beere im markierten Fangbereich mit OK fangen; fünf Versuche. In Entons Denkpause drei Zeichen merken und über die drei Tasten wiederholen. `F` öffnet die Vollbildansicht, `Esc` verlässt sie.
 
-Das Ei schlüpft nach zehn Spielminuten. Für den Einstieg im Simulator **+ 10 Minuten** drücken. Standard ist Echtzeit; Zeitraffer beschleunigt die Pflege, das Minispiel behält normale Reaktionszeiten. Pflegewerte stehen unter „Status“. Entwicklung braucht 1 Tag, 70 Freundschaft, 60 EP und ein gesundes, waches Tier; Details in der Recherche.
+Neue Spielstände beginnen mit der Auswahl Evoli/Enton. Mit OK bestätigen, danach schlüpft das gewählte Ei nach zehn Spielminuten. Für den Einstieg im Simulator **+ 10 Minuten** drücken. Standard ist Echtzeit; Zeitraffer beschleunigt die Pflege, beide Minispiele behalten normale Reaktionszeiten. Pflegewerte stehen unter „Status“, konkrete Empfehlungen unter „Pflegehilfe“. Evoli-Entwicklung braucht 1 Tag, 70 Freundschaft, 60 EP und ein gesundes, waches Tier. Entons Entwicklung ist noch offen.
+
+## Zwei persönliche Geräte
+
+Die gleiche Software unterstützt getrennte Namen und Speicherdateien. `config/personalization.example.json` als `config/geraet-a.local.json` und `config/geraet-b.local.json` kopieren und jeweils `trainer_name` eintragen (maximal 24 UTF-8-Bytes). Die persönlichen Dateien sind von Git ausgeschlossen.
+
+```powershell
+python desktop/server.py --profile config/geraet-a.local.json --port 8765
+python desktop/server.py --profile config/geraet-b.local.json --port 8767
+```
+
+Ohne `--save` verwendet jedes Profil eine eigene gleichnamige Speicherdatei unter `saves/`. Ein bestehendes Tier mit `--save saves/pet.json` weiterführen. Namen werden unabhängig vom Spielstand verwaltet. Lokale Profile auf dem zweiten Rechner separat anlegen.
 
 ## Speichern und Tests
 
@@ -55,6 +66,7 @@ Browser-Testanleitung und tatsächlicher Prüfstand stehen in [docs/VALIDATION.m
 
 ## Dokumentation
 
+- [Drei-Tasten-UX, Pflegekonzept, Profile und Speicherbudget](docs/UX_HARDWARE.md)
 - [Recherche, Quellen und Spielregeln](docs/RESEARCH.md)
 - [Architektur, Speicherformat und Hardware-Port](docs/ARCHITECTURE.md)
 - [Git- und Modell-Zusammenarbeit](docs/COLLABORATION.md)

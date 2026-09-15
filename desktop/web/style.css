@@ -226,6 +226,12 @@ h1 span {
   margin:13px 0 20px;
 }
 
+#care-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: -10px 0 20px;
+}
+
 #error {
   background:#e5d1b9;
   color:#7d251d;

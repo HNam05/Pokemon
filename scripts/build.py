@@ -18,7 +18,7 @@ def main():
         flags = ['-std=c++17', '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2', '-Iinclude']
         if sys.platform != 'win32':
             flags.append('-fPIC')
-        sources = ['src/game.cpp', 'src/save.cpp']
+        sources = ['src/game.cpp', 'src/save.cpp', 'src/sprite.cpp']
         suffix = '.dll' if sys.platform == 'win32' else ('.dylib' if sys.platform == 'darwin' else '.so')
         subprocess.run([compiler, 'c++', *flags, *sources, 'desktop/bridge.cpp', '-shared',
                         '-o', str(build / ('pet_bridge' + suffix))], cwd=ROOT, check=True)

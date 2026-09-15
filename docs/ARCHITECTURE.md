@@ -23,17 +23,21 @@ Später: GPIO -> entprellte Button-Ereignisse -> derselbe pet::Game
 | Pfad | Zweck |
 |---|---|
 | `include/pet/game.hpp`, `src/game.cpp` | Zustände, Aktionen, Minuten-/Reaktionszeit, Entwicklung, deterministischer Zufall |
-| `include/pet/save.hpp`, `src/save.cpp` | 42-Byte-Format, explizites Little Endian, CRC32, Versions-/Werteprüfung |
-| `desktop/bridge.cpp` | Kleines C ABI für Python; pro Instanz ein Spiel, JSON-Ansicht ohne Benutzerstrings |
+| `include/pet/save.hpp`, `src/save.cpp` | 44-Byte-V2-Format, V1-Migration, Little Endian, CRC32, Werteprüfung |
+| `include/pet/sprite.hpp`, `src/sprite.cpp` | Gemeinsame gepackte 4-Bit-Palettengrafik, RGB565-Farben |
+| `include/pet/profile.hpp` | Festes Namensprofil, UTF-8-Prüfung, unabhängig vom Spielstand |
+| `desktop/bridge.cpp` | C ABI für Spiel, Profil, Menühinweise und Sprite-Daten. Profilname separat vom formatierten JSON; Python übernimmt korrektes Escaping. |
 | `desktop/server.py` | Loopback-HTTP, monotone Uhr, atomare lokale Speicherung, begrenzte Offline-Zeit |
 | `desktop/web/` | Responsive Simulator-Ansicht, eigenes Pixelbild, Maus/Tastatur und zugängliche Statusbeschreibung |
 | `tests/` | Regeln, Grenzwerte, Korruption, Integration und Browserabläufe |
 
 `pet::Game` besitzt keine Heap-Allokationen, Dateipfade, GPIO-Abhängigkeiten oder Wanduhraufrufe. Es nimmt höchstens 60.000 reale Millisekunden und Geschwindigkeit 0…3600 pro `advance` entgegen; längere Intervalle müssen vom Adapter zerlegt werden. Pflege wird minutengenau und mit gespeichertem Millisekundenrest berechnet. Im aktiven Minispiel läuft nur dessen Uhr. Aufrufe erfolgen aus einem Thread/Task.
 
-## Spielstandformat V1
+## Spielstandformat V2 und Migration
 
-42 Bytes: ASCII `PET1` (4), Version (u16=1), Länge (u16=42), Alter/Rest-ms/PRNG/EP (je u32), Tagesminute/Vernachlässigung (je u16), Sättigung/Glück/Energie/Hygiene/Gesundheit/Bindung/Abfall/Art/Schlaf/Krankheit (je u8), CRC32 über Bytes 0…37 (u32). CRC32 ist Fehlererkennung, keine Authentifizierung. Struktur-Padding wird nie gespeichert.
+44 Bytes: stabile Magic ASCII `PET1` (4), Version (u16=2), Länge (u16=44), Alter/Rest-ms/PRNG/EP (je u32), Tagesminute/Vernachlässigung (je u16), Sättigung/Glück/Energie/Hygiene/Gesundheit/Bindung/Abfall/Art/Schlaf/Krankheit (je u8), Starter-Art und Auswahl-bestätigt (je u8), CRC32 über Bytes 0…39 (u32). CRC32 ist Fehlererkennung, keine Authentifizierung. Struktur-Padding wird nie gespeichert.
+
+V1 mit 42 Bytes und CRC über Bytes 0…37 wird weiter gelesen: Starter Evoli, Auswahl bereits bestätigt. Werte und gewachsene Art bleiben unverändert. Enton ist in V1 nicht zulässig. V2 wird beim nächsten Speichern geschrieben. Alte Programmversionen können V2 nicht lesen; vor Downgrade eine V1-Sicherung verwenden.
 
 Beim Lesen müssen Länge, Version, Prüfsumme, Boolwerte und Wertebereiche stimmen. Dekodierung und Restore sind transaktional: Fehler verändern das laufende Spiel nicht. Unbekannte Versionen werden abgewiesen; künftige Migrationen explizit ergänzen.
 
@@ -42,11 +46,13 @@ Desktop-Hülle: JSON mit `version`, `saved_at` als Unix-Sekunden und hexkodierte
 ## Drei-Tasten-Vertrag
 
 - Home: Mitte öffnet Menü, beide Seitentasten öffnen Status.
-- Menü: Links/Rechts blättern zyklisch; Mitte aktiviert. „Zurück“ ist ein expliziter Eintrag.
+- Startauswahl: Seitentasten wechseln Evoli/Enton, Mitte bestätigt; vorher läuft keine Pflegezeit.
+- Menü: Seitentasten scrollen vertikal durch zehn Einträge mit fünf sichtbaren Zeilen; Mitte aktiviert. „Zurück“ ist ein expliziter Eintrag. Beschriftungen und Hinweise kommen aus C++.
 - Status/Ergebnis: beliebige Taste zurück.
 - Beerenfang: Links/Rechts bewegen begrenzt auf drei Spuren, Mitte ist ein Fangversuch.
+- Denkpause: drei Zeichen ansehen, dann über Links/OK/Rechts wiederholen; drei Runden, begrenzte Eingabezeit, Pflegezeit pausiert.
 
-Auf Hardware später active-low + Pull-up nach Schaltplan, Entprellung etwa 25–40 ms und ein Ereignis pro Druck. Keine Button-ISR führt Spiellogik aus. Lange Drücke und Tastenkombinationen sind in M1 nicht erforderlich.
+Auf Hardware später active-low + Pull-up nach Schaltplan, Entprellung etwa 25–40 ms. Kurzes OK beim Loslassen; nach 700 ms einmal `Game::back()` und kurzes OK unterdrücken. Keine Button-ISR führt Spiellogik aus. Der Simulator prüft diese UX, der echte GPIO-Adapter folgt mit der Boardintegration.
 
 ## Portierung: ehrlicher Stand
 
@@ -58,7 +64,7 @@ Für M2:
 2. SPI/ST7789 oder tatsächlichen Controller initialisieren, Displayrotation testen. RGB565-Vollbild benötigt bei 240×320 etwa 150 KiB; Teilbereiche oder Zeilenpuffer bevorzugen, PSRAM nur bei bestätigter Ausstattung.
 3. Entprellte Tastenadapter implementieren, dieselbe Zustandsansicht rendern. Für eingebettete Ausgabe direkt C++-State verwenden, kein JSON nötig.
 4. `esp_timer_get_time()` als monotone Laufzeituhr anbinden; Sleep/Resume und Kaltstart getrennt behandeln.
-5. 42-Byte-Payload via NVS, Rückgabewerte prüfen, Schreiblast reduzieren; getrennte vertrauenswürdige Wanduhr nur wenn verfügbar.
+5. 44-Byte-Payload via NVS, Rückgabewerte prüfen, Schreiblast reduzieren; getrennte vertrauenswürdige Wanduhr nur wenn verfügbar.
 6. Akku-/Ladezustand, Low-Battery-Verhalten, Backlight/Sleep, Stromverbrauch und physische Einbautests.
 
-Vollständige Bildschirmparität muss im Hardware-Renderer noch hergestellt werden. Gehäuse, Touch, Audio, Funkkontakte, Qi-Laden und SD-Karten sind kein Teil des Software-M1.
+Vollständige Bildschirmparität muss im Hardware-Renderer noch hergestellt werden. Gehäuse, Touch, Audio, Funkkontakte, Qi-Laden und SD-Karten sind noch offen. [UX und Speicherplanung](UX_HARDWARE.md) enthält aktuelle Messungen, Quellennachweise und die Audio-Richtung.

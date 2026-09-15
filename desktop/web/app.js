@@ -2,7 +2,7 @@
 const canvas = document.querySelector('#screen');
 const ctx = canvas.getContext('2d');
 const $ = (selector) => document.querySelector(selector);
-const actions = ['Füttern', 'Saubermachen', 'Schlafen / Wecken', 'Medizin', 'Beeren fangen', 'Status', 'Entwickeln', 'Zurück'];
+let assets = null;
 let state = null;
 let pending = Promise.resolve();
 let connected = false;
@@ -21,51 +21,22 @@ function lines(value, y) {
   text(line.trim(), 120, y, 10, '#313a32', 'center');
 }
 
-// Original, hand-authored pixel placeholder. Palette and ear/tail marks vary by species.
-const sprite = [
-  '...oo.............oo....',
-  '...oco...........oco....',
-  '...occo.........occo....',
-  '....occco......occo.....',
-  '....occco.....occco.....',
-  '.....occco...occco......',
-  '......ocoooooocco.......',
-  '......occccccccco.......',
-  '.....occccccccccco......',
-  '.....ocwwccccwwcco......',
-  '.....ocobccccobcco......',
-  '.....ocobccccobcco......',
-  '......occcbbcccco....oo.',
-  '.......occcccco....occo.',
-  '......offfffffo..occcfo.',
-  '.....offfffffffoocccffo.',
-  '.....ocffffffccoocfffo..',
-  '.....occccccccccoofoo...',
-  '.....occccccccccooo.....',
-  '......occcccccco........',
-  '......occo...occo.......',
-  '......ooo.....ooo.......',
-];
-function pet(x, y, scale = 3) {
-  if (state.species === 0) {
-    const egg = ['....oooo....','...offffo...','..offffffo..','.offffffffo.','.offfccfffo.','offfccfffffo','offfffffccfo','offffffcccfo','offfcffffffo','.offccffffo.','..offffffo..','...oooooo...'];
-    egg.forEach((row, j) => [...row].forEach((p, i) => {
-      if (p !== '.') rect(x + i * scale, y + j * scale, scale, scale, {o:'#374735',f:'#f4edcf',c:'#ad844a'}[p]);
-    }));
-    return;
-  }
-  const palette = {o:'#463b2a',c:'#b88742',f:'#f1d69a',w:'#f9f1d7',b:'#282c2a'};
-  if (state.species === 2) { palette.c = '#a77d88'; palette.f = '#d9b2ad'; }
-  if (state.species === 3) { palette.c = '#4a5050'; palette.f = '#c7a348'; palette.o = '#252f30'; }
-  sprite.forEach((row, j) => [...row].forEach((p, i) => {
-    if (p !== '.') rect(x + i * scale, y + j * scale, scale, scale, palette[p]);
-  }));
-  if (state.sleeping) {
-    rect(x + 8 * scale, y + 9 * scale, scale * 2, scale * 3, palette.c);
-    rect(x + 14 * scale, y + 9 * scale, scale * 2, scale * 3, palette.c);
-    rect(x + 8 * scale, y + 11 * scale, scale * 2, scale, palette.o);
-    rect(x + 14 * scale, y + 11 * scale, scale * 2, scale, palette.o);
-  }
+function pet(x, y, scale = 3, species = state.species) {
+  const sprite = assets?.sprites[species];
+  if (!sprite) return;
+  sprite.pixels.forEach((pixel, i) => {
+    if (pixel === 65536) return;
+    const r = Math.round(((pixel >> 11) & 31) * 255 / 31);
+    const g = Math.round(((pixel >> 5) & 63) * 255 / 63);
+    const b = Math.round((pixel & 31) * 255 / 31);
+    rect(x + (i % sprite.width) * scale, y + Math.floor(i / sprite.width) * scale, scale, scale, `rgb(${r},${g},${b})`);
+  });
+}
+function centeredPet(y, species = state.species) {
+  const sprite = assets?.sprites[species];
+  if (!sprite) return;
+  const scale = species === 4 ? 3 : 4;
+  pet(Math.floor((240 - sprite.width * scale) / 2), y, scale, species);
 }
 function meter(label, value, y) {
   text(label, 14, y, 10); text(`${value}`, 226, y, 10, '#313a32', 'right');
@@ -82,8 +53,8 @@ function scene() {
     rect(x, y, 2, 5, '#617953'); rect(x+3, y-2, 2, 7, '#617953');
   }
   const bob = reducedMotion || state.sleeping ? 0 : Math.floor(Date.now() / 600) % 2;
-  if (state.species === 0) pet(95, 115 + bob, 4);
-  else pet(70, 102 + bob, 4);
+  centeredPet(state.species === 0 ? 115 + bob : 96 + bob);
+  if (state.trainer_name) text(`Hallo, ${state.trainer_name}!`,12,49,10,night?'#f8efd2':'#374735');
   if (state.sleeping) text('Z z', 175, 109, 14, '#f8efd2');
   for (let i = 0; i < state.waste; i++) {
     rect(15 + i * 13, 196, 9, 5, '#665337'); rect(18 + i * 13, 193, 4, 4, '#665337');
@@ -93,21 +64,50 @@ function scene() {
 function draw() {
   ctx.imageSmoothingEnabled = false;
   rect(0, 0, 240, 320, '#e8e5cf');
-  if (!state) { text('Verbinde Spielkern ...', 120, 160, 10, '#313a32', 'center'); return; }
+  if (!state || !assets) { text('Verbinde Spielkern ...', 120, 160, 10, '#313a32', 'center'); return; }
   const clock = `${String(Math.floor(state.minute_of_day / 60)).padStart(2,'0')}:${String(state.minute_of_day % 60).padStart(2,'0')}`;
   rect(0,0,240,33,'#384738'); text(state.name.toUpperCase(),12,21,12,'#f1ecd4');text(clock,228,21,11,'#f1ecd4','right');
-  if (state.screen === 1) {
-    text('WAS MACHEN WIR?', 14, 56, 11);
-    actions.forEach((action, index) => {
-      const selected = state.selection === index;
-      if (selected) rect(8, 69 + index * 26, 224, 24, '#465b40');
-      text(action, 16, 85 + index * 26, 11, selected ? '#f6efd5' : '#313a32');
+  if (state.screen === 5) {
+    text('DEIN ERSTER BEGLEITER',120,61,11,'#313a32','center');
+    centeredPet(93,state.starter);
+    text('<',20,155,18); text('>',220,155,18,'#313a32','right');
+    text(state.starter === 4 ? 'ENTON' : 'EVOLI',120,221,16,'#313a32','center');
+    lines(state.starter === 4 ? 'Etwas verpeilt. Immer da.' : 'Neugierig auf dein Abenteuer.',245);
+    text('OK: Dieses Ei waehlen',120,281,10,'#313a32','center');
+  } else if (state.screen === 1) {
+    text('WAS MACHEN WIR?',14,56,11);
+    text(`${state.selection+1}/${state.menu.length}`,226,56,10,'#59614f','right');
+    state.menu.slice(state.menu_start,state.menu_start+5).forEach((item,row) => {
+      const selected = state.selection === state.menu_start+row;
+      if (selected) rect(8,70+row*32,217,29,'#465b40');
+      text(item.label,16,89+row*32,11,selected?'#f6efd5':item.enabled?'#313a32':'#6c6d5c');
     });
+    rect(232,70,2,157,'#bcc0a9');
+    rect(231,70+state.menu_start*15.7,4,78,'#657756');
+    lines(state.menu[state.selection].hint,253);
+    text('OK halten: zurueck',120,287,9,'#59614f','center');
+  } else if (state.screen === 6) {
+    text('WAS BRAUCHE ICH?',120,57,12,'#313a32','center');
+    lines(state.care_hint,89);
+    const tips = [['HUNGER','Beere im Menue: Fuettern'],['MUEDIGKEIT','Schlafen lassen, dann wecken'],['LANGEWEILE','Kurz zusammen spielen'],['UNORDNUNG / KRANK','Saubermachen oder Medizin']];
+    tips.forEach(([heading,detail],i)=>{text(heading,14,132+i*41,10);text(detail,14,148+i*41,9,'#59614f');});
+  } else if (state.screen === 7) {
+    text('ENTONS DENKPAUSE',120,57,12,'#313a32','center');
+    text(`Runde ${state.mini.round+1}/3`,120,77,10,'#59614f','center');
+    centeredPet(90,4);
+    text(state.mini.recalling ? 'JETZT DU!' : 'MERKEN ...',120,206,11,'#313a32','center');
+    const active = Math.floor(state.mini.elapsed_ms/800);
+    const symbol = !state.mini.recalling && state.mini.elapsed_ms%800<600 ? state.mini.pattern[active] : -1;
+    ['<','OK','>'].forEach((label,i)=>{
+      rect(16+i*76,222,56,34,i===symbol?'#465b40':'#d2d6bd');
+      text(label,44+i*76,244,13,i===symbol?'#f6efd5':'#313a32','center');
+    });
+    text(state.mini.recalling ? `${state.mini.entered}/3 eingegeben` : 'Links, OK, Rechts merken',120,281,10,'#313a32','center');
   } else if (state.screen === 2) {
     text('SO GEHT ES MIR',14,57,11);
     [['Satt',state.fullness],['Froh',state.happiness],['Energie',state.energy],['Sauber',state.hygiene],['Gesund',state.health],['Bindung',state.friendship]].forEach(([l,v],i) => meter(l,v,81+i*30));
-    text(`EP ${state.experience} / Entwicklung: 60`,14,266,10);
-    text(state.can_evolve ? 'Bereit zur Entwicklung!' : 'Ab 1 Tag + 70 Bindung',14,283,10);
+    text(`EP ${state.experience}`,14,266,10);
+    text(state.species === 4 ? 'Enton: Entwicklung folgt.' : state.can_evolve ? 'Bereit zur Entwicklung!' : 'Ab 1 Tag + 70 Bindung +60 EP',14,283,10);
   } else if (state.screen === 3) {
     text(`BEERENFANG ${state.mini.round+1}/5`,12,56,11);
     text(`${state.mini.score} Treffer`,12,73,10);
@@ -120,8 +120,8 @@ function draw() {
     rect(14+state.mini.lane*80,250,52,18,'#957148'); rect(10+state.mini.lane*80,247,60,5,'#553f2d');
     text(state.mini.elapsed_ms >= 900 ? 'JETZT: OK!' : 'Unter die Beere bewegen',120,291,10,'#313a32','center');
   } else if (state.screen === 4) {
-    pet(72,72,4);text('GUT GESPIELT',120,193,15,'#313a32','center');
-    text(`${state.mini.score} von 5 Beeren`,120,219,12,'#313a32','center');
+    centeredPet(72,state.mini.memory?4:state.species);text('GUT GESPIELT',120,193,15,'#313a32','center');
+    text(state.mini.memory ? (state.mini.score ? 'Alle Zeichen gemerkt!' : 'Enton hat es vergessen.') : `${state.mini.score} von 5 Beeren`,120,219,11,'#313a32','center');
     text(`+${state.mini.score*2} Bindung  +${state.mini.score*3} EP`,120,249,10,'#313a32','center');
   } else {
     scene();
@@ -133,27 +133,35 @@ function draw() {
         const x = 12 + i * 78;
         text(label,x,235,9); rect(x,244,60,6,'#cccbb5'); rect(x,244,Math.round(value*.6),6,value<25?'#a14131':'#586e47');
       }
-      lines(state.message,275);
+      lines(state.attention ? state.care_hint : state.message,275);
     }
   }
   rect(0,301,240,19,'#d4d6bd');
-  const footer = state.screen === 0 ? 'STATUS     OK: MENUE     STATUS' : state.screen === 1 ? 'ZURUECK    OK: WAHL     WEITER' : state.screen === 3 ? 'LINKS      OK: FANGEN    RECHTS' : 'BELIEBIGE TASTE: ZURUECK';
+  const footer = state.screen === 0 ? 'STATUS     OK: MENUE     STATUS' : state.screen === 1 ? 'HOCH       OK: WAHL      RUNTER' : state.screen === 3 ? 'LINKS      OK: FANGEN    RECHTS' : state.screen === 5 ? 'VORHER     OK: WAHL      WEITER' : state.screen === 7 ? 'LINKS        OK        RECHTS' : 'BELIEBIGE TASTE: ZURUECK';
   text(footer,120,314,8,'#374735','center');
 }
 
 function update(next) {
   state = next;
-  $('#pet-name').textContent = state.species === 0 ? 'kleines Ei.' : `${state.name}.`;
+  $('#pet-name').textContent = state.trainer_name ? `${state.trainer_name}.` : state.species === 0 ? 'kleines Ei.' : `${state.name}.`;
+  const list = state.screen === 1;
+  $('#left span').textContent = list ? '▲' : '◀';
+  $('#right span').textContent = list ? '▼' : '▶';
+  $('#left-label').textContent = list ? 'HOCH' : 'LINKS';
+  $('#right-label').textContent = list ? 'RUNTER' : 'RECHTS';
+  $('#left').setAttribute('aria-label',list?'Vorheriger Eintrag, hoch':'Links');
+  $('#right').setAttribute('aria-label',list?'Nächster Eintrag, runter':'Rechts');
   $('#game-clock').textContent = `${String(Math.floor(state.minute_of_day / 60)).padStart(2,'0')}:${String(state.minute_of_day % 60).padStart(2,'0')}`;
-  $('#status-label').textContent = state.speed === 0 ? 'Spiel pausiert' : state.species === 0 ? 'Wartet aufs Schlüpfen' : state.health === 0 ? 'Braucht Medizin' : state.sleeping ? 'Schläft gerade' : state.attention ? 'Braucht deine Pflege' : 'Fühlt sich wohl';
-  $('#message').textContent = state.message;
+  $('#status-label').textContent = state.screen === 5 ? 'Wähle deinen Begleiter' : state.speed === 0 ? 'Spiel pausiert' : state.species === 0 ? 'Wartet aufs Schlüpfen' : state.health === 0 ? 'Braucht Medizin' : state.sleeping ? 'Schläft gerade' : state.attention ? 'Braucht deine Pflege' : 'Fühlt sich wohl';
+  $('#message').textContent = state.screen === 1 ? state.menu[state.selection].hint : state.message;
+  $('#care-hint').textContent = state.care_hint;
   $('#age').textContent = `${Math.floor(state.age_minutes/60)} h ${state.age_minutes%60} min`;
   $('#bond').textContent = `${state.friendship} / 100`; $('#xp').textContent = `${state.experience} EP`;
   $('#speed').value = String(state.speed);
-  $('#skip').disabled = state.screen === 3;
+  $('#skip').disabled = [3,5,7].includes(state.screen);
   $('#error').hidden = !state.storage_error;
   $('#error').textContent = state.storage_error || '';
-  $('#accessible-state').textContent = `${state.name}. ${state.message} Satt ${state.fullness}, froh ${state.happiness}, Energie ${state.energy}, Sauberkeit ${state.hygiene}, Gesundheit ${state.health}. ${state.screen === 1 ? `Menü: ${actions[state.selection]}.` : ''}`;
+  $('#accessible-state').textContent = `${state.name}. ${state.message} Satt ${state.fullness}, froh ${state.happiness}, Energie ${state.energy}, Sauberkeit ${state.hygiene}, Gesundheit ${state.health}. ${state.screen === 1 ? `Menü: ${state.menu[state.selection].label}.` : state.screen===5 ? `Auswahl: ${state.starter===4?'Enton':'Evoli'}.` : ''}`;
   canvas.setAttribute('aria-label', $('#accessible-state').textContent);
   draw();
 }
@@ -174,7 +182,36 @@ function enqueue(path, data) {
 }
 function press(button) { return enqueue('/api/button',{button}); }
 $('#left').addEventListener('click',()=>{press(0).catch(()=>{});});
-$('#confirm').addEventListener('click',()=>{press(1).catch(()=>{});});
+let holdTimer = null;
+let holding = false;
+let holdConsumed = false;
+function startConfirm() {
+  if (holding) return;
+  holding = true;
+  holdConsumed = false;
+  holdTimer = setTimeout(()=>{
+    holdConsumed = true;
+    enqueue('/api/back',{}).catch(()=>{});
+  },700);
+}
+function releaseConfirm(cancel = false) {
+  if (!holding) return;
+  clearTimeout(holdTimer);
+  holding = false;
+  if (!cancel && !holdConsumed) press(1).catch(()=>{});
+}
+$('#confirm').addEventListener('pointerdown',event=>{
+  if (event.button !== 0) return;
+  $('#confirm').setPointerCapture(event.pointerId);
+  startConfirm();
+});
+$('#confirm').addEventListener('pointerup',event=>{
+  const box = $('#confirm').getBoundingClientRect();
+  releaseConfirm(event.clientX<box.left || event.clientX>box.right || event.clientY<box.top || event.clientY>box.bottom);
+});
+$('#confirm').addEventListener('pointercancel',()=>releaseConfirm(true));
+$('#confirm').addEventListener('click',event=>{if(event.detail===0) press(1).catch(()=>{});});
+window.addEventListener('blur',()=>releaseConfirm(true));
 $('#right').addEventListener('click',()=>{press(2).catch(()=>{});});
 $('#speed').addEventListener('change',event=>{enqueue('/api/speed',{speed:Number(event.target.value)}).catch(()=>{});});
 $('#skip').addEventListener('click',()=>{enqueue('/api/skip',{minutes:10}).catch(()=>{});});
@@ -185,14 +222,18 @@ $('#about-link').addEventListener('click',event=>{event.preventDefault();$('#abo
 document.addEventListener('keydown',event=>{
   const onDevice = event.target.closest('.buttons');
   if (event.repeat || $('#about').open || (!onDevice && event.target.closest('select,button,a,summary'))) return;
-  const button = {ArrowLeft:0,Enter:1,ArrowRight:2}[event.key];
+  if (event.key === 'Enter' || (event.key === ' ' && event.target.id === 'confirm')) {event.preventDefault();startConfirm();return;}
+  const button = {ArrowLeft:0,ArrowUp:0,ArrowRight:2,ArrowDown:2}[event.key];
   if (button !== undefined) { event.preventDefault(); press(button).catch(()=>{}); }
   if (event.key === 'f') {
     const operation = document.fullscreenElement ? document.exitFullscreen() : $('.device').requestFullscreen();
     operation.catch(report);
   }
 });
-window.render_game_to_text = () => JSON.stringify({coordinate_system:'240x320, origin top-left; x right, y down',connected,...state,selected_action:state?.screen===1?actions[state.selection]:null});
+document.addEventListener('keyup',event=>{
+  if ((event.key==='Enter' || event.key===' ') && holding) {event.preventDefault();releaseConfirm();}
+});
+window.render_game_to_text = () => JSON.stringify({coordinate_system:'240x320, origin top-left; x right, y down',connected,...state,selected_action:state?.screen===1?state.menu[state.selection].label:null});
 window.advanceTime = async (ms) => {
   await pending;
   if (state?.manual_clock) await enqueue('/api/advance',{ms:Math.min(60000,Math.round(ms))});
@@ -200,6 +241,15 @@ window.advanceTime = async (ms) => {
 };
 async function poll() {
   try { await enqueue('/api/state'); } catch { /* report() already presents failure. */ }
-  setTimeout(poll,state?.screen===3?60:400);
+  setTimeout(poll,[3,7].includes(state?.screen)?60:400);
 }
-draw(); poll();
+async function start() {
+  draw();
+  try {
+    const response = await fetch('/api/assets');
+    if (!response.ok) throw new Error('Grafiken konnten nicht geladen werden.');
+    assets = await response.json();
+    poll();
+  } catch (error) { report(error); }
+}
+start();

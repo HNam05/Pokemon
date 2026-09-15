@@ -2,10 +2,10 @@
 #include <cstdint>
 
 namespace pet {
-enum class Species : std::uint8_t { Egg, Eevee, Espeon, Umbreon };
-enum class Screen : std::uint8_t { Home, Menu, Stats, Game, Result };
+enum class Species : std::uint8_t { Egg, Eevee, Espeon, Umbreon, Psyduck };
+enum class Screen : std::uint8_t { Home, Menu, Stats, Game, Result, Starter, Guide, Memory };
 enum class Button : std::uint8_t { Left, Confirm, Right };
-enum class Action : std::uint8_t { Feed, Clean, Sleep, Medicine, Play, Stats, Evolve, Back };
+enum class Action : std::uint8_t { Feed, Clean, Sleep, Medicine, Play, Stats, Evolve, Back, Think, Guide };
 
 struct State {
     std::uint32_t age_minutes = 0;
@@ -24,6 +24,8 @@ struct State {
     Species species = Species::Egg;
     bool sleeping = false;
     bool sick = false;
+    Species starter = Species::Eevee;
+    bool starter_chosen = false;
 };
 
 struct MiniGame {
@@ -32,6 +34,10 @@ struct MiniGame {
     std::uint8_t target = 1;
     std::uint8_t round = 0;
     std::uint8_t score = 0;
+    std::uint8_t pattern[3]{};
+    std::uint8_t entered = 0;
+    bool recalling = false;
+    bool memory = false;
 };
 
 class Game {
@@ -42,21 +48,31 @@ public:
     std::uint8_t selection() const { return selection_; }
     const MiniGame& mini() const { return mini_; }
     const char* message() const { return message_; }
+    const char* care_hint() const;
+    static constexpr std::uint8_t menu_count = 10;
+    static constexpr std::uint8_t menu_rows = 5;
+    static Action menu_action(std::uint8_t index);
+    std::uint8_t menu_start() const;
+    const char* action_hint(Action action) const;
+    const char* blocked_reason(Action action) const;
     void advance(std::uint32_t real_ms, std::uint32_t speed = 1);
     void button(Button button);
+    void back();
     bool restore(const State& state);
     bool can_evolve() const;
     bool needs_attention() const;
     static bool valid(const State& state);
 private:
     State state_{};
-    Screen screen_ = Screen::Home;
+    Screen screen_ = Screen::Starter;
     std::uint8_t selection_ = 0;
     MiniGame mini_{};
     const char* message_ = "Ein Ei wartet auf dich.";
     void minute();
     void act(Action action);
     void next_round(bool caught);
+    void memory_pattern();
+    void finish_memory(bool success);
     std::uint32_t random();
 };
 const char* species_name(Species species);

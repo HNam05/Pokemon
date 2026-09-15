@@ -29,3 +29,18 @@ Original prompt: Ein eigenes Pokemon-Tamagotchi fuer ESP32 im aufklappbaren, 3D-
 5. Pixel-Sprites/Animationen verbessern und weitere Arten erst danach ergaenzen.
 
 Offen: echter ESP32-Build/Flash, Hardwaretests, CMake/MSVC und andere Betriebssysteme. MakerWorld-Inhalt blieb nicht auslesbar. Keine Bestellung, kein Gehaeusemodell und keine ungeprueften Pin-Zuordnungen erstellt.
+
+## 14.–15.09.2026 / OpenAI Codex / M2
+
+- Nutzerwunsch: universelle Seitentasten, vertikales Scrollen, Enton, persoenliche Texte fuer zwei Geschenkgeraete, witzige Spiele, Audio spaeter und geringe Speichernutzung.
+- Branch: codex/2026-09-14-enton-three-button-ux, aufgebaut auf cac3bc3.
+- Zehn Menueeintraege mit fuenf sichtbaren Zeilen, kontextabhaengige Tastenlegende, kurze Effekthinweise und Pflegehilfe. OK bestaetigt beim Loslassen; 700 ms Halten fuehrt einmal zurueck.
+- Startauswahl Evoli/Enton und eigenes 32x32-Enton-Pixelbild. Alle Sprite-Daten zentral in C++, 4 Bit pro Pixel/RGB565-Palette, insgesamt 908 Bytes.
+- Entons Denkpause als zweites kurzes Spiel mit drei Zeichen und drei Runden. Abbruch ohne Gewinn, normale Reaktionszeit auch im Zeitraffer.
+- Zwei lokale persoenliche Profile konfiguriert. Namen und Profildateien sind absichtlich nicht in Git. Neutraler Beispiel-Config und portable Anleitung fuer den zweiten Rechner.
+- V2-Spielstand 44 Byte, strikte Migration aus V1 mit erhaltener Art und Pflege. Der echte V1-Stand wurde vor dem Update lokal gesichert. Profile bleiben vom Save getrennt.
+- Gemessene Hostgroessen: Game 64 Byte (State 32 darin enthalten), Profile 25 Byte; keine Behauptung des gesamten ESP32-Verbrauchs.
+- Audio bleibt dokumentierte naechste Hardwareintegration, keine ungenutzten Audiodateien oder Schein-Treiber angelegt.
+- Abschlusspruefung: warning-clean Release-Build, 22.907 C++-Checks, 14 Python-Tests, Browser-Spielablaeufe fuer beide Starter und beide Minispiele bestanden. Long-OK per Tastatur und Maus, Scrollen, Profiltext, Vollbild und Mobilansicht geprueft. Keine Browserfehler. Screenshots kontrolliert; sie bleiben unter output/.
+
+Naechster Entwicklungsschritt: echtes Board festlegen und GPIO-/LCD-/NVS-Adapter integrieren. Danach Pixelanimationen und Sound. Pflegebalance durch Spielen im Alltag beurteilen. Die beiden persoenlichen Konfigurationsdateien muessen bei einem Rechnerwechsel lokal uebertragen oder neu angelegt werden.

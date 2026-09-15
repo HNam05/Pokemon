@@ -18,13 +18,14 @@ class DesktopTests(unittest.TestCase):
     def setUp(self):
         self.engine = server.Engine(server.find_library())
         self.addCleanup(self.engine.close)
+        self.engine.button(1)
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
         self.path = Path(self.directory.name) / 'pet.json'
 
     def test_independent_binary_contract(self):
-        expected = struct.pack('<4sHHIIIIHH10B', b'PET1', 1, 42, 0, 0, 0x50455431, 0,
-                               480, 0, 75, 70, 85, 90, 100, 20, 0, 0, 0, 0)
+        expected = struct.pack('<4sHHIIIIHH12B', b'PET1', 2, 44, 0, 0, 0x50455431, 0,
+                               480, 0, 75, 70, 85, 90, 100, 20, 0, 0, 0, 0, 1, 1)
         expected += struct.pack('<I', zlib.crc32(expected))
         self.assertEqual(self.engine.dump(), expected)
         self.engine.load(expected)
@@ -77,7 +78,7 @@ class DesktopTests(unittest.TestCase):
     def test_semantically_bad_save_with_valid_crc(self):
         bad = bytearray(self.engine.dump())
         bad[36] = 2  # sleeping bool
-        bad[38:] = struct.pack('<I', zlib.crc32(bad[:38]))
+        bad[40:] = struct.pack('<I', zlib.crc32(bad[:40]))
         original = self.engine.dump()
         with self.assertRaises(ValueError):
             self.engine.load(bad)
@@ -122,6 +123,40 @@ class DesktopTests(unittest.TestCase):
         with patch.object(server.time, 'monotonic', return_value=sim.last_tick + 600):
             sim.tick()
         self.assertEqual(self.engine.view()['age_minutes'], 10)
+
+    def test_v1_migration_preserves_care_and_evolution(self):
+        old = struct.pack('<4sHHIIIIHH10B', b'PET1', 1, 42, 1500, 12345, 0x50455431, 60,
+                          1234, 0, 75, 70, 85, 90, 100, 70, 0, 3, 0, 0)
+        old += struct.pack('<I', zlib.crc32(old))
+        self.engine.load(old)
+        view = self.engine.view()
+        self.assertEqual((view['species'], view['starter'], view['age_minutes'], view['experience']), (3, 1, 1500, 60))
+        self.assertTrue(view['starter_chosen'])
+        self.assertEqual(len(self.engine.dump()), 44)
+        self.assertEqual(self.engine.dump()[8:38], old[8:38])
+
+    def test_profiles_remain_separate_from_saves(self):
+        first = server.Engine(server.find_library(), 'Ada')
+        second = server.Engine(server.find_library(), 'Jörg')
+        self.addCleanup(first.close)
+        self.addCleanup(second.close)
+        second.button(2)
+        second.button(1)
+        second.advance(600000)
+        self.assertEqual(second.view()['name'], 'Enton')
+        self.assertEqual(first.view()['trainer_name'], 'Ada')
+        self.assertEqual(second.view()['trainer_name'], 'Jörg')
+        first.load(second.dump())
+        self.assertEqual(first.view()['trainer_name'], 'Ada')
+        with self.assertRaises(ValueError):
+            server.Engine(server.find_library(), 'x'*25)
+
+    def test_shared_sprite_assets_and_memory_budget(self):
+        assets = self.engine.assets()
+        self.assertEqual(assets['memory_bytes']['sprites'], 908)
+        self.assertLessEqual(assets['memory_bytes']['game'], 128)
+        duck = assets['sprites'][4]
+        self.assertEqual((duck['width'], duck['height'], len(duck['pixels'])), (32,32,1024))
 
 
 if __name__ == '__main__':

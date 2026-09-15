@@ -6,13 +6,16 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const output = path.join(root, 'output', 'browser');
+const starter = Number(process.env.PET_TEST_STARTER || 1);
+const output = path.join(root, 'output', starter === 4 ? 'browser-enton' : 'browser');
 await fs.mkdir(output, { recursive: true });
 const fixture = await fs.mkdtemp(path.join(output, 'fixture-'));
+const profile = path.join(fixture,'profile.json');
+await fs.writeFile(profile,JSON.stringify({trainer_name:'Ada'}));
 const port = Number(process.env.PET_TEST_PORT || 8877);
 const url = `http://127.0.0.1:${port}`;
 const processHandle = spawn(process.env.PYTHON || 'python', ['desktop/server.py', '--manual-clock',
-  '--port', String(port), '--save', path.join(fixture, 'pet.json')], { cwd: root, windowsHide: true });
+  '--port', String(port), '--save', path.join(fixture, 'pet.json'), '--profile', profile], { cwd: root, windowsHide: true });
 let logs = '';
 processHandle.stderr.on('data', chunk => { logs += chunk; });
 const browser = await chromium.launch({ headless: true });
@@ -41,13 +44,19 @@ try {
     const current = await state();
     if (current.screen === 2 || current.screen === 4) await key('Enter');
     if ((await state()).screen === 0) await key('Enter');
-    for (let attempt=0; (await state()).selection !== index && attempt < 8; attempt++) await key('ArrowRight');
+    for (let attempt=0; (await state()).selection !== index && attempt < 10; attempt++) await key('ArrowDown');
     assert.equal((await state()).selection, index);
     await key('Enter');
   }
+  assert.equal((await state()).screen,5);
+  if (starter === 4) await key('ArrowRight');
+  await page.screenshot({path:path.join(output,'00-starter.png'),fullPage:true});
+  assert.equal((await state()).starter,starter);
+  assert.equal((await page.locator('#pet-name').textContent()),'Ada.');
+  await key('Enter');
   await page.screenshot({ path: path.join(output, '01-egg-desktop.png'), fullPage: true });
   await page.locator('#skip').click();
-  await page.waitForFunction(() => JSON.parse(window.render_game_to_text()).species === 1);
+  await page.waitForFunction(expected => JSON.parse(window.render_game_to_text()).species === expected,starter);
   await page.locator('#screen').focus();
   assert.equal((await state()).age_minutes, 10);
   await page.screenshot({ path: path.join(output, '02-evoli-desktop.png'), fullPage: true });
@@ -64,7 +73,9 @@ try {
   await key('Enter');
   await page.screenshot({ path: path.join(output, '03-menu.png'), fullPage: true });
   await key('ArrowLeft');
-  assert.equal((await state()).selection, 7, 'menu wraps left');
+  assert.equal((await state()).selection, 9, 'menu wraps left');
+  assert.equal((await state()).menu_start,5,'menu scrolls to last entry');
+  await page.screenshot({path:path.join(output,'09-menu-scrolled.png'),fullPage:true});
   await key('Enter'); await waitFor(0);
   await key('ArrowRight'); await waitFor(2);
   await page.screenshot({ path: path.join(output, '04-stats.png'), fullPage: true });
@@ -92,6 +103,34 @@ try {
   assert.equal((await state()).friendship, 30);
   await page.screenshot({ path: path.join(output, '06-result.png'), fullPage: true });
   await key('Enter');
+  await menu(5); await waitFor(7);
+  await page.screenshot({path:path.join(output,'10-memory-playback.png'),fullPage:true});
+  for (let round=0;round<3;round++) {
+    await page.evaluate(()=>window.advanceTime(2400));
+    const s = await state();
+    assert.equal(s.mini.recalling,true);
+    if (round===0) await page.screenshot({path:path.join(output,'11-memory-recall.png'),fullPage:true});
+    for (const symbol of s.mini.pattern) await key(['ArrowLeft','Enter','ArrowRight'][symbol]);
+  }
+  await waitFor(4);
+  assert.equal((await state()).experience,24);
+  assert.equal((await state()).friendship,36);
+  await key('Enter');
+  await menu(8); await waitFor(6);
+  await page.screenshot({path:path.join(output,'12-care-guide.png'),fullPage:true});
+  async function holdOK() {
+    await page.keyboard.down('Enter');
+    await page.waitForTimeout(800);
+    await page.keyboard.up('Enter');
+    await page.evaluate(()=>window.advanceTime(0));
+  }
+  await holdOK(); await waitFor(1);
+  assert.equal((await state()).selection,8,'long OK preserves parent menu selection');
+  await holdOK(); await waitFor(0);
+  await menu(5); await waitFor(7);
+  const experience = (await state()).experience;
+  await holdOK(); await waitFor(0);
+  assert.equal((await state()).experience,experience,'cancel grants no reward');
   await page.locator('#speed').selectOption('0');
   await page.waitForFunction(() => JSON.parse(window.render_game_to_text()).speed === 0);
   const age = (await state()).age_minutes;
@@ -104,8 +143,8 @@ try {
   await page.locator('#save').click();
   await page.waitForFunction(() => document.querySelector('#save-status').textContent.startsWith('Gespeichert'));
   await page.reload();
-  await page.waitForFunction(() => JSON.parse(window.render_game_to_text()).species === 1);
-  assert.equal((await state()).experience, 15);
+  await page.waitForFunction(expected => JSON.parse(window.render_game_to_text()).species === expected,starter);
+  assert.equal((await state()).experience, 24);
   await page.setViewportSize({width:390,height:844});
   await page.screenshot({path:path.join(output,'07-mobile.png'),fullPage:true});
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no mobile overflow');
@@ -113,7 +152,14 @@ try {
   await waitFor(1);
   // Keyboard navigation continues after clicking a device button.
   await key('ArrowRight');
-  assert.equal((await state()).selection, 5);
+  assert.equal((await state()).selection, 6);
+  const box = await page.locator('#confirm').boundingBox();
+  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+  await page.mouse.down();
+  await page.waitForTimeout(800);
+  await page.mouse.up();
+  await page.evaluate(()=>window.advanceTime(0));
+  assert.equal((await state()).screen,0,'pointer long OK does not also send a short OK');
   await page.locator('#about-link').click();
   assert.equal(await page.locator('#about').evaluate(dialog=>dialog.open),true);
   await page.getByRole('button',{name:'Schließen'}).click();

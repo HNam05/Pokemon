@@ -13,7 +13,7 @@ WEB = ROOT / 'desktop' / 'web'
 
 
 class Engine:
-    def __init__(self, library):
+    def __init__(self, library, trainer_name=''):
         self.lib = ctypes.CDLL(str(library))
         pointer = ctypes.c_void_p
         byte_pointer = ctypes.POINTER(ctypes.c_uint8)
@@ -25,13 +25,28 @@ class Engine:
             'pp_button': ([pointer, ctypes.c_int], ctypes.c_bool),
             'pp_save': ([pointer, byte_pointer, ctypes.c_size_t], ctypes.c_size_t),
             'pp_load': ([pointer, byte_pointer, ctypes.c_size_t], ctypes.c_bool),
+            'pp_set_name': ([pointer, ctypes.c_char_p, ctypes.c_size_t], ctypes.c_bool),
+            'pp_name': ([pointer], ctypes.c_char_p),
+            'pp_back': ([pointer], None),
+            'pp_menu_count': ([], ctypes.c_uint),
+            'pp_menu_label': ([ctypes.c_uint], ctypes.c_char_p),
+            'pp_menu_hint': ([pointer, ctypes.c_uint], ctypes.c_char_p),
+            'pp_menu_enabled': ([pointer, ctypes.c_uint], ctypes.c_bool),
+            'pp_care_hint': ([pointer], ctypes.c_char_p),
+            'pp_sprite_size': ([ctypes.c_uint, ctypes.c_bool], ctypes.c_uint),
+            'pp_sprite_pixel': ([ctypes.c_uint, ctypes.c_uint, ctypes.c_uint], ctypes.c_uint),
+            'pp_memory_bytes': ([ctypes.c_uint], ctypes.c_uint),
         }
         for name, (arguments, result) in declarations.items():
             method = getattr(self.lib, name)
             method.argtypes, method.restype = arguments, result
+        encoded = trainer_name.encode('utf-8')
         self.handle = self.lib.pp_create()
         if not self.handle:
             raise MemoryError('C++-Spielkern konnte nicht angelegt werden.')
+        if not self.lib.pp_set_name(self.handle, encoded, len(encoded)):
+            self.close()
+            raise ValueError('Name: maximal 24 UTF-8-Bytes, keine Steuerzeichen.')
 
     def close(self):
         if self.handle:
@@ -39,7 +54,24 @@ class Engine:
             self.handle = None
 
     def view(self):
-        return json.loads(self.lib.pp_view(self.handle))
+        result = json.loads(self.lib.pp_view(self.handle))
+        result['trainer_name'] = self.lib.pp_name(self.handle).decode('utf-8')
+        result['care_hint'] = self.lib.pp_care_hint(self.handle).decode('utf-8')
+        result['menu'] = [{'label': self.lib.pp_menu_label(i).decode('utf-8'),
+                           'hint': self.lib.pp_menu_hint(self.handle, i).decode('utf-8'),
+                           'enabled': self.lib.pp_menu_enabled(self.handle, i)}
+                          for i in range(self.lib.pp_menu_count())]
+        return result
+
+    def assets(self):
+        sprites = []
+        for species in range(5):
+            width = self.lib.pp_sprite_size(species, False)
+            height = self.lib.pp_sprite_size(species, True)
+            pixels = [self.lib.pp_sprite_pixel(species, x, y) for y in range(height) for x in range(width)]
+            sprites.append({'width': width, 'height': height, 'pixels': pixels})
+        return {'sprites': sprites, 'memory_bytes': dict(zip(('game', 'state', 'profile', 'sprites'),
+                (self.lib.pp_memory_bytes(i) for i in range(4))))}
 
     def advance(self, milliseconds, speed=1):
         while milliseconds > 0:
@@ -52,9 +84,9 @@ class Engine:
             raise ValueError('Ungueltige Taste.')
 
     def dump(self):
-        buffer = (ctypes.c_uint8 * 42)()
+        buffer = (ctypes.c_uint8 * 44)()
         size = self.lib.pp_save(self.handle, buffer, len(buffer))
-        if size != 42:
+        if size != 44:
             raise RuntimeError('Spielstand konnte nicht kodiert werden.')
         return bytes(buffer)
 
@@ -79,7 +111,7 @@ class Simulator:
             timestamp = data.get('saved_at')
             if type(timestamp) is not int or not 0 <= timestamp <= 253402300799:
                 raise ValueError('Ungueltiger Speicherzeitpunkt.')
-            if not isinstance(data.get('payload'), str) or len(data['payload']) != 84:
+            if not isinstance(data.get('payload'), str) or len(data['payload']) not in (84, 88):
                 raise ValueError('Ungueltige Spielstanddaten.')
             engine.load(bytes.fromhex(data['payload']))
             # Clock rollback never subtracts age; offline care is capped at 8 hours.
@@ -122,6 +154,7 @@ class Simulator:
 
 
 def handler_for(simulator, port):
+    assets = simulator.engine.assets()
     allowed_hosts = {f'127.0.0.1:{port}', f'localhost:{port}'}
     allowed_origins = {f'http://{host}' for host in allowed_hosts}
 
@@ -155,6 +188,9 @@ def handler_for(simulator, port):
             if self.path == '/api/state':
                 self.send_body(200, simulator.view())
                 return
+            if self.path == '/api/assets':
+                self.send_body(200, assets)
+                return
             files = {'/': ('index.html', 'text/html; charset=utf-8'),
                      '/app.js': ('app.js', 'text/javascript; charset=utf-8'),
                      '/style.css': ('style.css', 'text/css; charset=utf-8')}
@@ -187,6 +223,9 @@ def handler_for(simulator, port):
                         raise ValueError('Taste muss 0, 1 oder 2 sein.')
                     simulator.engine.button(button)
                     simulator.save()
+                elif self.path == '/api/back':
+                    simulator.engine.lib.pp_back(simulator.engine.handle)
+                    simulator.save()
                 elif self.path == '/api/speed':
                     speed = data.get('speed')
                     if type(speed) is not int or speed not in (0, 1, 60, 3600):
@@ -201,7 +240,7 @@ def handler_for(simulator, port):
                     minutes = data.get('minutes')
                     if type(minutes) is not int or minutes not in (10, 60):
                         raise ValueError('Nur 10 oder 60 Minuten erlaubt.')
-                    if simulator.engine.view()['screen'] == 3:
+                    if simulator.engine.view()['screen'] in (3, 7):
                         raise ValueError('Zeitsprung erst nach dem Minispiel.')
                     simulator.engine.advance(minutes * 60000)
                     simulator.save()
@@ -266,10 +305,24 @@ def find_library():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port', type=int, default=8765)
-    parser.add_argument('--save', type=Path, default=ROOT / 'saves' / 'pet.json')
+    parser.add_argument('--save', type=Path)
+    parser.add_argument('--profile', type=Path, help='Lokale JSON-Konfiguration mit trainer_name')
     parser.add_argument('--manual-clock', action='store_true', help='Deterministische Testuhr')
     args = parser.parse_args()
-    engine = Engine(find_library())
+    if not 1 <= args.port <= 65535:
+        raise ValueError('Port muss zwischen 1 und 65535 liegen.')
+    name = ''
+    if args.profile:
+        if args.profile.stat().st_size > 1024:
+            raise ValueError('Profildatei ist zu gross.')
+        profile = json.loads(args.profile.read_text(encoding='utf-8'))
+        if not isinstance(profile, dict) or set(profile) != {'trainer_name'} or not isinstance(profile['trainer_name'], str):
+            raise ValueError('Profil erwartet nur trainer_name als Text.')
+        name = profile['trainer_name']
+    if args.save is None:
+        save_name = args.profile.stem if args.profile else 'pet'
+        args.save = ROOT / 'saves' / f'{save_name}.json'
+    engine = Engine(find_library(), name)
     try:
         with SaveLock(args.save.resolve()):
             simulator = Simulator(engine, args.save.resolve(), args.manual_clock)
