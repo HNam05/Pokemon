@@ -5,6 +5,7 @@
 
 namespace pet {
 namespace {
+#include "forest_scene.inc"
 // Authored here. Each hex digit is a palette index; zero is transparent.
 // Packing happens at compile time: two pixels per byte, no heap or decoder buffer.
 template<std::size_t N>
@@ -149,4 +150,6 @@ Sprite authored_pose(Species species, Motion motion, unsigned frame) {
 std::size_t authored_pose_bytes() {
     return sizeof(duck_blink)+sizeof(duck_sleep)+sizeof(duck_happy)+sizeof(duck_eat)+sizeof(duck_step_left)+sizeof(duck_step_right)+sizeof(duck_look);
 }
+Sprite forest_scene(bool night) { return {forest_pixels,night?forest_night:forest_day,240,178,16,4}; }
+std::size_t scene_storage_bytes() { return sizeof(forest_pixels)+sizeof(forest_day)+sizeof(forest_night); }
 }

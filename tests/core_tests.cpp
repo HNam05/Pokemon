@@ -268,14 +268,27 @@ int main() {
                     check(pixel<frame.sprite.colors,"catalog palette bounds");
                 }
                 check(visible,"catalog frame visible");
-                int extra=species==Species::Eevee && m==2 ? (-15-frame.y)*2 : 0;
-                check(species_anchor(species)+frame.y*static_cast<int>(species_scale(species))+extra>=34 &&
-                    species_anchor(species)+(frame.y+frame.sprite.height)*static_cast<int>(species_scale(species))+extra<=212,"all catalog frames fit landscape");
+                for(const bool flip:{false,true}) for(const int travel:{-24,0,24}) {
+                    const auto pos=place_frame(species,{static_cast<Motion>(m),static_cast<std::uint8_t>(f),static_cast<std::int8_t>(travel),-10,flip});
+                    check(pos.x>=8 && pos.x+frame.sprite.width*pos.scale<=232 &&
+                        pos.y>=42 && pos.y+frame.sprite.height*pos.scale<=210,"enlarged frames fit at both travel extremes and mirrored");
+                }
             }
         }
         check(!species_valid(static_cast<Species>(255)) && !starter_valid(Species::Egg),"unknown species rejected");
         auto invalid=hatched();invalid.starter=starter_at(2);
         check(!Game::valid(invalid),"unrelated species ancestry rejected");
+        check(species_scale(Species::Eevee)==5 && species_scale(Species::Psyduck)==4,"original companions visibly larger");
+        const auto day=forest_scene(false),night=forest_scene(true);
+        check(day.width==240 && day.height==178 && day.pixels==night.pixels,"day and night share scene pixels");
+        check(scene_storage_bytes()==21424,"scene budget includes both palettes");
+        unsigned changed=0;
+        for(unsigned y=0;y<day.height;++y) for(unsigned x=0;x<day.width;++x) {
+            const auto index=day.at(x,y);
+            check(index<day.colors,"scene palette index in bounds");
+            changed+=day.palette[index]!=night.palette[index];
+        }
+        check(changed==240*178,"night palette changes entire scene");
     }
     // Long, deterministic adversarial sequence: invariants hold through care and time jumps.
     game.restore(hatched());

@@ -207,6 +207,22 @@ class DesktopTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.engine.assets(255)
         self.assertEqual(self.engine.lib.pp_frame_info(256,0,0,0),0)
 
+    def test_scene_and_enlarged_placement(self):
+        assets=self.engine.assets()
+        self.assertEqual(assets['scene_bytes'],21424)
+        self.assertEqual(len(assets['scenes']),2)
+        for scene in assets['scenes']:
+            self.assertEqual((scene['width'],scene['height']),(240,178))
+            self.assertEqual(len(scene['pixels']),240*178)
+            self.assertTrue(all(0<=p<65536 for p in scene['pixels']))
+        self.assertNotEqual(assets['scenes'][0]['pixels'],assets['scenes'][1]['pixels'])
+        self.assertEqual(self.engine.assets(127)['scenes'],[])
+        self.assertEqual(self.engine.lib.pp_scene_pixel(False,240,0),65536)
+        self.engine.advance(60000,10)
+        a=self.engine.view()['animation']
+        self.assertEqual(a['scale'],5)
+        self.assertGreaterEqual(a['draw_y'],42)
+
 
 if __name__ == '__main__':
     unittest.main()

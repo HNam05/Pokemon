@@ -84,8 +84,8 @@
       "pixel_bytes": 3875,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 4,
-      "anchor_y": 152
+      "scale": 5,
+      "anchor_y": 160
     },
     {
       "path": "0037/0001",
@@ -167,8 +167,8 @@
       "pixel_bytes": 3182,
       "bits": 4,
       "artist_names": "NeroIntruder, baronessfaron",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 158
     },
     {
       "path": "0037/0003",
@@ -249,8 +249,8 @@
       "pixel_bytes": 3176,
       "bits": 4,
       "artist_names": "EeveeandVulpix2000",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 158
     },
     {
       "path": "0077/0001",
@@ -333,8 +333,8 @@
       "pixel_bytes": 3060,
       "bits": 4,
       "artist_names": "◥θ┴θ◤, baronessfaron, Jhony-Rex",
-      "scale": 2,
-      "anchor_y": 158
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0077/0002",
@@ -415,8 +415,8 @@
       "pixel_bytes": 3957,
       "bits": 4,
       "artist_names": "JFain",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0083/0001",
@@ -497,8 +497,8 @@
       "pixel_bytes": 5063,
       "bits": 4,
       "artist_names": "JFain",
-      "scale": 2,
-      "anchor_y": 147
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0100/0001",
@@ -579,8 +579,8 @@
       "pixel_bytes": 2556,
       "bits": 4,
       "artist_names": "Axcel",
-      "scale": 3,
-      "anchor_y": 161
+      "scale": 4,
+      "anchor_y": 170
     },
     {
       "path": "0215/0001",
@@ -661,8 +661,8 @@
       "pixel_bytes": 6164,
       "bits": 4,
       "artist_names": "ShyStarryRain",
-      "scale": 2,
-      "anchor_y": 159
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0258/0001",
@@ -743,8 +743,8 @@
       "pixel_bytes": 2724,
       "bits": 4,
       "artist_names": "Gust",
-      "scale": 3,
-      "anchor_y": 160
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0300/0001",
@@ -825,8 +825,8 @@
       "pixel_bytes": 4509,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 156
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0448/0003",
@@ -907,8 +907,8 @@
       "pixel_bytes": 5379,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 156
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0495",
@@ -990,8 +990,8 @@
       "pixel_bytes": 3144,
       "bits": 4,
       "artist_names": "NeroIntruder, G〜",
-      "scale": 3,
-      "anchor_y": 155
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0501",
@@ -1073,7 +1073,7 @@
       "pixel_bytes": 2701,
       "bits": 4,
       "artist_names": "◥θ┴θ◤, Emmuffin",
-      "scale": 3,
+      "scale": 4,
       "anchor_y": 170
     },
     {
@@ -1155,8 +1155,8 @@
       "pixel_bytes": 2716,
       "bits": 4,
       "artist_names": "baronessfaron",
-      "scale": 3,
-      "anchor_y": 161
+      "scale": 4,
+      "anchor_y": 162
     },
     {
       "path": "0548",
@@ -1237,8 +1237,8 @@
       "pixel_bytes": 2412,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 3,
-      "anchor_y": 178
+      "scale": 4,
+      "anchor_y": 170
     },
     {
       "path": "0568",
@@ -1320,7 +1320,7 @@
       "pixel_bytes": 4272,
       "bits": 4,
       "artist_names": "cyboy_bit, powercristal",
-      "scale": 3,
+      "scale": 4,
       "anchor_y": 166
     },
     {
@@ -1402,8 +1402,8 @@
       "pixel_bytes": 3999,
       "bits": 4,
       "artist_names": "Ichor",
-      "scale": 2,
-      "anchor_y": 151
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0585",
@@ -1484,8 +1484,8 @@
       "pixel_bytes": 3561,
       "bits": 4,
       "artist_names": "baronessfaron",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0585/0001",
@@ -1567,8 +1567,8 @@
       "pixel_bytes": 3561,
       "bits": 4,
       "artist_names": "Emmuffin, baronessfaron",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0585/0002",
@@ -1650,8 +1650,8 @@
       "pixel_bytes": 3561,
       "bits": 4,
       "artist_names": "Emmuffin, baronessfaron",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0585/0003",
@@ -1733,8 +1733,8 @@
       "pixel_bytes": 3561,
       "bits": 4,
       "artist_names": "Emmuffin, baronessfaron",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0587",
@@ -1816,8 +1816,8 @@
       "pixel_bytes": 3261,
       "bits": 4,
       "artist_names": "baronessfaron, JFain",
-      "scale": 3,
-      "anchor_y": 175
+      "scale": 4,
+      "anchor_y": 174
     },
     {
       "path": "0619",
@@ -1898,8 +1898,8 @@
       "pixel_bytes": 3549,
       "bits": 4,
       "artist_names": "JFain",
-      "scale": 2,
-      "anchor_y": 149
+      "scale": 3,
+      "anchor_y": 175
     },
     {
       "path": "0625",
@@ -1980,8 +1980,8 @@
       "pixel_bytes": 4436,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 162
+      "scale": 3,
+      "anchor_y": 169
     },
     {
       "path": "0653",
@@ -2064,8 +2064,8 @@
       "pixel_bytes": 4036,
       "bits": 4,
       "artist_names": "Smalusion, Emmuffin, XModxGodX",
-      "scale": 3,
-      "anchor_y": 157
+      "scale": 4,
+      "anchor_y": 154
     },
     {
       "path": "0656",
@@ -2146,8 +2146,8 @@
       "pixel_bytes": 1932,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 3,
-      "anchor_y": 166
+      "scale": 4,
+      "anchor_y": 170
     },
     {
       "path": "0667",
@@ -2228,8 +2228,8 @@
       "pixel_bytes": 2679,
       "bits": 4,
       "artist_names": "Caitemis",
-      "scale": 2,
-      "anchor_y": 150
+      "scale": 3,
+      "anchor_y": 169
     },
     {
       "path": "0672",
@@ -2311,8 +2311,8 @@
       "pixel_bytes": 3191,
       "bits": 4,
       "artist_names": "TawnySoup, Emmuffin",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 163
     },
     {
       "path": "0677",
@@ -2393,8 +2393,8 @@
       "pixel_bytes": 2988,
       "bits": 4,
       "artist_names": "NeroIntruder",
-      "scale": 3,
-      "anchor_y": 170
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0719",
@@ -2475,8 +2475,8 @@
       "pixel_bytes": 3999,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 161
+      "scale": 3,
+      "anchor_y": 181
     },
     {
       "path": "0722",
@@ -2558,8 +2558,8 @@
       "pixel_bytes": 3554,
       "bits": 4,
       "artist_names": "Emmuffin, Reimu\\_needs\\_$$$",
-      "scale": 3,
-      "anchor_y": 167
+      "scale": 4,
+      "anchor_y": 170
     },
     {
       "path": "0725",
@@ -2640,8 +2640,8 @@
       "pixel_bytes": 2325,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 162
     },
     {
       "path": "0744",
@@ -2723,8 +2723,8 @@
       "pixel_bytes": 2985,
       "bits": 4,
       "artist_names": "baronessfaron, JFain",
-      "scale": 2,
-      "anchor_y": 153
+      "scale": 3,
+      "anchor_y": 169
     },
     {
       "path": "0753",
@@ -2805,8 +2805,8 @@
       "pixel_bytes": 3094,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0786",
@@ -2887,8 +2887,8 @@
       "pixel_bytes": 4299,
       "bits": 4,
       "artist_names": "baronessfaron",
-      "scale": 2,
-      "anchor_y": 164
+      "scale": 3,
+      "anchor_y": 181
     },
     {
       "path": "0802/0001",
@@ -2969,8 +2969,8 @@
       "pixel_bytes": 3155,
       "bits": 4,
       "artist_names": "JFain",
-      "scale": 3,
-      "anchor_y": 172
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0831",
@@ -3052,8 +3052,8 @@
       "pixel_bytes": 2877,
       "bits": 4,
       "artist_names": "Emmuffin, JFain",
-      "scale": 2,
-      "anchor_y": 149
+      "scale": 3,
+      "anchor_y": 169
     },
     {
       "path": "0840",
@@ -3135,8 +3135,8 @@
       "pixel_bytes": 1916,
       "bits": 4,
       "artist_names": "Emmuffin, JFain",
-      "scale": 3,
-      "anchor_y": 161
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0019/0003",
@@ -3217,8 +3217,8 @@
       "pixel_bytes": 3092,
       "bits": 4,
       "artist_names": "JFain",
-      "scale": 2,
-      "anchor_y": 147
+      "scale": 3,
+      "anchor_y": 169
     },
     {
       "path": "0025/0007",
@@ -3300,8 +3300,8 @@
       "pixel_bytes": 4566,
       "bits": 4,
       "artist_names": "◥θ┴θ◤",
-      "scale": 2,
-      "anchor_y": 157
+      "scale": 3,
+      "anchor_y": 175
     },
     {
       "path": "0027/0001",
@@ -3383,8 +3383,8 @@
       "pixel_bytes": 3363,
       "bits": 4,
       "artist_names": "Top_Kec, baronessfaron",
-      "scale": 3,
-      "anchor_y": 170
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0052/0001",
@@ -3466,8 +3466,8 @@
       "pixel_bytes": 3741,
       "bits": 4,
       "artist_names": "ShyStarryRain",
-      "scale": 2,
-      "anchor_y": 153
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0058/0001",
@@ -3548,8 +3548,8 @@
       "pixel_bytes": 4922,
       "bits": 4,
       "artist_names": "baronessfaron",
-      "scale": 2,
-      "anchor_y": 157
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0151/0001",
@@ -3632,8 +3632,8 @@
       "pixel_bytes": 4153,
       "bits": 4,
       "artist_names": "Some_Shinx, Gust",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 184
     },
     {
       "path": "0172/0001",
@@ -3717,8 +3717,8 @@
       "pixel_bytes": 4158,
       "bits": 4,
       "artist_names": "◥θ┴θ◤, Spikey-Valentine",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 175
     },
     {
       "path": "0194/0002",
@@ -3799,8 +3799,8 @@
       "pixel_bytes": 3868,
       "bits": 4,
       "artist_names": "Uni",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0231/0001",
@@ -3881,8 +3881,8 @@
       "pixel_bytes": 3188,
       "bits": 4,
       "artist_names": "G〜",
-      "scale": 3,
-      "anchor_y": 160
+      "scale": 4,
+      "anchor_y": 162
     },
     {
       "path": "0246/0001",
@@ -3963,8 +3963,8 @@
       "pixel_bytes": 3318,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 3,
-      "anchor_y": 169
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0303/0001",
@@ -4045,8 +4045,8 @@
       "pixel_bytes": 12374,
       "bits": 4,
       "artist_names": "baronessfaron",
-      "scale": 2,
-      "anchor_y": 157
+      "scale": 3,
+      "anchor_y": 163
     },
     {
       "path": "0359/0004",
@@ -4129,8 +4129,8 @@
       "pixel_bytes": 5397,
       "bits": 4,
       "artist_names": "Deeshura, Top_Kec",
-      "scale": 2,
-      "anchor_y": 159
+      "scale": 3,
+      "anchor_y": 157
     },
     {
       "path": "0431/0001",
@@ -4212,8 +4212,8 @@
       "pixel_bytes": 3083,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 154
+      "scale": 3,
+      "anchor_y": 160
     },
     {
       "path": "0493",
@@ -4297,8 +4297,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, JFain",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0001",
@@ -4383,8 +4383,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, Emmuffin, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0002",
@@ -4468,8 +4468,8 @@
       "pixel_bytes": 15399,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0003",
@@ -4553,8 +4553,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0004",
@@ -4638,8 +4638,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0005",
@@ -4723,8 +4723,8 @@
       "pixel_bytes": 15399,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0006",
@@ -4808,8 +4808,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0007",
@@ -4893,8 +4893,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0008",
@@ -4978,8 +4978,8 @@
       "pixel_bytes": 15399,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0009",
@@ -5063,8 +5063,8 @@
       "pixel_bytes": 15399,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0010",
@@ -5148,8 +5148,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0011",
@@ -5233,8 +5233,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0012",
@@ -5318,8 +5318,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0013",
@@ -5403,8 +5403,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0014",
@@ -5488,8 +5488,8 @@
       "pixel_bytes": 15399,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0015",
@@ -5573,8 +5573,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0016",
@@ -5658,8 +5658,8 @@
       "pixel_bytes": 15397,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0017",
@@ -5743,8 +5743,8 @@
       "pixel_bytes": 15401,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0493/0018",
@@ -5828,8 +5828,8 @@
       "pixel_bytes": 15399,
       "bits": 4,
       "artist_names": "Emboarger, baronessfaron, Morei",
-      "scale": 1,
-      "anchor_y": 152
+      "scale": 2,
+      "anchor_y": 180
     },
     {
       "path": "0498",
@@ -5914,8 +5914,8 @@
       "pixel_bytes": 2548,
       "bits": 4,
       "artist_names": "3P1C, Emboarger, NeroIntruder, NikolaP",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 162
     },
     {
       "path": "0498/0001",
@@ -5996,8 +5996,8 @@
       "pixel_bytes": 2546,
       "bits": 4,
       "artist_names": "3P1C",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 162
     },
     {
       "path": "0549",
@@ -6082,8 +6082,8 @@
       "pixel_bytes": 3692,
       "bits": 4,
       "artist_names": "G〜, baronessfaron, metalbear, powercristal",
-      "scale": 2,
-      "anchor_y": 158
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0557",
@@ -6165,8 +6165,8 @@
       "pixel_bytes": 2845,
       "bits": 4,
       "artist_names": "Pink_no_tori, Leif",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 158
     },
     {
       "path": "0570",
@@ -6249,8 +6249,8 @@
       "pixel_bytes": 2692,
       "bits": 4,
       "artist_names": "Emmuffin, baronessfaron",
-      "scale": 3,
-      "anchor_y": 163
+      "scale": 4,
+      "anchor_y": 162
     },
     {
       "path": "0572",
@@ -6333,8 +6333,8 @@
       "pixel_bytes": 4377,
       "bits": 4,
       "artist_names": "baronessfaron, powercristal",
-      "scale": 2,
-      "anchor_y": 152
+      "scale": 3,
+      "anchor_y": 175
     },
     {
       "path": "0577",
@@ -6417,8 +6417,8 @@
       "pixel_bytes": 1718,
       "bits": 4,
       "artist_names": "◥θ┴θ◤, Uni",
-      "scale": 3,
-      "anchor_y": 172
+      "scale": 4,
+      "anchor_y": 190
     },
     {
       "path": "0582",
@@ -6501,8 +6501,8 @@
       "pixel_bytes": 1946,
       "bits": 4,
       "artist_names": "baronessfaron, JFain",
-      "scale": 3,
-      "anchor_y": 169
+      "scale": 4,
+      "anchor_y": 170
     },
     {
       "path": "0605",
@@ -6585,8 +6585,8 @@
       "pixel_bytes": 2939,
       "bits": 4,
       "artist_names": "Soulja, Limomon",
-      "scale": 2,
-      "anchor_y": 163
+      "scale": 3,
+      "anchor_y": 187
     },
     {
       "path": "0610",
@@ -6671,8 +6671,8 @@
       "pixel_bytes": 4335,
       "bits": 4,
       "artist_names": "G〜, FrivolousAqua, baronessfaron, JFain",
-      "scale": 2,
-      "anchor_y": 155
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0622",
@@ -6753,8 +6753,8 @@
       "pixel_bytes": 5940,
       "bits": 4,
       "artist_names": "Soulja",
-      "scale": 2,
-      "anchor_y": 159
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0627",
@@ -6836,8 +6836,8 @@
       "pixel_bytes": 3803,
       "bits": 4,
       "artist_names": "◥θ┴θ◤, baronessfaron",
-      "scale": 2,
-      "anchor_y": 157
+      "scale": 3,
+      "anchor_y": 169
     },
     {
       "path": "0633",
@@ -6921,8 +6921,8 @@
       "pixel_bytes": 2755,
       "bits": 4,
       "artist_names": "Emboarger, Uni, Jhony-Rex",
-      "scale": 3,
-      "anchor_y": 170
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0643",
@@ -7004,8 +7004,8 @@
       "pixel_bytes": 35985,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 1,
-      "anchor_y": 150
+      "scale": 2,
+      "anchor_y": 174
     },
     {
       "path": "0648",
@@ -7088,8 +7088,8 @@
       "pixel_bytes": 3688,
       "bits": 4,
       "artist_names": "Ariakyu, baronessfaron",
-      "scale": 3,
-      "anchor_y": 175
+      "scale": 4,
+      "anchor_y": 170
     },
     {
       "path": "0650",
@@ -7173,8 +7173,8 @@
       "pixel_bytes": 3054,
       "bits": 4,
       "artist_names": "G〜, Emmuffin",
-      "scale": 3,
-      "anchor_y": 170
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0654",
@@ -7257,8 +7257,8 @@
       "pixel_bytes": 5474,
       "bits": 4,
       "artist_names": "Emmuffin, baronessfaron",
-      "scale": 2,
-      "anchor_y": 160
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0662",
@@ -7340,8 +7340,8 @@
       "pixel_bytes": 3835,
       "bits": 4,
       "artist_names": "Soulja, Emmuffin",
-      "scale": 2,
-      "anchor_y": 156
+      "scale": 3,
+      "anchor_y": 175
     },
     {
       "path": "0678",
@@ -7425,8 +7425,8 @@
       "pixel_bytes": 4130,
       "bits": 4,
       "artist_names": "NeroIntruder, Emmuffin",
-      "scale": 2,
-      "anchor_y": 154
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0679",
@@ -7511,8 +7511,8 @@
       "pixel_bytes": 3350,
       "bits": 4,
       "artist_names": "G〜, Emmuffin, JFain",
-      "scale": 2,
-      "anchor_y": 162
+      "scale": 3,
+      "anchor_y": 178
     },
     {
       "path": "0684",
@@ -7595,8 +7595,8 @@
       "pixel_bytes": 3127,
       "bits": 4,
       "artist_names": "mixy:3, baronessfaron",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 162
     },
     {
       "path": "0694",
@@ -7679,8 +7679,8 @@
       "pixel_bytes": 3154,
       "bits": 4,
       "artist_names": "Emmuffin, Leif",
-      "scale": 3,
-      "anchor_y": 169
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0714",
@@ -7765,8 +7765,8 @@
       "pixel_bytes": 6290,
       "bits": 4,
       "artist_names": "Emboarger, G〜, baronessfaron, JFain",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 175
     },
     {
       "path": "0742",
@@ -7850,8 +7850,8 @@
       "pixel_bytes": 2567,
       "bits": 4,
       "artist_names": "Emmuffin, Mitsubachi, baronessfaron",
-      "scale": 2,
-      "anchor_y": 161
+      "scale": 3,
+      "anchor_y": 190
     },
     {
       "path": "0745",
@@ -7936,8 +7936,8 @@
       "pixel_bytes": 6482,
       "bits": 4,
       "artist_names": "Emmuffin, baronessfaron, JFain",
-      "scale": 2,
-      "anchor_y": 157
+      "scale": 3,
+      "anchor_y": 163
     },
     {
       "path": "0745/0002",
@@ -8018,8 +8018,8 @@
       "pixel_bytes": 6559,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 159
+      "scale": 3,
+      "anchor_y": 163
     },
     {
       "path": "0772",
@@ -8101,8 +8101,8 @@
       "pixel_bytes": 4213,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 160
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773",
@@ -8184,8 +8184,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0001",
@@ -8268,8 +8268,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Emboarger, Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0002",
@@ -8351,8 +8351,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0003",
@@ -8434,8 +8434,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0004",
@@ -8517,8 +8517,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0005",
@@ -8600,8 +8600,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0006",
@@ -8683,8 +8683,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0007",
@@ -8766,8 +8766,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0008",
@@ -8849,8 +8849,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0009",
@@ -8932,8 +8932,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0010",
@@ -9015,8 +9015,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0011",
@@ -9098,8 +9098,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0012",
@@ -9181,8 +9181,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0013",
@@ -9264,8 +9264,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0014",
@@ -9347,8 +9347,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0015",
@@ -9430,8 +9430,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0016",
@@ -9513,8 +9513,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0773/0017",
@@ -9596,8 +9596,8 @@
       "pixel_bytes": 5369,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 168
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0777",
@@ -9679,8 +9679,8 @@
       "pixel_bytes": 4280,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 160
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0782",
@@ -9763,8 +9763,8 @@
       "pixel_bytes": 3245,
       "bits": 4,
       "artist_names": "Soulja, Top_Kec",
-      "scale": 3,
-      "anchor_y": 163
+      "scale": 4,
+      "anchor_y": 162
     },
     {
       "path": "0802",
@@ -9846,8 +9846,8 @@
       "pixel_bytes": 5261,
       "bits": 4,
       "artist_names": "Dejais",
-      "scale": 2,
-      "anchor_y": 153
+      "scale": 3,
+      "anchor_y": 172
     },
     {
       "path": "0810",
@@ -9929,8 +9929,8 @@
       "pixel_bytes": 2863,
       "bits": 4,
       "artist_names": "bwappi, JFain",
-      "scale": 3,
-      "anchor_y": 164
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0816",
@@ -10015,8 +10015,8 @@
       "pixel_bytes": 2857,
       "bits": 4,
       "artist_names": "G〜, baronessfaron, JFain",
-      "scale": 3,
-      "anchor_y": 163
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0822",
@@ -10097,8 +10097,8 @@
       "pixel_bytes": 4040,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 3,
-      "anchor_y": 175
+      "scale": 4,
+      "anchor_y": 170
     },
     {
       "path": "0827",
@@ -10179,8 +10179,8 @@
       "pixel_bytes": 2990,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 3,
-      "anchor_y": 163
+      "scale": 4,
+      "anchor_y": 158
     },
     {
       "path": "0835",
@@ -10264,8 +10264,8 @@
       "pixel_bytes": 2623,
       "bits": 4,
       "artist_names": "Emmuffin, baronessfaron, RelicCipher",
-      "scale": 2,
-      "anchor_y": 154
+      "scale": 3,
+      "anchor_y": 169
     },
     {
       "path": "0906",
@@ -10348,8 +10348,8 @@
       "pixel_bytes": 2445,
       "bits": 4,
       "artist_names": "Emmuffin, baronessfaron",
-      "scale": 3,
-      "anchor_y": 163
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "0921",
@@ -10432,8 +10432,8 @@
       "pixel_bytes": 2828,
       "bits": 4,
       "artist_names": "ShyStarryRain, JFain",
-      "scale": 2,
-      "anchor_y": 146
+      "scale": 3,
+      "anchor_y": 166
     },
     {
       "path": "0926",
@@ -10515,8 +10515,8 @@
       "pixel_bytes": 1999,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 3,
-      "anchor_y": 157
+      "scale": 4,
+      "anchor_y": 166
     },
     {
       "path": "1008/0001",
@@ -10597,8 +10597,8 @@
       "pixel_bytes": 7217,
       "bits": 4,
       "artist_names": "Top_Kec",
-      "scale": 2,
-      "anchor_y": 148
+      "scale": 3,
+      "anchor_y": 160
     },
     {
       "path": "1010",
@@ -10680,8 +10680,8 @@
       "pixel_bytes": 5838,
       "bits": 4,
       "artist_names": "Emmuffin, pi3.14",
-      "scale": 2,
-      "anchor_y": 157
+      "scale": 3,
+      "anchor_y": 169
     },
     {
       "path": "1016",
@@ -10762,8 +10762,8 @@
       "pixel_bytes": 8523,
       "bits": 4,
       "artist_names": "Emmuffin",
-      "scale": 2,
-      "anchor_y": 166
+      "scale": 3,
+      "anchor_y": 172
     }
   ]
 }

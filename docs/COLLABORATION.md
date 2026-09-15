@@ -5,7 +5,7 @@
 - `main` bleibt der stabile Integrationsstand. Jede Arbeitsrunde verwendet einen Themenbranch.
 - OpenAI-Branch dieser Runde: `codex/2026-09-14-desktop-pet-foundation`.
 - Folgebranch für Enton, universelle Tasten und Profile: `codex/2026-09-14-enton-three-button-ux`.
-- Animationsbasis: `codex/2026-09-15-pokemon-animations`. Aktueller Katalogbranch: `codex/2026-09-15-expanded-roster`. Vor Assetänderungen `assets/README.md` lesen; Fanart-Credits und Lizenz erhalten.
+- Animationsbasis: `codex/2026-09-15-pokemon-animations`. Katalogbranch: `codex/2026-09-15-expanded-roster`. Aktueller Darstellungsbranch: `codex/2026-09-15-pixel-nature-scene`. Vor Assetänderungen `assets/README.md` lesen; Fanart-Credits und Lizenz erhalten.
 - Anthropic-Runden können beispielsweise `claude/<thema>` verwenden. Herkunft ist eine Dokumentationshilfe, keine andere Qualitätsanforderung.
 - Vor Änderungen `git status --short --branch` und aktuelle Übergabe lesen. Uncommittete fremde Änderungen erhalten.
 - Commits enthalten Problem, Änderung und tatsächlich ausgeführte Tests. Trailer: `AI-Assisted-By: OpenAI Codex` bzw. `AI-Assisted-By: Anthropic <tatsächliches Modell>`. Keinen Modellnamen erraten und menschliche Git-Autoridentität nicht umschreiben.
@@ -17,7 +17,7 @@
 
 ```powershell
 git fetch origin
-git switch --track origin/codex/2026-09-15-expanded-roster
+git switch --track origin/codex/2026-09-15-pixel-nature-scene
 python scripts/build.py
 python desktop/server.py
 ```

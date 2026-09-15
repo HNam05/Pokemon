@@ -22,25 +22,26 @@ function lines(value, y) {
   text(line.trim(), 120, y, 10, '#313a32', 'center');
 }
 
-function centeredPet(y, species = state.species) {
+function centeredPet(y, species = state.species, height = 96) {
   const sprite = assets?.animations[species]?.[0]?.[0] || assets?.sprites[species];
   if (!sprite) return;
   const info=assets.catalog.find(p=>p.species===species);
-  const scale=Math.max(1,Math.min(info?.scale||3,Math.floor(96/sprite.height),Math.floor(170/sprite.width)));
-  ctx.drawImage(sprite.bitmap,Math.floor((240-sprite.width*scale)/2),y+(96-sprite.height*scale)/2,sprite.width*scale,sprite.height*scale);
+  const scale=Math.max(1,Math.min(info?.scale||4,Math.floor(height/sprite.height),Math.floor(184/sprite.width)));
+  ctx.drawImage(sprite.bitmap,Math.floor((240-sprite.width*scale)/2),Math.floor(y+(height-sprite.height*scale)/2),sprite.width*scale,sprite.height*scale);
 }
 function animatedPet() {
   const a = state.animation;
   const clip = reducedMotion ? ([4,6,7].includes(a.clip) ? a.clip : 0) : a.clip;
   const sprite = assets.animations[state.species][clip][reducedMotion ? 0 : a.frame];
-  const info=assets.catalog.find(p=>p.species===state.species);
-  const scale = info?.scale || 3;
-  const anchorY = info?.anchor_y || 144;
+  const scale = reducedMotion ? sprite.scale : a.scale;
+  const x = reducedMotion ? sprite.draw_x : a.draw_x;
+  const y = reducedMotion ? sprite.draw_y : a.draw_y;
+  const flip = !reducedMotion && a.flip;
   ctx.save();
   ctx.beginPath(); ctx.rect(0,34,240,178); ctx.clip();
-  ctx.translate(120+(reducedMotion?0:a.x),anchorY+(reducedMotion?0:a.y));
-  ctx.scale(!reducedMotion && a.flip ? -scale : scale,scale);
-  ctx.drawImage(sprite.bitmap,sprite.x,sprite.y);
+  ctx.translate(x+(flip?sprite.width*scale:0),y);
+  ctx.scale(flip ? -scale : scale,scale);
+  ctx.drawImage(sprite.bitmap,0,0);
   ctx.restore();
 }
 function meter(label, value, y) {
@@ -49,17 +50,14 @@ function meter(label, value, y) {
 }
 function scene() {
   const night = state.sleeping || state.minute_of_day < 360 || state.minute_of_day >= 1200;
-  rect(0, 33, 240, 180, night ? '#697b78' : '#cad4b6');
-  rect(173, 49, 18, 18, '#eee1a1');
-  if (night) rect(179, 46, 15, 15, '#697b78');
-  rect(0, 145, 240, 68, '#a5b389');
-  rect(0, 173, 240, 40, '#889765');
-  for (const [x, y] of [[13,175],[35,161],[189,171],[211,190],[56,197]]) {
-    rect(x, y, 2, 5, '#617953'); rect(x+3, y-2, 2, 7, '#617953');
-  }
+  ctx.drawImage(assets.scenes[night?1:0].bitmap,0,34);
   if (state.species === 0) centeredPet(115);
   else animatedPet();
-  if (state.trainer_name) text(`Hallo, ${state.trainer_name}!`,12,49,10,night?'#f8efd2':'#374735');
+  if (state.trainer_name) {
+    const greeting=`Hallo, ${state.trainer_name}!`;
+    rect(8,36,Math.min(224,greeting.length*6+8),17,'#384738');
+    text(greeting,12,49,10,'#f8efd2');
+  }
   if (state.sleeping) text('Z z', 175, 109, 14, '#f8efd2');
   for (let i = 0; i < state.waste; i++) {
     rect(15 + i * 13, 196, 9, 5, '#665337'); rect(18 + i * 13, 193, 4, 4, '#665337');
@@ -76,7 +74,8 @@ function draw() {
     const index=assets.catalog.findIndex(p=>p.species===state.starter);
     text('DEIN ERSTER BEGLEITER',120,54,11,'#313a32','center');
     text(`${index+1} / ${assets.catalog.length}`,120,72,10,'#59614f','center');
-    centeredPet(93,state.starter);
+    ctx.drawImage(assets.scenes[0].bitmap,0,32,240,128,0,78,240,128);
+    centeredPet(78,state.starter,128);
     text('<',20,155,18); text('>',220,155,18,'#313a32','right');
     text(state.starter_name.toUpperCase(),120,221,Math.min(16,Math.floor(280/state.starter_name.length)),'#313a32','center');
     lines(state.starter_form || 'Neugierig auf dein Abenteuer.',242);
@@ -308,7 +307,7 @@ async function start() {
     const response = await fetch('/api/assets');
     if (!response.ok) throw new Error('Grafiken konnten nicht geladen werden.');
     assets = await response.json();
-    for (const sprite of [...assets.sprites,...assets.animations.flat(2)]) decodeSprite(sprite);
+    for (const sprite of [...assets.sprites,...assets.animations.flat(2),...assets.scenes]) decodeSprite(sprite);
     poll();
   } catch (error) { report(error); }
 }

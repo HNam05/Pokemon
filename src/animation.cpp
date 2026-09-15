@@ -47,8 +47,8 @@ Species next_starter(Species species,bool forward) {
 const char* roster_name(Species species) { const auto* set=imported(species);return set?set->name:"Unbekannt"; }
 const char* species_form(Species species) { const auto* set=imported(species);return set?set->form:""; }
 const char* species_credit(Species species) { const auto* set=imported(species);return set?set->credit:"Pocket Pet Prototypgrafik"; }
-unsigned species_scale(Species species) { const auto* set=imported(species);return set?set->scale:3; }
-int species_anchor(Species species) { const auto* set=imported(species);return set?set->anchor:144; }
+unsigned species_scale(Species species) { const auto* set=imported(species);return set?set->scale:4; }
+int species_anchor(Species species) { const auto* set=imported(species);return set?set->anchor:180; }
 // Authored procedural poses of the existing project art, defined beside its palette.
 Sprite authored_pose(Species species, Motion motion, unsigned frame);
 std::size_t authored_pose_bytes();
@@ -76,6 +76,15 @@ std::size_t animation_storage_bytes() {
         for(unsigned i=0;i<motion_count;++i) bytes+=set.clips[i].count*sizeof(SpriteFrame);
     }
     return bytes;
+}
+FramePlacement place_frame(Species species, const AnimationView& view) {
+    const auto frame=animation_frame(species,view.motion,view.frame);
+    const int scale=static_cast<int>(species_scale(species));
+    const int width=frame.sprite.width*scale, height=frame.sprite.height*scale;
+    const int x=120+view.x+(view.flip?-frame.x-frame.sprite.width:frame.x)*scale;
+    const int y=species_anchor(species)+view.y+frame.y*scale;
+    return {static_cast<std::int16_t>(std::clamp(x,8,232-width)),
+        static_cast<std::int16_t>(std::clamp(y,42,210-height)),static_cast<std::uint8_t>(scale)};
 }
 const char* motion_name(Motion motion) {
     constexpr const char* names[] = {"idle","walk","hop","happy","sleep","eat","tired","sick","look"};
@@ -154,8 +163,8 @@ AnimationView Animator::view(const State& state) const {
         result.y = heights[(elapsed_/100)%8];
     }
     if (state.species == Species::Eevee && result.motion == Motion::Hop) {
-        // Halve the source jump's vertical travel at 4x display scale so the ears
-        // stay below the header. The sprite's own registration remains intact.
+        // Soften the source jump's travel; place_frame contains the enlarged pose.
+        // The sprite's own registration remains intact for source verification.
         const auto source = animation_frame(state.species,result.motion,result.frame);
         result.y = static_cast<std::int8_t>((-15-source.y)*2);
     }

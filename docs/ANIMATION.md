@@ -29,12 +29,15 @@ Der Browser lädt die Frames vom lokalen C++-Adapter bedarfsgerecht und baut Can
 
 ## Speicherstand vom Host-Build
 
-Evolis ursprüngliche Sprungbahn wird bei vierfacher Darstellung in ihrer vertikalen Auslenkung halbiert. Dadurch bleiben die Ohren vollständig unter der Kopfzeile, ohne die Pixelgrafik zu verzerren. Sein Anker liegt bei Y=152, damit auch die Sitzpose vollständig sichtbar bleibt. Andere Sets erhalten einen gemeinsamen ganzzahligen Maßstab für alle Posen anhand ihrer gesamten Ausdehnung. Browserprüfungen kontrollieren die Ober- und Unterkante sämtlicher im Ablauf gezeigter Frames.
+Die Begleiter erhalten eine größere ganzzahlige Skalierung für sämtliche Posen ihrer Art. Evoli verwendet 5×, Enton 4×. Der Importer erhöht die bisherige Skalierung um eine Stufe, begrenzt auf 180 Pixel Breite und 168 Pixel Höhe des größten Bildes. `place_frame` im C++-Kern berechnet anschließend die endgültige Position einschließlich Spiegelung und Bewegung; sichtbare Grenzen sind X=8…232 und Y=42…210. Die Originalregistrierung der Quellbilder bleibt für unabhängige Pixelprüfungen erhalten. Große Sprünge können an der Szenengrenze eine kürzere sichtbare Flugbahn haben; die Pixelbilder werden dabei weder gestaucht noch abgeschnitten.
+
+Die C-ABI liefert `draw_x`, `draw_y` und `scale` für bewegte und ruhige Frames. Der Browser übernimmt diese Werte auch für reduzierte Bewegung. Die Auswahl vergrößert ihre ruhige Vorschau innerhalb eines eigenen 128-Pixel-Bereichs.
 
 - Spielkern unverändert: `Game` 64 Byte, darin `State` 32 Byte.
 - Zusätzlicher `Animator`: 20 Byte, statische Obergrenze 32 Byte.
 - Alle importierten Pixel und Paletten: 770.930 Byte, etwa 753 KiB; alle 129 Sets passen in 4 Bit pro Pixel.
 - Animationsdaten einschließlich eigener Enton-Posen sowie Host-Frame-/Clip-/Set-Tabellen: 974.322 Byte, etwa 952 KiB; Testgrenze für den vollständigen Katalog 1 MiB. Namen und weitere Texte sind nicht in dieser Datengröße enthalten.
 - Vorherige Standgrafiken und Paletten: weiterhin 908 Byte.
+- Neue Waldlichtung: 21.424 Byte einschließlich beider Paletten für Tag/Nacht. Beide Varianten teilen dieselben Pixel. [Quelle und Prompt](../assets/backgrounds/README.md).
 
 Tabellen enthalten Zeiger, ihre Größe hängt vom Zielsystem ab. Das sind deklarierte Datengrößen des Host-Builds, kein gemessener ESP32-Flash-/RAM-Gesamtbedarf. Konstanten sind für Flash vorgesehen; LCD-Ausgabe kann Pixel direkt aus der Palette lesen. Kein GIF-, PNG- oder XML-Decoder und kein vollständiger Animationsframebuffer sind auf dem Gerät nötig. Tatsächliche Flash-Platzierung und Laufzeit werden erst mit der Board-Toolchain verifiziert.

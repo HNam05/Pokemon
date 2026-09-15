@@ -71,7 +71,13 @@ def generate(check=False):
         scale=max(1,min(4,144//max(1,max_y-min_y),88//max(1,extent)))
         anchor=52+(144-(max_y-min_y)*scale)//2-min_y*scale
         if entry['id']==1:scale,anchor=4,152
-        if entry['id']!=1 and (min_y*scale+anchor<34 or max_y*scale+anchor>212):raise ValueError(f'Set too large: {entry["path"]}')
+        # Enlarge the companion itself; presentation bounds contain extreme travel.
+        largest_width=max(f[1] for clip in raw_clips for f in clip)
+        largest_height=max(f[2] for clip in raw_clips for f in clip)
+        scale=min(scale+1,168//largest_height,180//largest_width)
+        if scale<1:raise ValueError(f'Set too large: {entry["path"]}')
+        idle_bottom=max(f[4]+f[2] for f in raw_clips[0])
+        anchor=190-idle_bottom*scale
         credit=', '.join(names.get(c,c) for c in entry['credits'])
         metadata.append(f'    {{static_cast<Species>({entry["id"]}),{json.dumps(entry["name"],ensure_ascii=False)},{json.dumps(entry["form"],ensure_ascii=False)},{json.dumps(credit,ensure_ascii=False)},{prefix}::clips,{scale},{anchor}}},')
         byte_count=sum(map(len,blobs))+len(palette)*2

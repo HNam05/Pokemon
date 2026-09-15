@@ -19,6 +19,8 @@ struct AnimationView {
     std::int8_t x = 0, y = 0;
     bool flip = false;
 };
+struct FramePlacement { std::int16_t x, y; std::uint8_t scale; };
+FramePlacement place_frame(Species species, const AnimationView& view);
 // Cosmetic state only. Its PRNG never consumes the gameplay PRNG or enters saves.
 class Animator {
 public:

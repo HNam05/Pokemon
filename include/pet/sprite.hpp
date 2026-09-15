@@ -20,4 +20,7 @@ struct Sprite {
 };
 Sprite sprite_for(Species species);
 std::size_t sprite_storage_bytes();
+// Opaque scene: palette index zero is a color, unlike transparent pet sprites.
+Sprite forest_scene(bool night);
+std::size_t scene_storage_bytes();
 }

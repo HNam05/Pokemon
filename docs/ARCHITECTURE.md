@@ -39,7 +39,7 @@ Später: GPIO -> entprellte Button-Ereignisse -> derselbe pet::Game
 
 129 importierte Sets plus eigener Enton sind über `catalog.hpp` auswählbar. Namen, Formen, Künstler, Frame-Tabellen und integerbasierte Darstellung liegen bei den konstanten C++-Assets. Alle Arten verwenden denselben Pflegekern. Zusätzliche Entwicklungsketten sind nicht implementiert.
 
-`/api/assets` liefert Metadaten und nur die bisherigen fünf Arten (Ei, Evoli, Psiana, Nachtara, Enton). Weitere Bilder lädt `/api/assets/<id>` bedarfsgerecht. Browser und Server halten höchstens vier zusätzliche Sets im Cache. Der Browser baut Canvas-Bitmaps und verwirft die übertragenen Pixelarrays. `/credits` liefert den generierten Künstlerkatalog. Auf Hardware ist dieser HTTP-/Canvas-Weg nicht nötig.
+`/api/assets` liefert Metadaten und nur die bisherigen fünf Arten (Ei, Evoli, Psiana, Nachtara, Enton). Weitere Bilder lädt `/api/assets/<id>` bedarfsgerecht. Browser und Server halten höchstens vier zusätzliche Sets im Cache. Der Browser baut Canvas-Bitmaps und verwirft die übertragenen Pixelarrays. `/credits` liefert den generierten Künstlerkatalog. Auf Hardware ist dieser HTTP-/Canvas-Weg nicht nötig. Der Hintergrund liegt ebenfalls palettiert in C++ (`forest_scene.inc`); zwei Paletten teilen einen Pixelbestand. `place_frame` liefert bildschirmbegrenzte Positionen für die vergrößerten Figuren, einschließlich ruhiger Darstellung bei reduzierter Bewegung.
 
 ## Spielstandformat V3 und Migration
 

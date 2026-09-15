@@ -72,3 +72,12 @@ Naechster Entwicklungsschritt: echtes Board festlegen und GPIO-/LCD-/NVS-Adapter
 - Nächste Schritte: flüssige Seitenansichten, eigenständige hochwertige Enton-/Entwicklungssets, gegebenenfalls Lieblingsbegleiter für die zwei Geräte eingrenzen. Board festlegen, echtes Flash-/RAM-Budget und LCD-/GPIO-/NVS-/Audioadapter auf Hardware prüfen. Der komplette Katalog erhöht konstanten Speicher deutlich; vor Firmwareauslieferung Boardbudget messen.
 
 - Abschlussvorschau: beide persönlichen Instanzen auf 8765/8767 mit vorhandenen Tieren und ohne Speicherfehler gestartet. Separate neutrale Auswahl unter 8768 mit eigenem ignoriertem output-Spielstand; 130 Katalogeinträge auf allen Instanzen bestätigt. Lokale Profile/Sicherungen bleiben außerhalb von Git.
+
+## 15.09.2026 / OpenAI Codex / M5 Größere Pokémon und Naturkulisse
+
+- Wunsch: Pokémon größer im Vordergrund, besseres Pixelartwork mit Pokémon-/Naturthema. Branch codex/2026-09-15-pixel-nature-scene, Basis b5b89f1.
+- Waldlichtung mit Bäumen, Bach, Beeren und Pokéball-Wegschild per eingebautem OpenAI Imagegen erstellt. Unveränderte Quelle, technische Displayfassung und vollständiger Prompt unter assets/backgrounds/ dokumentiert. Keine heruntergeladenen Fremdhintergründe.
+- Offline-Import nach 240×178, 16 Farben, 4 Bit/RGB565; Tag/Nacht teilen Pixelbestand. 21.424 Byte einschließlich beider Paletten. Gemeinsame C++-Daten, keine Python-/JS-Spielregeln oder Bilddecoder auf Hardware nötig.
+- Alle 129 importierten Sets größer. Evoli 4×→5×, Enton 3×→4×. Größter Frame bestimmt zulässige Skalierung; C++ place_frame begrenzt tatsächliche Positionen inklusive Bewegung und Spiegelung. Quellenoffsets bleiben unberührt. Ruhige Vorschau und reduzierte Bewegung erhalten passende Platzierungen; Auswahl nutzt 128 Pixel hohe Landschaftsfläche.
+- Bestanden: warning-clean Build, 3.562.268 C++-Checks, 18 Python-Tests, Browserkatalog aller 130 Starter, Pflege-Smoke, beide Animations-Smokes, beide reproduzierbaren Importe, unabhängiger Vergleich von 12.146.208 Figuren- und 42.720 Hintergrundpixeln. Drei Skill-Client-Sequenzen ohne Fehler; sämtliche Auswahl-Kontaktübersichten, Mobile, Tag/Nacht und Sprungspitzen visuell kontrolliert.
+- Alle drei bestehenden lokalen Instanzen vor DLL-Wechsel gespeichert und separat gesichert. Keine Saveformat- oder Pflegeregeländerung. Offene Hardwarearbeit wie M4; tatsächliche LCD-Farben und Laufzeit erst nach Boardwahl prüfen.

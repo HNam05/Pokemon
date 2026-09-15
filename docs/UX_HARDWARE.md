@@ -73,6 +73,7 @@ Bereits umgesetzt:
 | Importierte Pixel/Paletten | 770.930 Byte konstante Daten |
 | Animationen inklusive Host-Tabellen und Enton-Posen | 974.322 Byte, enthält importierte Pixel/Paletten |
 | Animator | 20 Byte RAM |
+| Waldlichtung, geteilte Pixel und zwei Paletten | 21.424 Byte |
 | Save V3 | 44 Byte |
 
 Dies sind keine Gesamtspeicherwerte der ESP32-Firmware. Code, Texte, Fonts, SDK, Treiber und Puffer fehlen in dieser Rechnung. Pointergrößen und Alignment können auf dem ESP32 abweichen. Tests begrenzen Game auf 128 Byte und Profile auf 25 Byte.

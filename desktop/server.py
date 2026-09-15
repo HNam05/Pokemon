@@ -49,6 +49,8 @@ class Engine:
             'pp_species_credit': ([ctypes.c_uint], ctypes.c_char_p),
             'pp_species_scale': ([ctypes.c_uint], ctypes.c_uint),
             'pp_species_anchor': ([ctypes.c_uint], ctypes.c_int),
+            'pp_scene_info': ([ctypes.c_uint], ctypes.c_uint),
+            'pp_scene_pixel': ([ctypes.c_bool, ctypes.c_uint, ctypes.c_uint], ctypes.c_uint),
         }
         for name, (arguments, result) in declarations.items():
             method = getattr(self.lib, name)
@@ -108,10 +110,18 @@ class Engine:
                 for frame in range(self.lib.pp_frame_info(species,motion,0,5)):
                     width,height,x,y,duration = (self.lib.pp_frame_info(species,motion,frame,p) for p in range(5))
                     frames.append({'width':width,'height':height,'x':x,'y':y,'duration':duration,
+                        'draw_x':self.lib.pp_frame_info(species,motion,frame,6),
+                        'draw_y':self.lib.pp_frame_info(species,motion,frame,7),
+                        'scale':self.lib.pp_frame_info(species,motion,frame,8),
                         'pixels':[self.lib.pp_frame_pixel(species,motion,frame,px,py) for py in range(height) for px in range(width)]})
                 clips.append(frames)
             animations.append(clips)
-        return {'sprites': sprites, 'animations':animations,'species_ids':list(ids),'catalog':self.catalog() if selected is None else [],
+        scenes=[]
+        if selected is None:
+            width,height=(self.lib.pp_scene_info(i) for i in range(2))
+            scenes=[{'width':width,'height':height,'pixels':[
+                self.lib.pp_scene_pixel(night,x,y) for y in range(height) for x in range(width)]} for night in (False,True)]
+        return {'sprites': sprites, 'animations':animations,'scenes':scenes,'scene_bytes':self.lib.pp_scene_info(2),'species_ids':list(ids),'catalog':self.catalog() if selected is None else [],
                 'memory_bytes': dict(zip(('game', 'state', 'profile', 'sprites','animations','animator'),
                 (self.lib.pp_memory_bytes(i) for i in range(6))))}
 

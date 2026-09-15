@@ -1,0 +1,14 @@
+# Waldlichtung
+
+Am 15.09.2026 für dieses Projekt mit dem eingebauten OpenAI-Imagegen-Werkzeug erstellt. Keine fremden Hintergrunddateien heruntergeladen. Pokémon-Markenrechte bleiben unberührt.
+
+- `forest-source.png`: unverändertes Generierungsergebnis.
+- `forest-240x178.png`: technische Displayfassung, nächste Nachbarn, 16 Farben ohne Dithering.
+- `src/forest_scene.inc`: vier Bit pro Pixel, RGB565-Tag- und Nachtpalette. 21.424 Byte insgesamt; beide Paletten teilen dieselben Pixel. Index null ist bei der vollständig deckenden Landschaft eine sichtbare Farbe.
+- `python scripts/import_background.py` erzeugt die Displayfassung und die C++-Daten offline mit Pillow. `--check` prüft die reproduzierbare C++-Ausgabe. Der normale Build benötigt Pillow nicht.
+
+Die Landschaft erscheint auf Home und als Ausschnitt in der Auswahl. Sie enthält Bäume, Berge, einen Bach, Beeren und ein Pokéball-Wegschild. Die freie Mitte hält den Begleiter lesbar. Die bisherige Regel für Nachtfarbe (Schlaf oder 20:00–06:00) bleibt bestehen. Auf ESP32 kann derselbe palettierte Datenbestand direkt im Streifenrenderer verwendet werden; noch nicht auf Hardware geprüft.
+
+## Verwendeter Prompt
+
+Create a finished pixel-art game background asset for a tiny Pokemon-inspired virtual-pet display. Landscape aspect ratio 240:178, preferably output 1440x1068 (a 6x enlargement of a 240x178 pixel design). Authentic high quality 16-bit handheld RPG pixel art, deliberately coarse clean pixel clusters, sharp edges, no antialiasing, limited harmonious palette of about 24 colors. A cozy Pokemon route forest clearing: layered leafy trees framing the left and right edges, distant blue-green foothills and a narrow strip of blue sky with a few small blocky clouds in the upper quarter. A small clear turquoise stream curves along the far RIGHT edge with a few stepping stones. Tiny red berries on a bush at left, a small wooden trail sign bearing a simple red and cream circular Pokeball emblem at the left edge, no words. The central 60 percent of the image must be a broad open softly golden-green grassy clearing with very low contrast and minimal texture, for a large animated Pokemon sprite to stand in front. Ground extends across the bottom, a few grass tufts and small wildflowers only at bottom corners. Camera like a Pokemon Mystery Dungeon encounter scene, eye-level with slightly elevated view of the clearing; not a top-down tile map. Sunny gentle afternoon light. Rich natural greens with warm earth accents, mature cohesive palette rather than neon. No creatures, people, characters, UI, borders, typography, lettering, watermarks, blur, gradients or foreground objects across the center. The center ground landing spot is around 78 percent image height. This is a usable full-bleed background, not a picture of a screen or device.

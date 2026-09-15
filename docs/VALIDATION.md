@@ -89,3 +89,12 @@ Diese Punkte sind nächste Integrationsschritte, keine behaupteten Testergebniss
 - Originaler Develop-Web-Game-Skill-Client mit drei Sequenzen: Canvas und Textzustand in `output/skill-roster/` geprüft, keine Fehlerlogs. Bilder und Testspielstände bleiben ignoriert.
 - Gemessene Host-Datengrößen: Game 64, State 32, Profile 25, Animator 20 Byte; Animationen mit Tabellen 974.322 Byte, zusätzlich 908 Byte bestehende Standgrafiken. Keine Messung des gesamten ESP32-Verbrauchs.
 - Persönliche Spielstände vor dem V3-Update lokal gesichert. Kein Hardwarebuild, keine LCD-/GPIO-/Strommessung. Andere Betriebssysteme bleiben offen.
+
+## Größere Begleiter und Waldlichtung / 15.09.2026
+
+- Warning-clean Zig-Release-Build: 3.562.268 C++-Checks; 18 Python-Tests bestanden.
+- Sämtliche Posen der 130 Begleiter einschließlich gespiegelter Darstellung und Bewegungsgrenzen geprüft. Alle 129 importierten Sets haben eine höhere Skalierung als in M4; Evoli 5×, Enton 4×. Palette, Dimensionen und Tag-/Nacht-Pixelteilung geprüft.
+- Browser-Smokes für alle 130 Starter, Größen, Credits, Navigation, Animation, Speicher/Laden, Mobile und HTTP-Grenzen bestanden. Pflege-Smoke und Animations-Smokes Evoli/Enton mit Sprungspitzen, Essen, Schlaf, Pause und reduzierter Bewegung bestanden.
+- Alle sechs Kontaktübersichten der neuen Auswahl und Mobilansicht visuell kontrolliert. Tag-, Nacht-, Enton-, Evoli- und Sprungansichten geprüft. Originaler Skill-Client: drei Sequenzen ohne Browserfehler; Screenshots und Textzustand unter output/skill-nature geprüft.
+- Beide Offline-Importer reproduzierbar; 12.146.208 SpriteCollab-Quellpixel unverändert zur kompilierten Darstellung. Zusätzlich sämtliche 42.720 Pixel der Hintergrund-Displayfassung unabhängig gegen C++ geprüft.
+- Hintergrund: 21.424 Byte konstante Daten einschließlich beider Paletten. Spielkern, Animator und Save V3 unverändert. Kein ESP32-Build oder physischer LCD-Test.

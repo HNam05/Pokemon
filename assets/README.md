@@ -57,3 +57,7 @@ python tests/verify_sprite_import.py
 ```
 
 Der Offline-Importer erzeugt `src/roster_frames.inc`, `roster_compiled.json` und ROSTER.md. Geprüft mit Pillow 12.3.0. `--check` verifiziert Quellhashes und deterministische Ausgabe; der separate Pixelvergleich prüft 12.146.208 Quellpixel einschließlich transparenter Ränder gegen die tatsächlich kompilierte Bibliothek. Credits und Lizenztexte bei einer zukünftigen Änderung erneut prüfen. Wechsel des Quellcommits erfordert einen frischen Cache und erneute Rechte-/Speicherprüfung.
+
+## Eigene Naturkulisse
+
+Die Waldlichtung wurde mit OpenAI Imagegen für das Projekt erstellt. Displayfassung, Quellbild, technischer Import und vollständiger Prompt: [backgrounds/README.md](backgrounds/README.md). Die größere Figurendarstellung verändert keine SpriteCollab-Quellbilder; der C++-Renderer begrenzt die Platzierung der skalierten Frames.

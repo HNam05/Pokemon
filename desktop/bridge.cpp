@@ -37,10 +37,12 @@ PET_EXPORT void pp_animation_seed(Session* session, std::uint32_t seed) {
 PET_EXPORT const char* pp_animation(Session* session) {
     if (!session) return "{}";
     const auto a = session->animator.view(session->game.state());
+    const auto placement=pet::place_frame(session->game.state().species,a);
     std::snprintf(session->animation_json,sizeof(session->animation_json),
-        "{\"clip\":%u,\"name\":\"%s\",\"frame\":%u,\"x\":%d,\"y\":%d,\"flip\":%s}",
+        "{\"clip\":%u,\"name\":\"%s\",\"frame\":%u,\"x\":%d,\"y\":%d,\"flip\":%s,\"draw_x\":%d,\"draw_y\":%d,\"scale\":%u}",
         static_cast<unsigned>(a.motion),pet::motion_name(a.motion),static_cast<unsigned>(a.frame),
-        static_cast<int>(a.x),static_cast<int>(a.y),a.flip ? "true" : "false");
+        static_cast<int>(a.x),static_cast<int>(a.y),a.flip ? "true" : "false",
+        static_cast<int>(placement.x),static_cast<int>(placement.y),static_cast<unsigned>(placement.scale));
     return session->animation_json;
 }
 PET_EXPORT int pp_frame_info(unsigned species, unsigned motion, unsigned frame, unsigned property) {
@@ -48,6 +50,7 @@ PET_EXPORT int pp_frame_info(unsigned species, unsigned motion, unsigned frame, 
     const auto s=static_cast<pet::Species>(species);
     const auto m=static_cast<pet::Motion>(motion);
     const auto f=pet::animation_frame(s,m,frame);
+    const auto placement=pet::place_frame(s,{m,static_cast<std::uint8_t>(frame%pet::frame_count(s,m))});
     switch (property) {
     case 0: return f.sprite.width;
     case 1: return f.sprite.height;
@@ -55,6 +58,9 @@ PET_EXPORT int pp_frame_info(unsigned species, unsigned motion, unsigned frame, 
     case 3: return f.y;
     case 4: return f.duration_ms;
     case 5: return static_cast<int>(pet::frame_count(s,m));
+    case 6: return placement.x;
+    case 7: return placement.y;
+    case 8: return placement.scale;
     default: return 0;
     }
 }
@@ -65,6 +71,14 @@ PET_EXPORT unsigned pp_frame_pixel(unsigned species,unsigned motion,unsigned fra
     return index==0 ? 0x10000u : s.palette[index];
 }
 PET_EXPORT unsigned pp_menu_count() { return pet::Game::menu_count; }
+PET_EXPORT unsigned pp_scene_info(unsigned property) {
+    const auto scene=pet::forest_scene(false);
+    return property==0?scene.width:property==1?scene.height:property==2?static_cast<unsigned>(pet::scene_storage_bytes()):0;
+}
+PET_EXPORT unsigned pp_scene_pixel(bool night,unsigned x,unsigned y) {
+    const auto scene=pet::forest_scene(night);
+    return x<scene.width && y<scene.height ? scene.palette[scene.at(x,y)] : 0x10000u;
+}
 PET_EXPORT unsigned pp_starter_count() { return pet::starter_count(); }
 PET_EXPORT unsigned pp_starter_at(unsigned index) { return static_cast<unsigned>(pet::starter_at(index)); }
 PET_EXPORT const char* pp_species_name(unsigned id) { return valid_species_id(id)?pet::species_name(static_cast<pet::Species>(id)):"Unbekannt"; }
