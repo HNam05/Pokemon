@@ -8,6 +8,8 @@ Evoli oder Enton als Begleiter wählen, Ei ausbrüten, füttern und säubern, sc
 
 **Stand:** erster Desktop-Prototyp. ESP32-Treiber, endgültige Grafik und Hardwarevalidierung folgen nach Auswahl der Komponenten.
 
+Die Begleiter bewegen sich jetzt zustandsabhängig: zufälliges Gehen, Hüpfen, Umsehen und Freude mit Ruhepausen, Essreaktion nach dem Füttern sowie Schlaf-/Erschöpfungsposen. Evoli nutzt die Fanart-Variante von Emmuffin aus SpriteCollab, Enton eigene animierte Prototypposen. Die Auswahl und Zeitsteuerung laufen ebenfalls im C++-Kern. Details und Herkunft: [Animationen](docs/ANIMATION.md), [Grafik-Credits](assets/README.md).
+
 ## Starten
 
 Voraussetzungen: Python 3.10+, CMake 3.20+ und C++17-Compiler (Windows: Visual Studio Build Tools mit C++-Workload; Linux: GCC/Clang; macOS: Xcode Command Line Tools). Keine Python-Pakete und keine npm-Installation für den Simulator erforderlich.
@@ -72,4 +74,4 @@ Browser-Testanleitung und tatsächlicher Prüfstand stehen in [docs/VALIDATION.m
 - [Git- und Modell-Zusammenarbeit](docs/COLLABORATION.md)
 - [Übergabe und nächste Schritte](progress.md)
 
-Privates, inoffizielles Fanprojekt. Pokémon-Namen und -Figuren gehören ihren jeweiligen Rechteinhabern. Keine Firmware oder Grafiken des MakerWorld-Projekts übernommen; eigene Software und Platzhaltergrafik. Die Rechte am Fanmaterial sind nicht durch eine pauschale Open-Source-Lizenz dieses Repositories freigegeben.
+Privates, inoffizielles Fanprojekt. Pokémon-Namen und -Figuren gehören ihren jeweiligen Rechteinhabern. Keine Firmware oder Grafiken des MakerWorld-Projekts übernommen. Evoli-Fanart: Emmuffin / SpriteCollab, CC BY-NC 4.0 mit Namensnennung und dokumentierten Anpassungen; übrige Bilder sind eigene Prototypgrafiken. Die Rechte am Fanmaterial sind nicht durch eine pauschale Open-Source-Lizenz dieses Repositories freigegeben. Siehe [vollständige Grafik-Credits](assets/README.md).

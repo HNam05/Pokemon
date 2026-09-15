@@ -1,5 +1,6 @@
 """Loopback-only PC simulator. Python transports data; all gameplay lives in C++."""
 import argparse
+import secrets
 import ctypes
 import json
 import os
@@ -36,6 +37,10 @@ class Engine:
             'pp_sprite_size': ([ctypes.c_uint, ctypes.c_bool], ctypes.c_uint),
             'pp_sprite_pixel': ([ctypes.c_uint, ctypes.c_uint, ctypes.c_uint], ctypes.c_uint),
             'pp_memory_bytes': ([ctypes.c_uint], ctypes.c_uint),
+            'pp_animation_seed': ([pointer, ctypes.c_uint32], None),
+            'pp_animation': ([pointer], ctypes.c_char_p),
+            'pp_frame_info': ([ctypes.c_uint]*4, ctypes.c_int),
+            'pp_frame_pixel': ([ctypes.c_uint]*5, ctypes.c_uint),
         }
         for name, (arguments, result) in declarations.items():
             method = getattr(self.lib, name)
@@ -44,6 +49,7 @@ class Engine:
         self.handle = self.lib.pp_create()
         if not self.handle:
             raise MemoryError('C++-Spielkern konnte nicht angelegt werden.')
+        self.lib.pp_animation_seed(self.handle, secrets.randbits(32))
         if not self.lib.pp_set_name(self.handle, encoded, len(encoded)):
             self.close()
             raise ValueError('Name: maximal 24 UTF-8-Bytes, keine Steuerzeichen.')
@@ -56,6 +62,7 @@ class Engine:
     def view(self):
         result = json.loads(self.lib.pp_view(self.handle))
         result['trainer_name'] = self.lib.pp_name(self.handle).decode('utf-8')
+        result['animation'] = json.loads(self.lib.pp_animation(self.handle))
         result['care_hint'] = self.lib.pp_care_hint(self.handle).decode('utf-8')
         result['menu'] = [{'label': self.lib.pp_menu_label(i).decode('utf-8'),
                            'hint': self.lib.pp_menu_hint(self.handle, i).decode('utf-8'),
@@ -70,8 +77,20 @@ class Engine:
             height = self.lib.pp_sprite_size(species, True)
             pixels = [self.lib.pp_sprite_pixel(species, x, y) for y in range(height) for x in range(width)]
             sprites.append({'width': width, 'height': height, 'pixels': pixels})
-        return {'sprites': sprites, 'memory_bytes': dict(zip(('game', 'state', 'profile', 'sprites'),
-                (self.lib.pp_memory_bytes(i) for i in range(4))))}
+        animations = []
+        for species in range(5):
+            clips = []
+            for motion in range(9):
+                frames = []
+                for frame in range(self.lib.pp_frame_info(species,motion,0,5)):
+                    width,height,x,y,duration = (self.lib.pp_frame_info(species,motion,frame,p) for p in range(5))
+                    frames.append({'width':width,'height':height,'x':x,'y':y,'duration':duration,
+                        'pixels':[self.lib.pp_frame_pixel(species,motion,frame,px,py) for py in range(height) for px in range(width)]})
+                clips.append(frames)
+            animations.append(clips)
+        return {'sprites': sprites, 'animations':animations,
+                'memory_bytes': dict(zip(('game', 'state', 'profile', 'sprites','animations','animator'),
+                (self.lib.pp_memory_bytes(i) for i in range(6))))}
 
     def advance(self, milliseconds, speed=1):
         while milliseconds > 0:
@@ -323,6 +342,8 @@ def main():
         save_name = args.profile.stem if args.profile else 'pet'
         args.save = ROOT / 'saves' / f'{save_name}.json'
     engine = Engine(find_library(), name)
+    if args.manual_clock:
+        engine.lib.pp_animation_seed(engine.handle, 42)
     try:
         with SaveLock(args.save.resolve()):
             simulator = Simulator(engine, args.save.resolve(), args.manual_clock)

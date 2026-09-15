@@ -1,0 +1,19 @@
+{
+  "repository": "https://github.com/PMDCollab/SpriteCollab",
+  "revision": "83681005aa8f37cea7dfe8e68c51aa4b7bf8384a",
+  "path": "sprite/0133/0002",
+  "artist": "Emmuffin",
+  "files": {
+    "AnimData.xml": "f33b22fb64b51cd4f5868df7433ceb4fbb0c58606364ba3faa7f326960452b28",
+    "credits.txt": "1d2ffd8a284d423d3261d1cd157d4869fc3dcd64f0eb6f7771b3c134c2adb483",
+    "Idle-Anim.png": "fd8dc637be9d1fec47222475b30edb5cff8682a698665f93c068ae1d639d8044",
+    "Walk-Anim.png": "01fe26fe0ead0b2c376a8d7c8a2da0925c8f3b8acabfc99d7ae228a6fd0616cc",
+    "Hop-Anim.png": "190780a56a6c1ade366b8cbe7029ca2788d6bfcaa0c218a5e8f6bec6d35ba39f",
+    "Pose-Anim.png": "10f7d545d29cecef4753e50035bdbd56f887b49e9d4b7c3218b0b3161c47e3e2",
+    "Sleep-Anim.png": "259471495be6ce148fe83d58fbfcde60fd0a78a9ec58ac1683d19d507fcbee9b",
+    "Eat-Anim.png": "d5dcaf73f1633e7f56e46d85a32bd0ef84c20fdb6743912aa98e3cbee6d65ea0",
+    "Sit-Anim.png": "52af7d214a4f460b365d3defe0261d4fa10294c4f281c4dddf607ae1304615e2",
+    "Hurt-Anim.png": "1be73445d7f8d22cd2fcec86a55e521882d8107d52eff607eee0a07c1d7e0da4",
+    "LookUp-Anim.png": "78145c2caa8856df945a1cd3a18b4857631f3224e9c5905b2ca015d82a5816ec"
+  }
+}

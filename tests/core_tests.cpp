@@ -2,6 +2,7 @@
 #include "pet/save.hpp"
 #include "pet/sprite.hpp"
 #include "pet/profile.hpp"
+#include "pet/animation.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -194,6 +195,51 @@ int main() {
     std::cout << "RAM host: Game=" << sizeof(Game) << " State=" << sizeof(State)
               << " Profile=" << sizeof(Profile) << "; sprites=" << sprite_storage_bytes() << " bytes\n";
 
+    // Animation policy is cosmetic, bounded, and deterministic for a supplied seed.
+    {
+        Animator a(42), b(42);
+        auto pet = hatched();
+        const auto saved = encode(pet);
+        bool seen[motion_count]{};
+        for (unsigned step=0; step<3000; ++step) {
+            a.advance(pet,100); b.advance(pet,100);
+            const auto v=a.view(pet), other=b.view(pet);
+            seen[static_cast<unsigned>(v.motion)]=true;
+            check(v.motion==other.motion && v.frame==other.frame && v.x==other.x, "seeded animations repeat deterministically");
+            check(v.frame<frame_count(pet.species,v.motion) && v.x>=-24 && v.x<=24, "animation frame and movement bounded");
+        }
+        check(seen[0] && seen[1] && seen[2] && seen[3] && seen[8], "idle schedule includes walk hop joy and look");
+        check(saved==encode(pet), "animation never changes save or gameplay RNG");
+        a.fed(pet); check(a.view(pet).motion==Motion::Eat,"feed triggers eating");
+        a.advance(pet,2200); check(a.view(pet).motion==Motion::Idle,"eating settles into rest");
+        pet.sleeping=true; a.advance(pet,0); check(a.view(pet).motion==Motion::Sleep,"sleep interrupts active clip");
+        pet.sick=true; a.advance(pet,4000); check(a.view(pet).motion==Motion::Sleep,"sleep has priority while ill");
+        pet.sleeping=false; a.advance(pet,0); check(a.view(pet).motion==Motion::Sick,"ill pet does not celebrate");
+        pet.sick=false; pet.energy=10; a.advance(pet,0); check(a.view(pet).motion==Motion::Tired,"low energy rests");
+        pet.energy=80; pet.fullness=10;
+        for(unsigned i=0;i<200;++i) { a.advance(pet,500); check(a.view(pet).motion!=Motion::Happy && a.view(pet).motion!=Motion::Hop,"hungry pet avoids celebration"); }
+        const auto paused=a.view(pet); a.advance(pet,0); check(a.view(pet).frame==paused.frame && a.view(pet).x==paused.x,"zero time freezes pose");
+        pet=hatched(); Animator chunks(7), single(7); chunks.advance(pet,0); single.advance(pet,0);
+        for(unsigned i=0;i<60;++i) chunks.advance(pet,1000);
+        single.advance(pet,60000);
+        check(chunks.view(pet).motion==single.view(pet).motion && chunks.view(pet).frame==single.view(pet).frame,"animation clock independent of chunk size");
+        for(unsigned s=0;s<5;++s) for(unsigned m=0;m<motion_count;++m) {
+            const auto species=static_cast<Species>(s); const auto motion=static_cast<Motion>(m);
+            for(unsigned f=0;f<frame_count(species,motion);++f) {
+                const auto frame=animation_frame(species,motion,f);
+                check(frame.duration_ms>0 && frame.sprite.width>0 && frame.sprite.height>0,"valid frame geometry and duration");
+                bool opaque=false;
+                for(unsigned y=0;y<frame.sprite.height;++y) for(unsigned x=0;x<frame.sprite.width;++x) {
+                    const auto pixel=frame.sprite.at(x,y); opaque|=pixel!=0;
+                    check(pixel<frame.sprite.colors,"animation palette index valid");
+                }
+                check(opaque,"animation frame not blank");
+            }
+        }
+        static_assert(sizeof(Animator)<=32,"animator RAM budget");
+        check(animation_storage_bytes()<16384,"animation flash budget");
+        std::cout << "Animation host: Animator=" << sizeof(Animator) << " asset bytes=" << animation_storage_bytes() << '\n';
+    }
     // Long, deterministic adversarial sequence: invariants hold through care and time jumps.
     game.restore(hatched());
     std::uint32_t seed = 123456789;

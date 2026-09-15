@@ -2,6 +2,7 @@
 #include "pet/save.hpp"
 #include "pet/profile.hpp"
 #include "pet/sprite.hpp"
+#include "pet/animation.hpp"
 #include <cstdio>
 #include <cstring>
 #include <new>
@@ -16,6 +17,8 @@ namespace {
 struct Session {
     pet::Game game;
     pet::Profile profile;
+    pet::Animator animator;
+    char animation_json[192]{};
     char json[2048]{};
 };
 }
@@ -26,6 +29,39 @@ PET_EXPORT bool pp_set_name(Session* session, const char* name, std::size_t size
 }
 PET_EXPORT const char* pp_name(Session* session) { return session ? session->profile.name() : ""; }
 PET_EXPORT void pp_back(Session* session) { if (session) session->game.back(); }
+PET_EXPORT void pp_animation_seed(Session* session, std::uint32_t seed) {
+    if (session) session->animator = pet::Animator(seed);
+}
+PET_EXPORT const char* pp_animation(Session* session) {
+    if (!session) return "{}";
+    const auto a = session->animator.view(session->game.state());
+    std::snprintf(session->animation_json,sizeof(session->animation_json),
+        "{\"clip\":%u,\"name\":\"%s\",\"frame\":%u,\"x\":%d,\"y\":%d,\"flip\":%s}",
+        static_cast<unsigned>(a.motion),pet::motion_name(a.motion),static_cast<unsigned>(a.frame),
+        static_cast<int>(a.x),static_cast<int>(a.y),a.flip ? "true" : "false");
+    return session->animation_json;
+}
+PET_EXPORT int pp_frame_info(unsigned species, unsigned motion, unsigned frame, unsigned property) {
+    if (species>4 || motion>=pet::motion_count) return 0;
+    const auto s=static_cast<pet::Species>(species);
+    const auto m=static_cast<pet::Motion>(motion);
+    const auto f=pet::animation_frame(s,m,frame);
+    switch (property) {
+    case 0: return f.sprite.width;
+    case 1: return f.sprite.height;
+    case 2: return f.x;
+    case 3: return f.y;
+    case 4: return f.duration_ms;
+    case 5: return static_cast<int>(pet::frame_count(s,m));
+    default: return 0;
+    }
+}
+PET_EXPORT unsigned pp_frame_pixel(unsigned species,unsigned motion,unsigned frame,unsigned x,unsigned y) {
+    if (species>4 || motion>=pet::motion_count) return 0x10000u;
+    const auto s=pet::animation_frame(static_cast<pet::Species>(species),static_cast<pet::Motion>(motion),frame).sprite;
+    const auto index=s.at(x,y);
+    return index==0 ? 0x10000u : s.palette[index];
+}
 PET_EXPORT unsigned pp_menu_count() { return pet::Game::menu_count; }
 PET_EXPORT const char* pp_menu_label(unsigned index) {
     return index < pet::Game::menu_count ? pet::action_name(pet::Game::menu_action(static_cast<std::uint8_t>(index))) : "";
@@ -54,15 +90,23 @@ PET_EXPORT unsigned pp_memory_bytes(unsigned kind) {
     case 1: return sizeof(pet::State);
     case 2: return sizeof(pet::Profile);
     case 3: return static_cast<unsigned>(pet::sprite_storage_bytes());
+    case 4: return static_cast<unsigned>(pet::animation_storage_bytes());
+    case 5: return sizeof(pet::Animator);
     default: return 0;
     }
 }
 PET_EXPORT void pp_advance(Session* session, std::uint32_t ms, std::uint32_t speed) {
-    if (session) session->game.advance(ms, speed);
+    if (session) {
+        session->game.advance(ms, speed);
+        session->animator.advance(session->game.state(), speed && session->game.screen()==pet::Screen::Home ? ms : 0);
+    }
 }
 PET_EXPORT bool pp_button(Session* session, int button) {
     if (!session || button < 0 || button > 2) return false;
+    const auto fullness=session->game.state().fullness;
     session->game.button(static_cast<pet::Button>(button));
+    session->animator.advance(session->game.state(),0);
+    if (session->game.state().fullness > fullness) session->animator.fed(session->game.state());
     return true;
 }
 PET_EXPORT const char* pp_view(Session* session) {
@@ -101,5 +145,7 @@ PET_EXPORT std::size_t pp_save(Session* session, std::uint8_t* output, std::size
 }
 PET_EXPORT bool pp_load(Session* session, const std::uint8_t* input, std::size_t size) {
     pet::State state;
-    return session && pet::decode(input, size, state) && session->game.restore(state);
+    if (!session || !pet::decode(input,size,state) || !session->game.restore(state)) return false;
+    session->animator.advance(state,0);
+    return true;
 }

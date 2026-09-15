@@ -1,0 +1,3 @@
+# Preserve pinned upstream bytes and hashes across Windows/Linux checkouts.
+# Upstream whitespace is retained as part of the unmodified source snapshot.
+assets/vendor/** -text -whitespace

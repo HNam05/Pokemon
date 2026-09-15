@@ -1,4 +1,5 @@
 #include "pet/sprite.hpp"
+#include "pet/animation.hpp"
 #include <array>
 
 namespace pet {
@@ -84,6 +85,43 @@ constexpr auto egg = pack(
     "012223322210" "122233222221" "122222223321" "122222233321"
     "122232222221" "012233222210" "001222222100" "000111111000");
 static_assert(eevee.size() == 24 * 22 / 2 && duck.size() == 32 * 32 / 2 && egg.size() == 12 * 12 / 2);
+constexpr auto duck_pose(unsigned pose) {
+    auto pixels = duck;
+    const auto set = [&](unsigned x, unsigned y, unsigned color) {
+        const auto index = y * 32 + x;
+        const auto shift = index % 2 == 0 ? 4 : 0;
+        pixels[index/2] = static_cast<std::uint8_t>((pixels[index/2] & ~(15 << shift)) | (color << shift));
+    };
+    if (pose >= 1 && pose <= 3) {
+        for (unsigned y=9; y<=12; ++y)
+            for (unsigned x=10; x<=21; ++x) set(x,y,3);
+        for (unsigned eye : {11u,18u}) {
+            for (unsigned x=0; x<3; ++x) set(eye+x,pose==3 && x==1 ? 10 : 11,5);
+        }
+    }
+    if (pose==3 || pose==4) {
+        for (unsigned x=14; x<=18; ++x) set(x,17,1);
+        for (unsigned x=15; x<=17; ++x) set(x,18,pose==4?6:1);
+    }
+    if (pose==5 || pose==6) {
+        const unsigned left = pose==5 ? 6 : 17;
+        for (unsigned y=28; y<32; ++y)
+            for (unsigned x=left; x<left+8; ++x) {
+                const unsigned index=(y==31 ? 31 : y+1)*32+x;
+                const auto color=y==31 ? 0 : (duck[index/2] >> (index%2==0?4:0)) & 15;
+                set(x,y,color);
+            }
+    }
+    if (pose==7) {
+        for (unsigned eye : {12u,19u}) {
+            set(eye,10,4); set(eye,11,4);
+            set(eye+1,10,5); set(eye+1,11,5);
+        }
+    }
+    return pixels;
+}
+constexpr auto duck_blink=duck_pose(1), duck_sleep=duck_pose(2), duck_happy=duck_pose(3),
+    duck_eat=duck_pose(4), duck_step_left=duck_pose(5), duck_step_right=duck_pose(6), duck_look=duck_pose(7);
 }
 Sprite sprite_for(Species species) {
     if (species == Species::Egg) return {egg.data(),egg_palette,12,12,4};
@@ -94,5 +132,19 @@ Sprite sprite_for(Species species) {
 std::size_t sprite_storage_bytes() {
     return sizeof(eevee) + sizeof(duck) + sizeof(egg) + sizeof(eevee_palette) + sizeof(espeon_palette) +
         sizeof(umbreon_palette) + sizeof(duck_palette) + sizeof(egg_palette);
+}
+Sprite authored_pose(Species species, Motion motion, unsigned frame) {
+    auto result = sprite_for(species);
+    if (species != Species::Psyduck) return result;
+    if (motion == Motion::Sleep || motion == Motion::Tired || motion == Motion::Sick) result.pixels=duck_sleep.data();
+    else if (motion == Motion::Happy) result.pixels=frame%2 ? duck_happy.data() : duck_blink.data();
+    else if (motion == Motion::Eat) result.pixels=frame%2 ? duck_eat.data() : duck.data();
+    else if (motion == Motion::Walk) result.pixels=frame%2 ? duck_step_left.data() : duck_step_right.data();
+    else if (motion == Motion::Look) result.pixels=frame<2 ? duck_look.data() : duck.data();
+    else if (frame==3) result.pixels=duck_blink.data();
+    return result;
+}
+std::size_t authored_pose_bytes() {
+    return sizeof(duck_blink)+sizeof(duck_sleep)+sizeof(duck_happy)+sizeof(duck_eat)+sizeof(duck_step_left)+sizeof(duck_step_right)+sizeof(duck_look);
 }
 }

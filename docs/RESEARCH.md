@@ -47,7 +47,13 @@ Im Minispiel pausiert die Pflegezeit; seine Reaktionszeit bleibt in jedem Zeitra
 - Persönlicher Name als getrennte lokale Gerätekonfiguration, getrennte Spielstände für zwei Geräte.
 - Palettensprites als gemeinsame C++-Daten und explizite Speicherbudgets. Offizielle Espressif-Quellen und Hardwarestrategie in [UX_HARDWARE.md](UX_HARDWARE.md).
 
-## Offline-Verhalten
+## Ergänzung 15.09.2026: Animationsquellen und Verhalten
+
+SpriteCollab bietet mehrere Aktionen pro Pokémon, enthält aber sowohl Originalspielgrafiken als auch Fanbeiträge. Die konkrete Evoli-Variante `0133/0002` nennt Emmuffin als Künstler; sie wurde mit festem Quellcommit, Credits und den CC-BY-NC-Nutzungsbedingungen übernommen. Die Standardsets für Evoli und Enton nennen Chunsoft und wurden nicht importiert. Vergleichsquellen und genaue Fundstellen: [Grafikherkunft](../assets/README.md).
+
+Die neue kosmetische Zustandsmaschine wählt zufällig zwischen kurzen Aktionen mit Ruhepausen. Schlaf, Krankheit und niedrige Energie haben Priorität; Hunger/niedrige Freude unterdrücken Jubel und Hüpfen. Erfolgreiches Füttern löst einen Essablauf aus. Der Zufall ist unabhängig von Minispielen und Pflegelogik. Pflegezahlen und Save-Format bleiben unverändert. Vollständiger Vertrag und Speicherstand: [Animationen](ANIMATION.md).
+
+## Offline-Verhalten (unverändert)
 
 Der Server betreibt das Pet auch bei geschlossenem Browser. Beim Serverneustart werden maximal acht Stunden reale Abwesenheit nachgeholt, nie mit dem vorherigen Zeitrafferfaktor. Eine rückwärts korrigierte PC-Uhr erzeugt keine negative Spielzeit. Nach acht Stunden greift ein Abwesenheitslimit; das Tier stirbt nicht. Der Simulator startet immer in Echtzeit. Tests können eine manuelle Uhr verwenden.
 

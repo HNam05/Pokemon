@@ -21,22 +21,24 @@ function lines(value, y) {
   text(line.trim(), 120, y, 10, '#313a32', 'center');
 }
 
-function pet(x, y, scale = 3, species = state.species) {
-  const sprite = assets?.sprites[species];
-  if (!sprite) return;
-  sprite.pixels.forEach((pixel, i) => {
-    if (pixel === 65536) return;
-    const r = Math.round(((pixel >> 11) & 31) * 255 / 31);
-    const g = Math.round(((pixel >> 5) & 63) * 255 / 63);
-    const b = Math.round((pixel & 31) * 255 / 31);
-    rect(x + (i % sprite.width) * scale, y + Math.floor(i / sprite.width) * scale, scale, scale, `rgb(${r},${g},${b})`);
-  });
-}
 function centeredPet(y, species = state.species) {
-  const sprite = assets?.sprites[species];
+  const sprite = assets?.animations[species]?.[0]?.[0] || assets?.sprites[species];
   if (!sprite) return;
   const scale = species === 4 ? 3 : 4;
-  pet(Math.floor((240 - sprite.width * scale) / 2), y, scale, species);
+  ctx.drawImage(sprite.bitmap,Math.floor((240-sprite.width*scale)/2),y,sprite.width*scale,sprite.height*scale);
+}
+function animatedPet() {
+  const a = state.animation;
+  const clip = reducedMotion ? ([4,6,7].includes(a.clip) ? a.clip : 0) : a.clip;
+  const sprite = assets.animations[state.species][clip][reducedMotion ? 0 : a.frame];
+  const scale = state.species === 1 ? 4 : 3;
+  const anchorY = state.species === 1 ? 164 : 144;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0,34,240,178); ctx.clip();
+  ctx.translate(120+(reducedMotion?0:a.x),anchorY+(reducedMotion?0:a.y));
+  ctx.scale(!reducedMotion && a.flip ? -scale : scale,scale);
+  ctx.drawImage(sprite.bitmap,sprite.x,sprite.y);
+  ctx.restore();
 }
 function meter(label, value, y) {
   text(label, 14, y, 10); text(`${value}`, 226, y, 10, '#313a32', 'right');
@@ -52,8 +54,8 @@ function scene() {
   for (const [x, y] of [[13,175],[35,161],[189,171],[211,190],[56,197]]) {
     rect(x, y, 2, 5, '#617953'); rect(x+3, y-2, 2, 7, '#617953');
   }
-  const bob = reducedMotion || state.sleeping ? 0 : Math.floor(Date.now() / 600) % 2;
-  centeredPet(state.species === 0 ? 115 + bob : 96 + bob);
+  if (state.species === 0) centeredPet(115);
+  else animatedPet();
   if (state.trainer_name) text(`Hallo, ${state.trainer_name}!`,12,49,10,night?'#f8efd2':'#374735');
   if (state.sleeping) text('Z z', 175, 109, 14, '#f8efd2');
   for (let i = 0; i < state.waste; i++) {
@@ -241,7 +243,7 @@ window.advanceTime = async (ms) => {
 };
 async function poll() {
   try { await enqueue('/api/state'); } catch { /* report() already presents failure. */ }
-  setTimeout(poll,[3,7].includes(state?.screen)?60:400);
+  setTimeout(poll,state?.speed!==0 && [0,3,7].includes(state?.screen)?60:400);
 }
 async function start() {
   draw();
@@ -249,6 +251,18 @@ async function start() {
     const response = await fetch('/api/assets');
     if (!response.ok) throw new Error('Grafiken konnten nicht geladen werden.');
     assets = await response.json();
+    // Decode once on the desktop. The hardware consumes packed C++ data directly.
+    for (const sprite of [...assets.sprites,...assets.animations.flat(2)]) {
+      const bitmap = document.createElement('canvas');
+      bitmap.width=sprite.width; bitmap.height=sprite.height;
+      const image = bitmap.getContext('2d').createImageData(sprite.width,sprite.height);
+      sprite.pixels.forEach((pixel,i)=>{
+        if (pixel===65536) return;
+        image.data.set([Math.round(((pixel>>11)&31)*255/31),Math.round(((pixel>>5)&63)*255/63),Math.round((pixel&31)*255/31),255],i*4);
+      });
+      bitmap.getContext('2d').putImageData(image,0,0);
+      sprite.bitmap=bitmap;
+    }
     poll();
   } catch (error) { report(error); }
 }

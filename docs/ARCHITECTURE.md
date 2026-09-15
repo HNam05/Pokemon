@@ -26,6 +26,8 @@ Später: GPIO -> entprellte Button-Ereignisse -> derselbe pet::Game
 | `include/pet/save.hpp`, `src/save.cpp` | 44-Byte-V2-Format, V1-Migration, Little Endian, CRC32, Werteprüfung |
 | `include/pet/sprite.hpp`, `src/sprite.cpp` | Gemeinsame gepackte 4-Bit-Palettengrafik, RGB565-Farben |
 | `include/pet/profile.hpp` | Festes Namensprofil, UTF-8-Prüfung, unabhängig vom Spielstand |
+| `include/pet/animation.hpp`, `src/animation.cpp` | Kosmetische Zustandsmaschine mit eigenem Zufall, Echtzeit-Frames und begrenzter Bewegung |
+| `src/eevee_frames.inc`, `scripts/import_sprites.py`, `assets/` | Gepinnte Fanart, Offline-Import, Quellhashes, Credits und komprimierte konstante Frames |
 | `desktop/bridge.cpp` | C ABI für Spiel, Profil, Menühinweise und Sprite-Daten. Profilname separat vom formatierten JSON; Python übernimmt korrektes Escaping. |
 | `desktop/server.py` | Loopback-HTTP, monotone Uhr, atomare lokale Speicherung, begrenzte Offline-Zeit |
 | `desktop/web/` | Responsive Simulator-Ansicht, eigenes Pixelbild, Maus/Tastatur und zugängliche Statusbeschreibung |

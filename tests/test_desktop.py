@@ -155,8 +155,32 @@ class DesktopTests(unittest.TestCase):
         assets = self.engine.assets()
         self.assertEqual(assets['memory_bytes']['sprites'], 908)
         self.assertLessEqual(assets['memory_bytes']['game'], 128)
+        self.assertLessEqual(assets['memory_bytes']['animator'], 32)
+        self.assertLess(assets['memory_bytes']['animations'], 16384)
+        self.assertEqual(len(assets['animations'][1][0]), 2)
+        self.assertEqual(len(assets['animations'][1][2]), 10)
+        self.assertNotEqual(assets['animations'][4][3][0]['pixels'],assets['animations'][4][3][1]['pixels'])
         duck = assets['sprites'][4]
         self.assertEqual((duck['width'], duck['height'], len(duck['pixels'])), (32,32,1024))
+
+    def test_animation_is_cosmetic_and_follows_feeding(self):
+        self.engine.advance(600000)
+        before = self.engine.dump()
+        self.engine.lib.pp_animation_seed(self.engine.handle, 42)
+        other = server.Engine(server.find_library())
+        self.addCleanup(other.close)
+        other.load(before)
+        self.engine.advance(4000)
+        other.advance(4000)
+        self.assertEqual(self.engine.dump(),other.dump())
+        self.engine.button(1)
+        self.engine.button(1)
+        self.assertEqual(self.engine.view()['animation']['name'],'eat')
+        pose = self.engine.view()['animation']
+        self.engine.advance(1000,0)
+        self.assertEqual(self.engine.view()['animation'],pose)
+        self.engine.advance(2200)
+        self.assertEqual(self.engine.view()['animation']['name'],'idle')
 
 
 if __name__ == '__main__':

@@ -44,3 +44,16 @@ Offen: echter ESP32-Build/Flash, Hardwaretests, CMake/MSVC und andere Betriebssy
 - Abschlusspruefung: warning-clean Release-Build, 22.907 C++-Checks, 14 Python-Tests, Browser-Spielablaeufe fuer beide Starter und beide Minispiele bestanden. Long-OK per Tastatur und Maus, Scrollen, Profiltext, Vollbild und Mobilansicht geprueft. Keine Browserfehler. Screenshots kontrolliert; sie bleiben unter output/.
 
 Naechster Entwicklungsschritt: echtes Board festlegen und GPIO-/LCD-/NVS-Adapter integrieren. Danach Pixelanimationen und Sound. Pflegebalance durch Spielen im Alltag beurteilen. Die beiden persoenlichen Konfigurationsdateien muessen bei einem Rechnerwechsel lokal uebertragen oder neu angelegt werden.
+
+## 15.09.2026 / OpenAI Codex / M3 Animationen
+
+- Auftrag: online nach offenen Pixel-Animationsquellen suchen, geeignete Pokémon-Bilder übernehmen und spontane, zum Zustand passende Bewegungen implementieren.
+- Branch codex/2026-09-15-pokemon-animations, Basis 3d08c53. SpriteCollab, PokeAPI, Showdown und weitere Fanquellen geprüft. Konkrete Evoli-Alternate-Variante von Emmuffin übernommen: CC BY-NC, gepinnter Commit, Credits, Lizenztext und Quellhashes. Keine Chunsoft-Sprites übernommen; Enton erhält eigene prozedurale Augen-, Schnabel- und Fußposen.
+- Kosmetischer C++-Animator mit separatem PRNG: Ruhepausen, Gehen, Umsehen, Hüpfen, Freude; Schlaf/Krankheit/Erschöpfung priorisiert, Hunger unterdrückt Jubel; Füttern löst Essen aus. Kein Eingriff in Pflegewerte oder das 44-Byte-Saveformat.
+- Offline-Importer: 38 Evoli-Frames auf 19 einzigartige Bitmaps reduziert, transparente Ränder mit Registrierung erhalten, 4-Bit-Palette/RGB565. Original-PNGs/XML nur Entwicklungsquellen, kein Bilddecoder auf Hardware nötig.
+- Browser zeichnet vorgeladene Canvas-Bitmaps; C++ liefert Clip/Frame/Position. Reduzierte Bewegung mit ruhigem Zustandsbild. Sprunghöhe für die kleine Anzeige korrigiert, Framegrenzen im Browser geprüft.
+- Host-Datengrößen: Animator 20 Byte; zusätzliche Assets samt Host-Tabellen 8.819 Byte, zusätzlich zu bisherigen 908 Byte. Keine ESP32-Gesamtspeicherbehauptung.
+- Bestanden: Zig-Release-Build, 121.168 C++-Checks, 15 Python-Tests, bestehende Browserflows beider Starter, neuer 70-Sekunden-Animationsablauf je Art, Quellhash-/Generierungsprüfung, unabhängiger Vergleich aller 59.200 Quellpixel.
+- Screenshots: Schlaf, Freude, Essen, Umsehen, Gehen und Sprung kontrolliert. Spielstände vor Austausch der laufenden DLL gesichert.
+- Abschließender Develop-Web-Game-Skill-Client mit drei Sequenzen bestanden; Screenshots und Textzustand kontrolliert, keine Browserfehler.
+- Offen: eigener hochwertiger Enton-Animationssatz mit klarer Freigabe, seitliche Laufansichten, eigenständige Frames für Psiana/Nachtara, LCD-/GPIO-/Audioadapter, physische Hardwareprüfung. Lizenzhinweis bei Geräteweitergabe beilegen; Details in assets/README.md und docs/ANIMATION.md.

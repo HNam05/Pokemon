@@ -59,7 +59,17 @@ node tests/browser_smoke.mjs
 
 Der Browser-Test startet selbst einen Server mit manueller Uhr auf Port 8877, neutralem Testprofil und separatem Spielstand. `PET_TEST_PORT` kann einen anderen freien Port setzen. Starter 1 ist Evoli (Standard), Starter 4 Enton. Er beendet nur den eigenen Prozess. Artefakte liegen unter `output/browser/` bzw. `output/browser-enton/` und werden nicht eingecheckt.
 
-## Noch nicht nachgewiesen
+## Animationsausbau / 15.09.2026
+
+- Warning-clean Zig-Release-Build: 121.168 C++-Prüfungen bestanden, darunter Framegrenzen, Paletten, Statusprioritäten, Seed-Reproduzierbarkeit, Chunk-Zeitinvarianz, eigener Zufall und unveränderte Save-Daten.
+- 15 Python-Adaptertests bestanden; Essereignis, Pause und Animationsbudget ergänzt.
+- `node tests/animation_smoke.mjs`: Evoli und Enton je über 70 Sekunden simuliert. Alle fünf spontanen Abläufe sichtbar, 27 bzw. 20 unterschiedliche Clip-/Frame-Kombinationen; Füttern, Schlafen, Pause und reduzierte Bewegung bestanden. Ober-/Unterkante der Frames geprüft. Screenshots unter `output/animations` visuell kontrolliert.
+- Bisheriger Browser-Smoke für beide Starter samt Pflege, Minispielen, Speichern, Mobilansicht und HTTP-Grenzen weiterhin bestanden.
+- Mit Pillow: `python scripts/import_sprites.py --check` bestätigt die Quellhashes und reproduzierbare C++-Ausgabe. `python tests/verify_sprite_import.py` bestätigt unabhängig 59.200 Quellpixel gegen die kompilierte Darstellung.
+- Zusätzlicher Skill-Client-Lauf mit drei Sequenzen bestanden; Status und Canvas-Screenshots unter `output/skill-animation` kontrolliert. Keine Browserfehler. Diese lokalen Artefakte werden nicht eingecheckt.
+- Kein ESP32-Build und keine Messung am LCD; Pixelbilder stammen ausschließlich aus der dokumentierten Evoli-Fanvariante bzw. projektinternen Grafiken.
+
+## Noch nicht nachgewiesen (Hardware und weitere Plattformen)
 
 - CMake-Build mit MSVC/GCC auf einem zweiten Rechner; hier wurde der direkte portable Zig-Build verwendet.
 - Linux/macOS, andere Browser, Bildschirmleser mit realer Assistenzsoftware.
