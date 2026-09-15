@@ -76,3 +76,7 @@ Nächste Hardwareintegration:
 6. Akku-/Ladezustand, Low-Battery-Verhalten, Backlight/Sleep, Stromverbrauch und physische Einbautests.
 
 Vollständige Bildschirmparität muss im Hardware-Renderer noch hergestellt werden. Gehäuse, Touch, Audio, Funkkontakte, Qi-Laden und SD-Karten sind noch offen. [UX und Speicherplanung](UX_HARDWARE.md) enthält aktuelle Messungen, Quellennachweise und die Audio-Richtung.
+
+## Testreset außerhalb der Firmware
+
+Nur `desktop/server.py --test-controls` aktiviert `POST /api/reset` mit `confirm: true`. Ohne Flag antwortet der Endpunkt 404. Der Adapter erzeugt eine frische C++-Session mit dem bestehenden Profil, sichert den bisherigen Spielstand unter eindeutigem Namen und schreibt den neuen Stand atomar. Erst danach wird das Session-Handle übernommen. Fehler erhalten die alte laufende Session und den alten Spielstand. Geschwindigkeit/Uhren werden zurückgesetzt. Keine Reset-Aktion im Geräte-Menü, keine neue C++-Spielregel und keine Saveformatänderung.

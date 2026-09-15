@@ -223,6 +223,48 @@ class DesktopTests(unittest.TestCase):
         self.assertEqual(a['scale'],5)
         self.assertGreaterEqual(a['draw_y'],42)
 
+    def test_reset_is_disabled_by_default(self):
+        sim=server.Simulator(self.engine,self.path)
+        before=self.engine.dump()
+        with self.assertRaises(ValueError):sim.reset_test_save()
+        self.assertEqual(self.engine.dump(),before)
+        self.assertFalse(sim.view()['test_controls'])
+
+    def test_test_reset_preserves_profile_and_backup(self):
+        self.engine.lib.pp_set_name(self.engine.handle,b'Ada',3)
+        sim=server.Simulator(self.engine,self.path,manual=True,test_controls=True)
+        self.engine.advance(60000,10)
+        self.engine.button(1)
+        for _ in range(4):self.engine.button(2)
+        self.engine.button(1)
+        self.assertEqual(self.engine.view()['screen'],3)
+        sim.speed=3600
+        sim.save()
+        old=self.path.read_bytes()
+        sim.reset_test_save()
+        view=sim.view()
+        self.assertEqual((view['species'],view['age_minutes'],view['screen'],view['speed']),(0,0,5,1))
+        self.assertFalse(view['starter_chosen'])
+        self.assertEqual(view['trainer_name'],'Ada')
+        self.assertEqual(next(self.path.parent.glob('pet.json.reset-*.bak')).read_bytes(),old)
+        restored=server.Engine(server.find_library())
+        try:
+            restored.load(bytes.fromhex(json.loads(self.path.read_text())['payload']))
+            self.assertEqual(restored.view()['screen'],5)
+        finally:restored.close()
+
+    def test_reset_write_failure_keeps_running_game_and_save(self):
+        sim=server.Simulator(self.engine,self.path,test_controls=True)
+        self.engine.advance(60000,10)
+        sim.save()
+        old_file=self.path.read_bytes();old_state=self.engine.dump();old_handle=self.engine.handle
+        with patch.object(server.os,'replace',side_effect=OSError('test failure')):
+            with self.assertRaises(OSError):sim.reset_test_save()
+        self.assertEqual(self.path.read_bytes(),old_file)
+        self.assertEqual(self.engine.dump(),old_state)
+        self.assertEqual(self.engine.handle,old_handle)
+        self.assertIn('Zuruecksetzen fehlgeschlagen',sim.storage_error)
+
 
 if __name__ == '__main__':
     unittest.main()

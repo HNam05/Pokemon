@@ -98,3 +98,7 @@ Diese Punkte sind nächste Integrationsschritte, keine behaupteten Testergebniss
 - Alle sechs Kontaktübersichten der neuen Auswahl und Mobilansicht visuell kontrolliert. Tag-, Nacht-, Enton-, Evoli- und Sprungansichten geprüft. Originaler Skill-Client: drei Sequenzen ohne Browserfehler; Screenshots und Textzustand unter output/skill-nature geprüft.
 - Beide Offline-Importer reproduzierbar; 12.146.208 SpriteCollab-Quellpixel unverändert zur kompilierten Darstellung. Zusätzlich sämtliche 42.720 Pixel der Hintergrund-Displayfassung unabhängig gegen C++ geprüft.
 - Hintergrund: 21.424 Byte konstante Daten einschließlich beider Paletten. Spielkern, Animator und Save V3 unverändert. Kein ESP32-Build oder physischer LCD-Test.
+
+## Optionaler Simulator-Reset / 15.09.2026
+
+21 Python-Tests bestanden: Reset standardmäßig gesperrt, frische Auswahl nach aktivem Minispiel, Profil/Sicherung erhalten, Save/Reload, bei Schreibfehlern unveränderte Datei und laufende Session plus sichtbarer Fehler. `node tests/reset_smoke.mjs` prüft fehlendes Flag/404, ungültige Bestätigung/400, Dialog-Abbruch, Reset, Sicherung, Neuladen, mobile Darstellung und ein neues spielbares Enton. Drei Sequenzen mit originalem Skill-Client bestanden, Screenshots/Textzustand geprüft. Keine Änderungen am C++-Kern, daher kein erneuter C++-Build. Die echte Testinstanz auf 8768 mit Flag gestartet und erfolgreich auf die Auswahl zurückgesetzt; persönliche Instanzen nicht zurückgesetzt.

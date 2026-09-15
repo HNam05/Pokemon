@@ -16,6 +16,7 @@ WEB = ROOT / 'desktop' / 'web'
 
 class Engine:
     def __init__(self, library, trainer_name=''):
+        self.library = library
         self.lib = ctypes.CDLL(str(library))
         pointer = ctypes.c_void_p
         byte_pointer = ctypes.POINTER(ctypes.c_uint8)
@@ -149,8 +150,9 @@ class Engine:
 
 
 class Simulator:
-    def __init__(self, engine, save_path, manual=False):
+    def __init__(self, engine, save_path, manual=False, test_controls=False):
         self.engine, self.save_path, self.manual = engine, save_path, manual
+        self.test_controls = test_controls
         self.speed = 1
         self.storage_error = None
         self.offline_minutes = 0
@@ -185,23 +187,54 @@ class Simulator:
         if now - self.last_save >= 30:
             self.save()
 
-    def save(self):
+    def write_save(self, data):
         temporary = self.save_path.with_suffix('.tmp')
+        self.save_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {'version': 1, 'saved_at': int(time.time()), 'payload': data.hex()}
+        with temporary.open('w', encoding='utf-8', newline='\n') as stream:
+            json.dump(payload, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, self.save_path)
+
+    def save(self):
         try:
-            self.save_path.parent.mkdir(parents=True, exist_ok=True)
-            payload = {'version': 1, 'saved_at': int(time.time()), 'payload': self.engine.dump().hex()}
-            with temporary.open('w', encoding='utf-8', newline='\n') as stream:
-                json.dump(payload, stream)
-                stream.flush()
-                os.fsync(stream.fileno())
-            os.replace(temporary, self.save_path)
+            self.write_save(self.engine.dump())
             self.storage_error = None
         except OSError as error:
             self.storage_error = f'Speichern fehlgeschlagen: {error}'
         self.last_save = time.monotonic()
 
+    def reset_test_save(self):
+        if not self.test_controls:
+            raise ValueError('Testfunktionen sind deaktiviert.')
+        name = self.engine.view()['trainer_name']
+        fresh = Engine(self.engine.library, name)
+        try:
+            if self.manual:
+                fresh.lib.pp_animation_seed(fresh.handle, 42)
+            if self.save_path.exists():
+                backup = self.save_path.with_name(f'{self.save_path.name}.reset-{time.time_ns()}.bak')
+                with backup.open('xb') as stream:
+                    stream.write(self.save_path.read_bytes())
+                    stream.flush()
+                    os.fsync(stream.fileno())
+            # Persist first; a failed write must not replace the running session.
+            self.write_save(fresh.dump())
+            self.engine.handle, fresh.handle = fresh.handle, self.engine.handle
+            self.speed = 1
+            self.offline_minutes = 0
+            self.storage_error = None
+            self.last_tick = self.last_save = time.monotonic()
+        except OSError as error:
+            self.storage_error = f'Zuruecksetzen fehlgeschlagen: {error}'
+            raise
+        finally:
+            fresh.close()
+
     def view(self):
         return {**self.engine.view(), 'speed': self.speed, 'manual_clock': self.manual,
+                'test_controls': self.test_controls,
                 'storage_error': self.storage_error, 'offline_minutes': self.offline_minutes}
 
 
@@ -316,11 +349,18 @@ def handler_for(simulator, port):
                     simulator.save()
                 elif self.path == '/api/save':
                     simulator.save()
+                elif self.path == '/api/reset' and simulator.test_controls:
+                    if data.get('confirm') is not True:
+                        raise ValueError('Zuruecksetzen muss bestaetigt werden.')
+                    simulator.reset_test_save()
                 else:
                     self.send_body(404, {'error': 'Nicht gefunden.'})
                     return
             except (ValueError, UnicodeDecodeError) as error:
                 self.send_body(400, {'error': str(error)})
+                return
+            except OSError as error:
+                self.send_body(500, {'error': f'Speicherzugriff fehlgeschlagen: {error}'})
                 return
             self.send_body(200, simulator.view())
 
@@ -378,6 +418,7 @@ def main():
     parser.add_argument('--save', type=Path)
     parser.add_argument('--profile', type=Path, help='Lokale JSON-Konfiguration mit trainer_name')
     parser.add_argument('--manual-clock', action='store_true', help='Deterministische Testuhr')
+    parser.add_argument('--test-controls', action='store_true', help='Nur Entwicklung: Spielstand-Reset im Simulator erlauben')
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         raise ValueError('Port muss zwischen 1 und 65535 liegen.')
@@ -397,7 +438,7 @@ def main():
         engine.lib.pp_animation_seed(engine.handle, 42)
     try:
         with SaveLock(args.save.resolve()):
-            simulator = Simulator(engine, args.save.resolve(), args.manual_clock)
+            simulator = Simulator(engine, args.save.resolve(), args.manual_clock, args.test_controls)
             with LocalServer(('127.0.0.1', args.port), handler_for(simulator, args.port)) as server:
                 server.timeout = 0.05
                 print(f'Pocket Pet: http://127.0.0.1:{args.port} | Strg+C beendet und speichert.', flush=True)

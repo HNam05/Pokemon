@@ -150,6 +150,7 @@ function draw() {
 
 function update(next) {
   state = next;
+  $('#test-controls').hidden = !state.test_controls;
   const credit=assets.catalog.find(p=>p.species===(state.screen===5?state.starter:state.species))?.credit;
   $('#art-credit').textContent = credit ? `Grafik: ${credit}` : 'Pocket Pet Prototypgrafik';
   $('#pet-name').textContent = state.trainer_name ? `${state.trainer_name}.` : state.species === 0 ? 'kleines Ei.' : `${state.name}.`;
@@ -276,9 +277,21 @@ $('#save').addEventListener('click',()=>{enqueue('/api/save',{}).then(result=>{
   if (!result.storage_error) $('#save-status').textContent = `Gespeichert um ${new Date().toLocaleTimeString('de-DE')}.`;
 }).catch(()=>{});});
 $('#about-link').addEventListener('click',event=>{event.preventDefault();$('#about').showModal();});
+$('#test-reset').addEventListener('click',()=>{
+  stopNavigation();releaseConfirm(true);$('#reset-dialog').showModal();
+});
+$('#reset-confirm').addEventListener('click',async()=>{
+  const button=$('#reset-confirm');button.disabled=true;
+  try {
+    await enqueue('/api/reset',{confirm:true});
+    $('#reset-dialog').close();
+    $('#save-status').textContent='Testspielstand zurückgesetzt. Wähle deinen Begleiter.';
+  } catch { $('#reset-dialog').close(); /* enqueue presents the error. */ }
+  finally { button.disabled=false; }
+});
 document.addEventListener('keydown',event=>{
   const onDevice = event.target.closest('.buttons');
-  if (event.repeat || $('#about').open || (!onDevice && event.target.closest('select,button,a,summary'))) return;
+  if (event.repeat || document.querySelector('dialog[open]') || (!onDevice && event.target.closest('select,button,a,summary'))) return;
   if (event.key === 'Enter' || (event.key === ' ' && event.target.id === 'confirm')) {event.preventDefault();startConfirm();return;}
   const button = {ArrowLeft:0,ArrowUp:0,ArrowRight:2,ArrowDown:2}[event.key];
   if (button !== undefined) { event.preventDefault(); startNavigation(button); }

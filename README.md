@@ -43,6 +43,16 @@ Alle Aktionen sind mit drei Tasten erreichbar. Fünf Menüzeilen bleiben sichtba
 
 Neue Spielstände beginnen mit der vollständigen Begleiterauswahl. Seitentasten wechseln einzeln; Halten blättert automatisch durch Auswahl oder Menü (450 ms Anlauf, anschließend alle 160 ms). Mit OK bestätigen, danach schlüpft das gewählte Ei nach zehn Spielminuten. Für den Einstieg im Simulator **+ 10 Minuten** drücken. Standard ist Echtzeit; Zeitraffer beschleunigt die Pflege, beide Minispiele behalten normale Reaktionszeiten. Pflegewerte stehen unter „Status“, konkrete Empfehlungen unter „Pflegehilfe“. Evoli-Entwicklung braucht 1 Tag, 70 Freundschaft, 60 EP und ein gesundes, waches Tier. Entwicklung weiterer Arten ist noch offen; neue Begleiter verwenden dieselben Pflegeregeln.
 
+## Testspielstand zurücksetzen (nur Simulator)
+
+Für wiederholte Testläufe den Simulator ausdrücklich mit `--test-controls` starten:
+
+```powershell
+python desktop/server.py --port 8768 --save output/roster-preview.json --test-controls
+```
+
+Unter den Simulator-Hilfen erscheint „Testspielstand zurücksetzen“. Nach Bestätigung beginnt die Pokémon-Auswahl neu; Profilname bleibt erhalten, Geschwindigkeit wird auf Echtzeit gesetzt. Der bisher gespeicherte Stand bleibt daneben als `*.reset-<zeitpunkt>.bak` erhalten. Bei Schreibfehlern bleibt auch die laufende Sitzung erhalten. Ohne Flag sind Button und Reset-Endpunkt deaktiviert. Die Funktion liegt ausschließlich im Desktop-Adapter und gehört nicht zur ausgelieferten ESP32-Bedienung.
+
 ## Zwei persönliche Geräte
 
 Die gleiche Software unterstützt getrennte Namen und Speicherdateien. `config/personalization.example.json` als `config/geraet-a.local.json` und `config/geraet-b.local.json` kopieren und jeweils `trainer_name` eintragen (maximal 24 UTF-8-Bytes). Die persönlichen Dateien sind von Git ausgeschlossen.
