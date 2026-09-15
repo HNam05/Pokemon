@@ -1,6 +1,7 @@
 """Loopback-only PC simulator. Python transports data; all gameplay lives in C++."""
 import argparse
 import secrets
+from collections import OrderedDict
 import ctypes
 import json
 import os
@@ -41,6 +42,13 @@ class Engine:
             'pp_animation': ([pointer], ctypes.c_char_p),
             'pp_frame_info': ([ctypes.c_uint]*4, ctypes.c_int),
             'pp_frame_pixel': ([ctypes.c_uint]*5, ctypes.c_uint),
+            'pp_starter_count': ([], ctypes.c_uint),
+            'pp_starter_at': ([ctypes.c_uint], ctypes.c_uint),
+            'pp_species_name': ([ctypes.c_uint], ctypes.c_char_p),
+            'pp_species_form': ([ctypes.c_uint], ctypes.c_char_p),
+            'pp_species_credit': ([ctypes.c_uint], ctypes.c_char_p),
+            'pp_species_scale': ([ctypes.c_uint], ctypes.c_uint),
+            'pp_species_anchor': ([ctypes.c_uint], ctypes.c_int),
         }
         for name, (arguments, result) in declarations.items():
             method = getattr(self.lib, name)
@@ -63,6 +71,8 @@ class Engine:
         result = json.loads(self.lib.pp_view(self.handle))
         result['trainer_name'] = self.lib.pp_name(self.handle).decode('utf-8')
         result['animation'] = json.loads(self.lib.pp_animation(self.handle))
+        result['starter_name'] = self.lib.pp_species_name(result['starter']).decode('utf-8')
+        result['starter_form'] = self.lib.pp_species_form(result['starter']).decode('utf-8')
         result['care_hint'] = self.lib.pp_care_hint(self.handle).decode('utf-8')
         result['menu'] = [{'label': self.lib.pp_menu_label(i).decode('utf-8'),
                            'hint': self.lib.pp_menu_hint(self.handle, i).decode('utf-8'),
@@ -70,15 +80,28 @@ class Engine:
                           for i in range(self.lib.pp_menu_count())]
         return result
 
-    def assets(self):
+    def catalog(self):
+        entries=[]
+        for i in range(self.lib.pp_starter_count()):
+            species=self.lib.pp_starter_at(i)
+            entries.append({'species':species,'name':self.lib.pp_species_name(species).decode('utf-8'),
+                'form':self.lib.pp_species_form(species).decode('utf-8'),
+                'credit':self.lib.pp_species_credit(species).decode('utf-8'),
+                'scale':self.lib.pp_species_scale(species),'anchor_y':self.lib.pp_species_anchor(species)})
+        return entries
+
+    def assets(self, selected=None):
+        ids=range(5) if selected is None else [selected]
+        if selected is not None and selected not in {0,1,2,3,4,*[e['species'] for e in self.catalog()]}:
+            raise ValueError('Unbekanntes Pokemon.')
         sprites = []
-        for species in range(5):
+        for species in ids:
             width = self.lib.pp_sprite_size(species, False)
             height = self.lib.pp_sprite_size(species, True)
             pixels = [self.lib.pp_sprite_pixel(species, x, y) for y in range(height) for x in range(width)]
             sprites.append({'width': width, 'height': height, 'pixels': pixels})
         animations = []
-        for species in range(5):
+        for species in ids:
             clips = []
             for motion in range(9):
                 frames = []
@@ -88,7 +111,7 @@ class Engine:
                         'pixels':[self.lib.pp_frame_pixel(species,motion,frame,px,py) for py in range(height) for px in range(width)]})
                 clips.append(frames)
             animations.append(clips)
-        return {'sprites': sprites, 'animations':animations,
+        return {'sprites': sprites, 'animations':animations,'species_ids':list(ids),'catalog':self.catalog() if selected is None else [],
                 'memory_bytes': dict(zip(('game', 'state', 'profile', 'sprites','animations','animator'),
                 (self.lib.pp_memory_bytes(i) for i in range(6))))}
 
@@ -174,6 +197,7 @@ class Simulator:
 
 def handler_for(simulator, port):
     assets = simulator.engine.assets()
+    asset_cache = OrderedDict()
     allowed_hosts = {f'127.0.0.1:{port}', f'localhost:{port}'}
     allowed_origins = {f'http://{host}' for host in allowed_hosts}
 
@@ -209,6 +233,23 @@ def handler_for(simulator, port):
                 return
             if self.path == '/api/assets':
                 self.send_body(200, assets)
+                return
+            if self.path.startswith('/api/assets/'):
+                token=self.path.removeprefix('/api/assets/')
+                if not token.isascii() or not token.isdecimal() or len(token)>3:
+                    self.send_body(404,{'error':'Unbekannte Grafik.'}); return
+                species=int(token)
+                try:
+                    if species not in asset_cache:
+                        asset_cache[species]=simulator.engine.assets(species)
+                        if len(asset_cache)>4: asset_cache.popitem(last=False)
+                    asset_cache.move_to_end(species)
+                    self.send_body(200,asset_cache[species])
+                except ValueError as error:
+                    self.send_body(404,{'error':str(error)})
+                return
+            if self.path == '/credits':
+                self.send_body(200,(ROOT/'assets/ROSTER.md').read_bytes(),'text/plain; charset=utf-8')
                 return
             files = {'/': ('index.html', 'text/html; charset=utf-8'),
                      '/app.js': ('app.js', 'text/javascript; charset=utf-8'),

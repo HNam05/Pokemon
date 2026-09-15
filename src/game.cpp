@@ -1,4 +1,5 @@
 #include "pet/game.hpp"
+#include "pet/catalog.hpp"
 #include <algorithm>
 
 namespace pet {
@@ -16,7 +17,7 @@ const char* species_name(Species species) {
     case Species::Umbreon: return "Nachtara";
     case Species::Psyduck: return "Enton";
     }
-    return "Unbekannt";
+    return roster_name(species);
 }
 
 const char* action_name(Action action) {
@@ -40,10 +41,10 @@ bool Game::valid(const State& s) {
         s.experience <= 1000000 && s.minute_of_day < 1440 && s.neglect_minutes <= 120 &&
         s.fullness <= 100 && s.happiness <= 100 && s.energy <= 100 && s.hygiene <= 100 &&
         s.health <= 100 && s.friendship <= 100 && s.waste <= 4 &&
-        static_cast<unsigned>(s.species) <= static_cast<unsigned>(Species::Psyduck) &&
-        (s.starter == Species::Eevee || s.starter == Species::Psyduck) &&
+        species_valid(s.species) && starter_valid(s.starter) &&
         (s.starter_chosen || (s.species == Species::Egg && s.age_minutes == 0 && s.remainder_ms == 0)) &&
-        (s.species == Species::Egg || (s.species == Species::Psyduck) == (s.starter == Species::Psyduck)) &&
+        (s.species == Species::Egg || s.species==s.starter ||
+            (s.starter==Species::Eevee && (s.species==Species::Espeon || s.species==Species::Umbreon))) &&
         (s.species != Species::Egg || (s.age_minutes < 10 && !s.sleeping && !s.sick)) &&
         (s.species == Species::Egg || s.age_minutes >= 10);
 }
@@ -133,7 +134,7 @@ void Game::minute() {
     if (state_.species == Species::Egg) {
         if (state_.age_minutes >= 10) {
             state_.species = state_.starter;
-            message_ = state_.species == Species::Psyduck ? "Enton ist geschluepft!" : "Evoli ist geschluepft!";
+            message_ = state_.species == Species::Psyduck ? "Enton ist geschluepft!" : state_.species==Species::Eevee ? "Evoli ist geschluepft!" : "Dein Begleiter ist geschluepft!";
         }
         return;
     }
@@ -288,7 +289,7 @@ void Game::button(Button button) {
             state_.starter_chosen = true;
             screen_ = Screen::Home;
             message_ = "Ein kleines Abenteuer beginnt.";
-        } else state_.starter = state_.starter == Species::Eevee ? Species::Psyduck : Species::Eevee;
+        } else state_.starter = next_starter(state_.starter,button==Button::Right);
         return;
     }
     if (screen_ == Screen::Memory) {

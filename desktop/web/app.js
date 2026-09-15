@@ -3,6 +3,7 @@ const canvas = document.querySelector('#screen');
 const ctx = canvas.getContext('2d');
 const $ = (selector) => document.querySelector(selector);
 let assets = null;
+const loadedSpecies = new Map();
 let state = null;
 let pending = Promise.resolve();
 let connected = false;
@@ -24,15 +25,17 @@ function lines(value, y) {
 function centeredPet(y, species = state.species) {
   const sprite = assets?.animations[species]?.[0]?.[0] || assets?.sprites[species];
   if (!sprite) return;
-  const scale = species === 4 ? 3 : 4;
-  ctx.drawImage(sprite.bitmap,Math.floor((240-sprite.width*scale)/2),y,sprite.width*scale,sprite.height*scale);
+  const info=assets.catalog.find(p=>p.species===species);
+  const scale=Math.max(1,Math.min(info?.scale||3,Math.floor(96/sprite.height),Math.floor(170/sprite.width)));
+  ctx.drawImage(sprite.bitmap,Math.floor((240-sprite.width*scale)/2),y+(96-sprite.height*scale)/2,sprite.width*scale,sprite.height*scale);
 }
 function animatedPet() {
   const a = state.animation;
   const clip = reducedMotion ? ([4,6,7].includes(a.clip) ? a.clip : 0) : a.clip;
   const sprite = assets.animations[state.species][clip][reducedMotion ? 0 : a.frame];
-  const scale = state.species === 1 ? 4 : 3;
-  const anchorY = state.species === 1 ? 164 : 144;
+  const info=assets.catalog.find(p=>p.species===state.species);
+  const scale = info?.scale || 3;
+  const anchorY = info?.anchor_y || 144;
   ctx.save();
   ctx.beginPath(); ctx.rect(0,34,240,178); ctx.clip();
   ctx.translate(120+(reducedMotion?0:a.x),anchorY+(reducedMotion?0:a.y));
@@ -70,11 +73,14 @@ function draw() {
   const clock = `${String(Math.floor(state.minute_of_day / 60)).padStart(2,'0')}:${String(state.minute_of_day % 60).padStart(2,'0')}`;
   rect(0,0,240,33,'#384738'); text(state.name.toUpperCase(),12,21,12,'#f1ecd4');text(clock,228,21,11,'#f1ecd4','right');
   if (state.screen === 5) {
-    text('DEIN ERSTER BEGLEITER',120,61,11,'#313a32','center');
+    const index=assets.catalog.findIndex(p=>p.species===state.starter);
+    text('DEIN ERSTER BEGLEITER',120,54,11,'#313a32','center');
+    text(`${index+1} / ${assets.catalog.length}`,120,72,10,'#59614f','center');
     centeredPet(93,state.starter);
     text('<',20,155,18); text('>',220,155,18,'#313a32','right');
-    text(state.starter === 4 ? 'ENTON' : 'EVOLI',120,221,16,'#313a32','center');
-    lines(state.starter === 4 ? 'Etwas verpeilt. Immer da.' : 'Neugierig auf dein Abenteuer.',245);
+    text(state.starter_name.toUpperCase(),120,221,Math.min(16,Math.floor(280/state.starter_name.length)),'#313a32','center');
+    lines(state.starter_form || 'Neugierig auf dein Abenteuer.',242);
+    text('Seitentaste halten: blaettern',120,264,9,'#59614f','center');
     text('OK: Dieses Ei waehlen',120,281,10,'#313a32','center');
   } else if (state.screen === 1) {
     text('WAS MACHEN WIR?',14,56,11);
@@ -109,7 +115,7 @@ function draw() {
     text('SO GEHT ES MIR',14,57,11);
     [['Satt',state.fullness],['Froh',state.happiness],['Energie',state.energy],['Sauber',state.hygiene],['Gesund',state.health],['Bindung',state.friendship]].forEach(([l,v],i) => meter(l,v,81+i*30));
     text(`EP ${state.experience}`,14,266,10);
-    text(state.species === 4 ? 'Enton: Entwicklung folgt.' : state.can_evolve ? 'Bereit zur Entwicklung!' : 'Ab 1 Tag + 70 Bindung +60 EP',14,283,10);
+    text(state.species !== 1 ? 'Entwicklung folgt.' : state.can_evolve ? 'Bereit zur Entwicklung!' : 'Ab 1 Tag + 70 Bindung +60 EP',14,283,10);
   } else if (state.screen === 3) {
     text(`BEERENFANG ${state.mini.round+1}/5`,12,56,11);
     text(`${state.mini.score} Treffer`,12,73,10);
@@ -145,6 +151,8 @@ function draw() {
 
 function update(next) {
   state = next;
+  const credit=assets.catalog.find(p=>p.species===(state.screen===5?state.starter:state.species))?.credit;
+  $('#art-credit').textContent = credit ? `Grafik: ${credit}` : 'Pocket Pet Prototypgrafik';
   $('#pet-name').textContent = state.trainer_name ? `${state.trainer_name}.` : state.species === 0 ? 'kleines Ei.' : `${state.name}.`;
   const list = state.screen === 1;
   $('#left span').textContent = list ? '▲' : '◀';
@@ -163,7 +171,7 @@ function update(next) {
   $('#skip').disabled = [3,5,7].includes(state.screen);
   $('#error').hidden = !state.storage_error;
   $('#error').textContent = state.storage_error || '';
-  $('#accessible-state').textContent = `${state.name}. ${state.message} Satt ${state.fullness}, froh ${state.happiness}, Energie ${state.energy}, Sauberkeit ${state.hygiene}, Gesundheit ${state.health}. ${state.screen === 1 ? `Menü: ${state.menu[state.selection].label}.` : state.screen===5 ? `Auswahl: ${state.starter===4?'Enton':'Evoli'}.` : ''}`;
+  $('#accessible-state').textContent = `${state.name}. ${state.message} Satt ${state.fullness}, froh ${state.happiness}, Energie ${state.energy}, Sauberkeit ${state.hygiene}, Gesundheit ${state.health}. ${state.screen === 1 ? `Menü: ${state.menu[state.selection].label}.` : state.screen===5 ? `Auswahl: ${state.starter_name} ${state.starter_form}.` : ''}`;
   canvas.setAttribute('aria-label', $('#accessible-state').textContent);
   draw();
 }
@@ -171,7 +179,31 @@ async function request(path, data) {
   const response = await fetch(path, data === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Verbindung fehlgeschlagen.');
+  await ensureSpecies(result.species);
+  await ensureSpecies(result.starter);
   connected = true; update(result); return result;
+}
+function decodeSprite(sprite) {
+  const bitmap=document.createElement('canvas');bitmap.width=sprite.width;bitmap.height=sprite.height;
+  const context=bitmap.getContext('2d');const image=context.createImageData(sprite.width,sprite.height);
+  sprite.pixels.forEach((pixel,i)=>{
+    if(pixel!==65536) image.data.set([Math.round(((pixel>>11)&31)*255/31),Math.round(((pixel>>5)&63)*255/63),Math.round((pixel&31)*255/31),255],i*4);
+  });
+  context.putImageData(image,0,0);sprite.bitmap=bitmap;
+  delete sprite.pixels;
+}
+async function ensureSpecies(species) {
+  if(assets.animations[species]) return;
+  const response=await fetch(`/api/assets/${species}`);
+  if(!response.ok) throw new Error('Pokemon-Grafik konnte nicht geladen werden.');
+  const data=await response.json();
+  for(const sprite of [...data.sprites,...data.animations.flat(2)]) decodeSprite(sprite);
+  assets.sprites[species]=data.sprites[0];assets.animations[species]=data.animations[0];
+  loadedSpecies.set(species,true);
+  while(loadedSpecies.size>4) {
+    const old=loadedSpecies.keys().next().value;loadedSpecies.delete(old);
+    delete assets.sprites[old];delete assets.animations[old];
+  }
 }
 function report(error) {
   connected = false; $('#error').hidden = false;
@@ -183,7 +215,32 @@ function enqueue(path, data) {
   return operation;
 }
 function press(button) { return enqueue('/api/button',{button}); }
-$('#left').addEventListener('click',()=>{press(0).catch(()=>{});});
+let navDelay=null,navInterval=null,navBusy=false,navButton=null;
+function stopNavigation() {
+  clearTimeout(navDelay);clearInterval(navInterval);navButton=null;
+}
+function startNavigation(button) {
+  if(navButton===button) return;
+  stopNavigation();navButton=button;
+  const step=()=>{
+    if(navBusy) return;
+    navBusy=true;press(button).catch(()=>{}).finally(()=>{navBusy=false;});
+  };
+  step();
+  navDelay=setTimeout(()=>{navInterval=setInterval(()=>{
+    if([1,5].includes(state?.screen)) step();
+  },160);},450);
+}
+for(const [id,button] of [['left',0],['right',2]]) {
+  const element=$(`#${id}`);
+  element.addEventListener('pointerdown',event=>{
+    if(event.button!==0)return;element.setPointerCapture(event.pointerId);startNavigation(button);
+  });
+  element.addEventListener('pointerup',stopNavigation);
+  element.addEventListener('pointercancel',stopNavigation);
+  element.addEventListener('lostpointercapture',stopNavigation);
+  element.addEventListener('click',event=>{if(event.detail===0)press(button).catch(()=>{});});
+}
 let holdTimer = null;
 let holding = false;
 let holdConsumed = false;
@@ -213,8 +270,7 @@ $('#confirm').addEventListener('pointerup',event=>{
 });
 $('#confirm').addEventListener('pointercancel',()=>releaseConfirm(true));
 $('#confirm').addEventListener('click',event=>{if(event.detail===0) press(1).catch(()=>{});});
-window.addEventListener('blur',()=>releaseConfirm(true));
-$('#right').addEventListener('click',()=>{press(2).catch(()=>{});});
+window.addEventListener('blur',()=>{releaseConfirm(true);stopNavigation();});
 $('#speed').addEventListener('change',event=>{enqueue('/api/speed',{speed:Number(event.target.value)}).catch(()=>{});});
 $('#skip').addEventListener('click',()=>{enqueue('/api/skip',{minutes:10}).catch(()=>{});});
 $('#save').addEventListener('click',()=>{enqueue('/api/save',{}).then(result=>{
@@ -226,13 +282,14 @@ document.addEventListener('keydown',event=>{
   if (event.repeat || $('#about').open || (!onDevice && event.target.closest('select,button,a,summary'))) return;
   if (event.key === 'Enter' || (event.key === ' ' && event.target.id === 'confirm')) {event.preventDefault();startConfirm();return;}
   const button = {ArrowLeft:0,ArrowUp:0,ArrowRight:2,ArrowDown:2}[event.key];
-  if (button !== undefined) { event.preventDefault(); press(button).catch(()=>{}); }
+  if (button !== undefined) { event.preventDefault(); startNavigation(button); }
   if (event.key === 'f') {
     const operation = document.fullscreenElement ? document.exitFullscreen() : $('.device').requestFullscreen();
     operation.catch(report);
   }
 });
 document.addEventListener('keyup',event=>{
+  if(['ArrowLeft','ArrowUp','ArrowRight','ArrowDown'].includes(event.key)) stopNavigation();
   if ((event.key==='Enter' || event.key===' ') && holding) {event.preventDefault();releaseConfirm();}
 });
 window.render_game_to_text = () => JSON.stringify({coordinate_system:'240x320, origin top-left; x right, y down',connected,...state,selected_action:state?.screen===1?state.menu[state.selection].label:null});
@@ -251,18 +308,7 @@ async function start() {
     const response = await fetch('/api/assets');
     if (!response.ok) throw new Error('Grafiken konnten nicht geladen werden.');
     assets = await response.json();
-    // Decode once on the desktop. The hardware consumes packed C++ data directly.
-    for (const sprite of [...assets.sprites,...assets.animations.flat(2)]) {
-      const bitmap = document.createElement('canvas');
-      bitmap.width=sprite.width; bitmap.height=sprite.height;
-      const image = bitmap.getContext('2d').createImageData(sprite.width,sprite.height);
-      sprite.pixels.forEach((pixel,i)=>{
-        if (pixel===65536) return;
-        image.data.set([Math.round(((pixel>>11)&31)*255/31),Math.round(((pixel>>5)&63)*255/63),Math.round((pixel&31)*255/31),255],i*4);
-      });
-      bitmap.getContext('2d').putImageData(image,0,0);
-      sprite.bitmap=bitmap;
-    }
+    for (const sprite of [...assets.sprites,...assets.animations.flat(2)]) decodeSprite(sprite);
     poll();
   } catch (error) { report(error); }
 }

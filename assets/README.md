@@ -1,36 +1,59 @@
 # Grafikherkunft und Animationsimport
 
-Stand: 15.09.2026. Die Bilder sind Fanmaterial, keine pauschal frei lizenzierten Pokémon-Marken oder Originalspielgrafiken.
+Stand: 15.09.2026. 129 importierte Fanart-Sets mit 85 Pokémon und ihren Formen, dazu der eigene Enton: 130 auswählbare Begleiter. Der vollständige [Katalog mit Künstlern, Bedingungen und Quelllinks](ROSTER.md) wird aus dem Importmanifest erzeugt.
 
-## Übernommen: Evoli Alternate von Emmuffin
+## Geprüfte Quelle und Nutzungsbedingungen
 
-- Künstler: **Emmuffin**, [Künstlerprofil](https://twitter.com/Ernmuffin), SpriteCollab-ID `356635814668664832`.
-- Quelle: [PMDCollab/SpriteCollab, sprite/0133/0002](https://github.com/PMDCollab/SpriteCollab/tree/83681005aa8f37cea7dfe8e68c51aa4b7bf8384a/sprite/0133/0002).
-- Gepinnter Stand: `83681005aa8f37cea7dfe8e68c51aa4b7bf8384a`. Variante heißt im Tracker **Alternate**. Die Varianten-Credits nennen Emmuffin für die übernommenen Animationen.
-- Upstream-Nutzungsbedingungen: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/), Namensnennung und nichtkommerzielle Nutzung. Volltext und Gewährleistungsausschluss liegen in `vendor/spritecollab/LICENSE.md`; ursprüngliche Nutzungsrichtlinie in `vendor/spritecollab/README.md`.
-- Originale PNGs, XML, Credits und SHA-256-Manifest liegen in `vendor/spritecollab/eevee-alternate/`. `credit_names.txt` ist der unveränderte öffentliche Upstream-Namensnachweis.
-- Enthalten: Idle, Walk, Hop, Pose, Sleep, Eat, Sit, Hurt, LookUp. 38 Frames in der vorderen Blickrichtung, 19 unterschiedliche Bitmaps.
-- Änderungen: Nur vordere Richtungszeile exportiert; transparente Ränder beschnitten; Positionsversatz beibehalten; RGB888 nach RGB565; verlustfrei innerhalb dieser Farbkonvertierung mit 4 Bit pro Pixel gepackt und identische Bilder geteilt. Anzeige integer-skaliert, bei Bewegung gespiegelt. Zeitabläufe bewusst verlangsamt (XML-Einheit auf 1/30 Sekunde, mindestens 70 ms pro Frame).
-- Urheber und Lizenz stehen zusätzlich im Simulator unter „Über diesen Prototyp“. Beim Weitergeben von Code, Gerät oder Assets diese Attribution mitgeben. Für eine spätere reine Geräteauslieferung einen Credits-Bildschirm oder beiliegenden Quellenhinweis ergänzen.
+Quelle ist [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) am festen Commit `83681005aa8f37cea7dfe8e68c51aa4b7bf8384a`. Alle Künstler wurden berücksichtigt, nicht nur Emmuffin. Originale PNGs, AnimData.xml und credits.txt liegen unter `vendor/spritecollab/`; `roster.json` dokumentiert deren SHA-256, den Tracker-Hash und sämtliche Ausschlüsse. `credit_names.txt` bleibt als ursprünglicher öffentlicher Namensnachweis erhalten.
 
-Die CC-Lizenz betrifft die von den Beitragenden lizenzierbaren Anteile. Rechte an Pokémon-Figuren, Marken und anderen fremden Bestandteilen bleiben bei ihren Rechteinhabern; keine offizielle Verbindung oder Zusicherung vollständiger Rechtefreiheit.
+Die konkreten Credits verwenden drei historische Kennungen. Die unveränderten Upstream-Texte liegen bei:
 
-## Enton und andere Varianten
+- [PMDCollab_1](vendor/spritecollab/LICENSE.PMDCollab_1.md): Nutzung, Kopieren, Weitergabe und Änderungen mit erhaltener Künstlernennung.
+- [PMDCollab_2](vendor/spritecollab/LICENSE.PMDCollab_2.md): entsprechende Erlaubnis mit Künstlernennung und ohne Gewinnerzielung.
+- [CC_BY-NC_4](vendor/spritecollab/LICENSE.CC_BY-NC_4.md): Creative Commons Attribution NonCommercial 4.0.
 
-Die geprüften SpriteCollab-Standardsets für Enton und Evoli führen **CHUNSOFT** als Urheber. Sie wurden **nicht importiert** und werden nicht als CC-Fanarbeit umetikettiert. Für Enton wurde bisher kein geeigneter eigenständig gezeichneter Satz mit hinreichend klarer Freigabe gefunden.
+Welche Bedingungen ein Set nennt, steht in ROSTER.md und in seiner vollständigen credits.txt-Historie. Die pauschale CC-BY-NC-Beschreibung aus dem ersten Evoli-Import wurde deshalb präzisiert: Emmuffins Evoli Alternate nennt konkret **PMDCollab_1**. Die aktuelle allgemeine Upstream-README und LICENSE.md bleiben zusätzlich erhalten. Es wird keine neue pauschale Lizenz über fremde Dateien gelegt.
 
-Enton verwendet deshalb weiterhin das projektinterne Pixelbild mit zusätzlichen prozeduralen Augen-, Schnabel- und Fußposen in C++. Blinzeln, Gehen, Hüpfen, Freude, Fressen, Umsehen und ruhige Schlaf-/Erschöpfungsposen sind verfügbar. Ei, Psiana und Nachtara behalten eigene Prototypgrafiken; die beiden Entwicklungsvarianten haben noch keine eigenständigen Frame-Sets. Das ist im UI ausdrücklich als Prototypgrafik bezeichnet.
+Künstler werden im Simulator beim jeweiligen Begleiter genannt; „Über diesen Prototyp“ verlinkt den vollständigen Katalog. Bei Weitergabe von Code oder Gerät Credits, Quellhinweise, Bedingungen und Änderungsvermerk beilegen. Ein Credits-Bildschirm auf dem tatsächlichen Gerät folgt mit dem Hardware-Renderer. Rechte an Pokémon-Figuren und Marken bleiben bei ihren Rechteinhabern; Fanart-Erlaubnisse sind keine Freigabe dieser Marken.
 
-## Andere geprüfte Quellen
+## Auswahl für flüssige Pflegeanimationen
 
-- [PokeAPI/sprites](https://github.com/PokeAPI/sprites): umfangreiche Sammlung, darunter Spielgrafiken; eine offene Codebasis ist kein Nachweis einer freien Lizenz jeder Bilddatei. Hier nichts übernommen.
-- [Pokémon Showdown Credits](https://pokemonshowdown.com/credits): Animationen und viele Beitragende, aber weniger passend für mehrere Pflegeaktionen und keine pauschale Freigabe aller Originalsprites. Hier nichts übernommen.
-- [Ghasty001](https://github.com/Ghasty001/Animated_sprites_by_Ghasty001): ausdrückliche Nutzung mit Credits einschließlich jeweiliger Basis-Künstler; als weitere Recherchequelle vorgemerkt, keine Dateien übernommen.
+Der Audit untersucht den gesamten gepinnten Tracker und beschränkt sich auf geeignete eigenständige Fan-Sets:
+
+1. Vollständig ausgearbeiteter Upstream-Status (`sprite_complete == 2`) und mindestens 25 benannte Upstream-Aktionen.
+2. Neun auflösbare Pflegeabläufe: Idle, Walk, Hop, Pose, Sleep, Eat, Sit, Hurt, LookUp. CopyOf-Verweise werden aufgelöst.
+3. Mindestens vier Walk-, vier Hop- und zwei Sleep-Frames, insgesamt mindestens 35 Frames in diesen neun Abläufen. Gültige positive Zeitangaben.
+4. Keine CHUNSOFT-Nennung im Tracker oder in der gesamten Credits-Historie; ausschließlich die oben verifizierten Lizenzkennungen.
+5. Kein Dex-0000-Platzhalter. Pfade mit Shiny, Altcolor oder Female im Variantennamen werden nicht zusätzlich importiert. Andere Regional-, Typ- und Künstlerformen sind enthalten.
+
+210 vollständig ausgearbeitete Fan-Kandidaten wurden näher untersucht; **129 bestehen**, 81 haben zu wenige passende Pflegeframes. Weitere Ausschlüsse: 665 Original-/Mischsets, 628 nicht vollständig ausgearbeitete Sets, 1.718 der genannten Farb-/Geschlechtsvarianten und acht Nicht-Pokémon-Einträge. Die Kategorien sind die erste zutreffende Ausschlussursache, keine unabhängigen Summen. Das ist eine reproduzierbare Auswahlregel; hohe Framezahl allein garantiert keine künstlerisch gleichmäßige Bewegung.
+
+Importiert werden ausschließlich die vorderen Blickrichtungen: **5.470 Frames, 2.455 unterschiedliche Bitmaps**. Gehen nutzt frontale Schritte mit seitlicher Bildschirmbewegung; vollständige seitliche Laufansichten folgen gegebenenfalls später. Jedes importierte Set enthält über seine neun Clips insgesamt mindestens 14 unterschiedliche Bitmaps.
+
+## Anpassungen und Speicher
+
+Transparente Ränder sind beschnitten, der Registrierungsversatz bleibt erhalten. Farben werden von RGB888 nach RGB565 konvertiert, Bilder innerhalb eines Sets dedupliziert und palettiert gepackt. Die Skalierung bleibt für alle Posen eines Sets ganzzahlig und konstant. Die Laufzeit verwendet XML-Dauern mit 1/30 Sekunde pro Einheit, mindestens 70 ms pro Frame; Evolis große Sprungbewegung wird für das kleine Display vertikal begrenzt.
+
+Alle jetzigen Sets passen in vier Bit pro Pixel: **770.930 Byte für Pixel und Paletten**. Der Importer unterstützt bei Bedarf acht Bit und höchstens 254 sichtbare Farben, lehnt partielle Transparenz und ungültige Geometrie ausdrücklich ab. PNG-/XML-Decoder sind auf dem Gerät nicht nötig. Host-Tabellen und Hardwaregrenzen: [Animationen](../docs/ANIMATION.md).
+
+Deutsche Artnamen stammen aus der [Namenstabelle von PokeAPI](https://github.com/PokeAPI/pokeapi/blob/master/data/v2/csv/pokemon_species_names.csv); URL und Hash der verwendeten Tabelle stehen in roster.json. Es wurden keine PokeAPI-Bilder übernommen. Formen behalten die Upstream-Bezeichnung. Art-IDs sind stabil; neue Einträge werden angehängt, bestehende IDs nicht umnummeriert.
+
+## Eigene Prototypgrafiken
+
+Die SpriteCollab-Standardsets für Enton und Evoli nennen CHUNSOFT und wurden nicht übernommen. Evoli nutzt stattdessen Emmuffins [Alternate-Set](https://github.com/PMDCollab/SpriteCollab/tree/83681005aa8f37cea7dfe8e68c51aa4b7bf8384a/sprite/0133/0002). Enton behält das projektinterne Pixelbild mit eigenen Augen-, Schnabel- und Fußposen. Ei, Psiana und Nachtara bleiben eigene Platzhalter; für die beiden Entwicklungen fehlen eigenständige Frame-Sets.
 
 ## Reproduzieren
 
-`python scripts/import_sprites.py` erzeugt `src/eevee_frames.inc` offline aus den gepinnten Originalen. Dafür ist Pillow nötig (hier 12.3.0 genutzt), aber nicht für einen normalen Build oder den Simulator. Keine neue Laufzeitabhängigkeit.
+Ein normaler Build verwendet die eingecheckten konstanten C++-Daten und benötigt weder Netzwerk noch Pillow.
 
-`python scripts/import_sprites.py --check` prüft Quellhashes und deterministische Ausgabe. `python tests/verify_sprite_import.py` vergleicht unabhängig alle 59.200 Quellpixel der ausgewählten Richtungszeile einschließlich transparenter Ränder gegen die tatsächlich kompilierte C++-Bibliothek.
+```powershell
+# Nur bei bewusster Pflege des Katalogs: Online-Audit mit lokalem Cache unter output/
+python scripts/acquire_roster.py
+# Offline aus den vorhandenen Quellen generieren (Pillow erforderlich)
+python scripts/import_sprites.py
+python scripts/import_sprites.py --check
+# Nach dem C++-Build: unabhängiger Pixelvergleich, ebenfalls mit Pillow
+python tests/verify_sprite_import.py
+```
 
-Der Importer akzeptiert ausschließlich vollständige Transparenz oder Deckkraft und höchstens 15 sichtbare RGB565-Farben. Überschreitungen schlagen fehl statt still Bilder umzuwandeln. Die PNG-/XML-Dateien werden auf dem Gerät nicht benötigt; dort liegen nur die gepackten konstanten C++-Daten.
+Der Offline-Importer erzeugt `src/roster_frames.inc`, `roster_compiled.json` und ROSTER.md. Geprüft mit Pillow 12.3.0. `--check` verifiziert Quellhashes und deterministische Ausgabe; der separate Pixelvergleich prüft 12.146.208 Quellpixel einschließlich transparenter Ränder gegen die tatsächlich kompilierte Bibliothek. Credits und Lizenztexte bei einer zukünftigen Änderung erneut prüfen. Wechsel des Quellcommits erfordert einen frischen Cache und erneute Rechte-/Speicherprüfung.

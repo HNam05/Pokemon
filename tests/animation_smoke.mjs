@@ -42,7 +42,8 @@ try {
         const state=await page.evaluate(()=>JSON.parse(window.render_game_to_text()));
         const a=state.animation; seen.add(a.name); frames.add(`${a.name}:${a.frame}`);
         const sprite=atlas.animations[species][a.clip][a.frame];
-        const scale=species===1?4:3, anchor=species===1?164:144;
+        const info=atlas.catalog.find(p=>p.species===species);
+        const scale=info.scale, anchor=info.anchor_y;
         assert(anchor+a.y+sprite.y*scale>=34,'sprite stays below header');
         assert(anchor+a.y+(sprite.y+sprite.height)*scale<=212,'sprite stays above needs');
         if(!screenshots[a.name]) {

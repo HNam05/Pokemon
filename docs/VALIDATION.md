@@ -78,3 +78,14 @@ Der Browser-Test startet selbst einen Server mit manueller Uhr auf Port 8877, ne
 - Spielbalance über mehrere reale Tage; Grafik und Entwicklungsvarianten sind Platzhalter.
 
 Diese Punkte sind nächste Integrationsschritte, keine behaupteten Testergebnisse.
+
+## Vollständiger Fan-Katalog M4 / 15.09.2026
+
+- Warning-clean Zig-Release-Build: **3.492.014 C++-Checks** bestanden. Alle 130 Starter auswählen, schlüpfen lassen, speichern und wiederherstellen; stabile/ungültige IDs, keine artfremde Entwicklung; sämtliche Frames, Paletten und Bildschirmgrenzen geprüft.
+- **17 Python-Adaptertests** bestanden, einschließlich unabhängiger V3-Byte-Referenz, V1/V2-Migration, Ablehnung neuer IDs in alten Formaten und gezieltem Asset-Abruf.
+- Import mit Pillow 12.3.0: Quellhashes und `scripts/import_sprites.py --check` bestanden. Separater `tests/verify_sprite_import.py` bestätigt **12.146.208 Quellpixel über alle 129 Sets** gegen die kompilierte Ausgabe.
+- `node tests/roster_smoke.mjs`: alle 130 Begleiter per Tastatur durchlaufen, Name/Credits und Cachegrenze kontrolliert; Halten/Loslassen, komplettes zyklisches Blättern, Schlüpfen, Animation, Speichern/Neuladen, Mobilansicht, Credits-Endpunkt und ungültige Asset-IDs bestanden. Alle sechs Kontaktübersichten unter `output/roster/` und die Mobilansicht visuell kontrolliert.
+- Bestehende `tests/browser_smoke.mjs` für Evoli und Enton sowie `tests/animation_smoke.mjs` weiterhin bestanden: Pflege, Minispiele, Speicherverhalten, spontane Abläufe, Fressen, Schlaf, Pause und reduzierte Bewegung. Keine Browserfehler.
+- Originaler Develop-Web-Game-Skill-Client mit drei Sequenzen: Canvas und Textzustand in `output/skill-roster/` geprüft, keine Fehlerlogs. Bilder und Testspielstände bleiben ignoriert.
+- Gemessene Host-Datengrößen: Game 64, State 32, Profile 25, Animator 20 Byte; Animationen mit Tabellen 974.322 Byte, zusätzlich 908 Byte bestehende Standgrafiken. Keine Messung des gesamten ESP32-Verbrauchs.
+- Persönliche Spielstände vor dem V3-Update lokal gesichert. Kein Hardwarebuild, keine LCD-/GPIO-/Strommessung. Andere Betriebssysteme bleiben offen.

@@ -1,5 +1,6 @@
 #include "pet/sprite.hpp"
 #include "pet/animation.hpp"
+#include "pet/catalog.hpp"
 #include <array>
 
 namespace pet {
@@ -124,6 +125,7 @@ constexpr auto duck_blink=duck_pose(1), duck_sleep=duck_pose(2), duck_happy=duck
     duck_eat=duck_pose(4), duck_step_left=duck_pose(5), duck_step_right=duck_pose(6), duck_look=duck_pose(7);
 }
 Sprite sprite_for(Species species) {
+    if (static_cast<unsigned>(species)>4 && species_valid(species)) return animation_frame(species,Motion::Idle,0).sprite;
     if (species == Species::Egg) return {egg.data(),egg_palette,12,12,4};
     if (species == Species::Psyduck) return {duck.data(),duck_palette,32,32,8};
     const auto* palette = species == Species::Espeon ? espeon_palette : species == Species::Umbreon ? umbreon_palette : eevee_palette;

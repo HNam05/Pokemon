@@ -1,10 +1,24 @@
 #include "pet/animation.hpp"
+#include "pet/catalog.hpp"
 #include <algorithm>
 
 namespace pet {
 namespace {
 struct Clip { const SpriteFrame* frames; unsigned count; };
-#include "eevee_frames.inc"
+struct ImportedSet {
+    Species species;
+    const char* name;
+    const char* form;
+    const char* credit;
+    const Clip* clips;
+    unsigned scale;
+    int anchor;
+};
+#include "roster_frames.inc"
+const ImportedSet* imported(Species species) {
+    for (const auto& set : imported_sets) if (set.species==species) return &set;
+    return nullptr;
+}
 Motion condition(const State& s) {
     if (s.species == Species::Egg) return Motion::Idle;
     if (s.sleeping) return Motion::Sleep;
@@ -13,19 +27,41 @@ Motion condition(const State& s) {
     return Motion::Idle;
 }
 }
+bool species_valid(Species species) { return static_cast<unsigned>(species)<=4 || imported(species); }
+bool starter_valid(Species species) { return species==Species::Psyduck || imported(species); }
+unsigned starter_count() { return sizeof(imported_sets)/sizeof(imported_sets[0])+1; }
+Species starter_at(unsigned index) {
+    if (index==0) return Species::Eevee;
+    if (index==1) return Species::Psyduck;
+    unsigned current=2;
+    for (const auto& set:imported_sets) if(set.species!=Species::Eevee) {
+        if(current++==index) return set.species;
+    }
+    return Species::Eevee;
+}
+Species next_starter(Species species,bool forward) {
+    for(unsigned i=0;i<starter_count();++i) if(starter_at(i)==species)
+        return starter_at((i+(forward?1:starter_count()-1))%starter_count());
+    return Species::Eevee;
+}
+const char* roster_name(Species species) { const auto* set=imported(species);return set?set->name:"Unbekannt"; }
+const char* species_form(Species species) { const auto* set=imported(species);return set?set->form:""; }
+const char* species_credit(Species species) { const auto* set=imported(species);return set?set->credit:"Pocket Pet Prototypgrafik"; }
+unsigned species_scale(Species species) { const auto* set=imported(species);return set?set->scale:3; }
+int species_anchor(Species species) { const auto* set=imported(species);return set?set->anchor:144; }
 // Authored procedural poses of the existing project art, defined beside its palette.
 Sprite authored_pose(Species species, Motion motion, unsigned frame);
 std::size_t authored_pose_bytes();
 unsigned frame_count(Species species, Motion motion) {
     const auto i = static_cast<unsigned>(motion);
     if (i >= motion_count) return 1;
-    if (species == Species::Eevee) return imported_clips[i].count;
+    if (const auto* set=imported(species)) return set->clips[i].count;
     return species == Species::Egg ? 1 : 4;
 }
 SpriteFrame animation_frame(Species species, Motion motion, unsigned frame) {
     const auto i = static_cast<unsigned>(motion);
-    if (species == Species::Eevee && i < motion_count) {
-        const auto& clip = imported_clips[i];
+    if (const auto* set=imported(species); set && i < motion_count) {
+        const auto& clip = set->clips[i];
         return clip.frames[frame % clip.count];
     }
     const auto sprite = authored_pose(species,motion,frame % 4);
@@ -34,8 +70,11 @@ SpriteFrame animation_frame(Species species, Motion motion, unsigned frame) {
             static_cast<std::uint16_t>(duration)};
 }
 std::size_t animation_storage_bytes() {
-    std::size_t bytes = imported_pixel_bytes + sizeof(imported_clips) + authored_pose_bytes();
-    for (const auto& clip : imported_clips) bytes += clip.count * sizeof(SpriteFrame);
+    std::size_t bytes = imported_pixel_bytes + sizeof(imported_sets) + authored_pose_bytes();
+    for (const auto& set:imported_sets) {
+        bytes+=sizeof(Clip)*motion_count;
+        for(unsigned i=0;i<motion_count;++i) bytes+=set.clips[i].count*sizeof(SpriteFrame);
+    }
     return bytes;
 }
 const char* motion_name(Motion motion) {
@@ -110,7 +149,7 @@ AnimationView Animator::view(const State& state) const {
         result.x = static_cast<std::int8_t>(flip_ ? -x : x);
         result.flip = (phase >= 2) != flip_;
     }
-    if (state.species != Species::Eevee && result.motion == Motion::Hop) {
+    if (!imported(state.species) && result.motion == Motion::Hop) {
         constexpr std::int8_t heights[] = {0,-4,-8,-10,-8,-4,0,0};
         result.y = heights[(elapsed_/100)%8];
     }
@@ -120,7 +159,7 @@ AnimationView Animator::view(const State& state) const {
         const auto source = animation_frame(state.species,result.motion,result.frame);
         result.y = static_cast<std::int8_t>((-15-source.y)*2);
     }
-    if (state.species != Species::Eevee && (result.motion==Motion::Happy || result.motion==Motion::Sleep))
+    if (!imported(state.species) && (result.motion==Motion::Happy || result.motion==Motion::Sleep))
         result.y=static_cast<std::int8_t>((elapsed_/600)%2 ? -1 : 0);
     return result;
 }

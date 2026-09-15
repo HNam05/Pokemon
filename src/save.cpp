@@ -20,7 +20,7 @@ SaveBytes encode(const State& s) {
         for (unsigned i = 0; i < count; ++i) bytes[pos++] = static_cast<std::uint8_t>(value >> (8 * i));
     };
     put(0x31544550, 4); // PET1, explicit little-endian, never raw struct memory.
-    put(2, 2);
+    put(3, 2);
     put(44, 2);
     put(s.age_minutes, 4); put(s.remainder_ms, 4); put(s.rng, 4); put(s.experience, 4);
     put(s.minute_of_day, 2); put(s.neglect_minutes, 2);
@@ -42,7 +42,7 @@ bool decode(const std::uint8_t* bytes, std::size_t size, State& state) {
     };
     if (get(4) != 0x31544550) return false;
     const auto version = get(2);
-    if (!((version == 1 && size == 42) || (version == 2 && size == 44)) || get(2) != size) return false;
+    if (!((version == 1 && size == 42) || ((version == 2 || version == 3) && size == 44)) || get(2) != size) return false;
     State candidate;
     candidate.age_minutes = get(4); candidate.remainder_ms = get(4);
     candidate.rng = get(4); candidate.experience = get(4);
@@ -59,11 +59,13 @@ bool decode(const std::uint8_t* bytes, std::size_t size, State& state) {
     const auto sleeping = get(1), sick = get(1);
     if (sleeping > 1 || sick > 1) return false;
     candidate.sleeping = sleeping == 1; candidate.sick = sick == 1;
-    if (version == 2) {
+    if (version >= 2) {
         candidate.starter = static_cast<Species>(get(1));
         const auto chosen = get(1);
         if (chosen > 1) return false;
         candidate.starter_chosen = chosen == 1;
+        if (version==2 && (static_cast<unsigned>(candidate.species)>4 ||
+            (candidate.starter!=Species::Eevee && candidate.starter!=Species::Psyduck))) return false;
     } else {
         if (static_cast<unsigned>(candidate.species) > static_cast<unsigned>(Species::Umbreon)) return false;
         candidate.starter = Species::Eevee;

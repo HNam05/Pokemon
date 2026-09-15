@@ -16,7 +16,7 @@ Die beiden äußeren Tasten bedeuten **vorheriges/nächstes**. Das Display gibt 
 
 Das Menü hat zehn Einträge und fünf sichtbare Zeilen. Die Auswahl bleibt sichtbar; Positionszähler, Scrollmarkierung und die untere Tastenlegende helfen bei der Orientierung. Aktionen ohne Wirkung sind gedämpft, bleiben lesbar und erklären, warum sie gerade nicht möglich sind. Die Auswahl springt beim Aufrufen der Pflegehilfe und Zurückkehren nicht weg.
 
-Kurzes OK wird **beim Loslassen** ausgeführt. Nach 700 ms Halten wird genau einmal Zurück ausgelöst; Loslassen darf anschließend kein zusätzliches OK senden. Maus, Touch und Tastatur sind im Simulator berücksichtigt. Auf Hardware muss diese Semantik in einem entprellten GPIO-Adapter umgesetzt und mit echten Tastern geprüft werden. Links/Rechts benötigen zunächst kein automatisches Wiederholen und keine Tastenkombinationen.
+Kurzes OK wird **beim Loslassen** ausgeführt. Nach 700 ms Halten wird genau einmal Zurück ausgelöst; Loslassen darf anschließend kein zusätzliches OK senden. Maus, Touch und Tastatur sind im Simulator berücksichtigt. Auf Hardware muss diese Semantik in einem entprellten GPIO-Adapter umgesetzt und mit echten Tastern geprüft werden. Links/Rechts wiederholen in Auswahl und Menü nach 450 ms alle 160 ms; Loslassen beendet das Blättern. Auf Home und im Minispiel bleiben es einzelne Eingaben.
 
 Langes OK ist ein Zusatzweg. „Zurück“ bleibt im Menü sichtbar. Die Startauswahl benötigt nur einen kurzen Tastendruck. Für später stark wachsende Menüs: Kategorien Pflege/Spiele/Begleiter/Einstellungen mit höchstens einer weiteren Ebene. Noch keine unnötige Untermenüstruktur für zehn Einträge.
 
@@ -33,9 +33,9 @@ Die neue Pflegehilfe priorisiert Krankheit, Hygiene, Schlaf, Hunger, Müdigkeit 
 
 ## Enton und der kleine Scherz
 
-Neue Spielstände wählen zwischen Evoli und Enton. Die Wahl legt fest, was nach zehn Spielminuten schlüpft. Alte Spielstände behalten ihren Begleiter. Entons Weiterentwicklung ist noch nicht implementiert; die Oberfläche zeigt das ehrlich an.
+Neue Spielstände wählen aus 130 Begleitern (129 importierte Sets plus eigener Enton). Die Wahl legt fest, was nach zehn Spielminuten schlüpft. Alte Spielstände behalten ihren Begleiter. Entons Weiterentwicklung ist noch nicht implementiert; die Oberfläche zeigt das ehrlich an.
 
-„Entons Denkpause“ ist ein zweites, bewusst einfaches Minispiel für beide Begleiter: drei Zeichen ansehen, in gleicher Reihenfolge mit Links/OK/Rechts eingeben, drei Runden gewinnen. Jedes Zeichen erscheint 600 ms, gefolgt von 200 ms Abstand. Für die Eingabe gibt es zehn Sekunden pro Runde. Falsche oder fehlende Eingaben enden mit Entons vergesslicher Reaktion. Erfolg: +12 Freude, +6 Bindung, +9 Erfahrung. Kosten wie Beerenfang; kein Gewinn durch Abbrechen. Während beider Spiele pausiert die Pflegezeit.
+„Entons Denkpause“ ist ein zweites, bewusst einfaches Minispiel für alle Begleiter: drei Zeichen ansehen, in gleicher Reihenfolge mit Links/OK/Rechts eingeben, drei Runden gewinnen. Jedes Zeichen erscheint 600 ms, gefolgt von 200 ms Abstand. Für die Eingabe gibt es zehn Sekunden pro Runde. Falsche oder fehlende Eingaben enden mit Entons vergesslicher Reaktion. Erfolg: +12 Freude, +6 Bindung, +9 Erfahrung. Kosten wie Beerenfang; kein Gewinn durch Abbrechen. Während beider Spiele pausiert die Pflegezeit.
 
 Weitere Easter Eggs bleiben Ideen: seltene Enton-Kommentare, eine kleine Geschenk-Nachricht am Geburtstag, eine freischaltbare Quatsch-Animation. Dafür noch keine Datenmodelle oder Zufallsbelohnungen eingebaut.
 
@@ -60,8 +60,8 @@ Bereits umgesetzt:
 
 - Keine Heap-Allokation in `pet::Game`, fest begrenzte Zustände und Ganzzahlarithmetik.
 - Sprites aus einer C++-Quelle für beide Plattformen, zur Compilezeit mit 4 Bit pro Pixel gepackt. Ein Palettenindex ist transparent, Farben liegen als RGB565 vor. Keine zur Laufzeit entpackte Vollbildgrafik im Kern.
-- Eigener 32×32-Enton; Evoli 24×22; Ei 12×12. Evoli-Entwicklungen teilen noch den Platzhalterumriss mit anderer Palette. Kein Claim fertiger offizieller Sprites.
-- Versionierter Save: 44 Byte. Bestehende 42-Byte-V1-Spielstände werden validiert und nach V2 übernommen, ohne ihre Pflegewerte zurückzusetzen.
+- Eigener 32×32-Enton und 12×12-Ei; importierte Pokémon mit variablen Framegrößen. Evoli-Entwicklungen teilen noch den Platzhalterumriss mit anderer Palette. Kein Claim fertiger offizieller Sprites.
+- Versionierter Save: 44 Byte. Bestehende 42-Byte-V1-Spielstände werden validiert und nach V3 übernommen, ohne ihre Pflegewerte zurückzusetzen.
 - Desktop-JSON, Python, Browser-Canvas und HTTP gehören nicht zur Firmware.
 
 | Daten | Am Windows-x64-Build gemessen |
@@ -69,8 +69,11 @@ Bereits umgesetzt:
 | `sizeof(pet::Game)`, inklusive State und Minispiel | 64 Byte RAM |
 | `sizeof(pet::State)`, bereits in Game enthalten | 32 Byte |
 | `sizeof(pet::Profile)` | 25 Byte RAM |
-| Alle gepackten Spritepixel und Paletten | 908 Byte konstante Daten |
-| Save V2 | 44 Byte |
+| Bisherige Standgrafiken | 908 Byte konstante Daten |
+| Importierte Pixel/Paletten | 770.930 Byte konstante Daten |
+| Animationen inklusive Host-Tabellen und Enton-Posen | 974.322 Byte, enthält importierte Pixel/Paletten |
+| Animator | 20 Byte RAM |
+| Save V3 | 44 Byte |
 
 Dies sind keine Gesamtspeicherwerte der ESP32-Firmware. Code, Texte, Fonts, SDK, Treiber und Puffer fehlen in dieser Rechnung. Pointergrößen und Alignment können auf dem ESP32 abweichen. Tests begrenzen Game auf 128 Byte und Profile auf 25 Byte.
 

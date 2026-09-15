@@ -66,3 +66,11 @@ Der Server betreibt das Pet auch bei geschlossenem Browser. Beim Serverneustart 
 - Zeit nach vollständigem Ausschalten: Uhr stellen, optional Zeitabgleich, externer RTC oder ausdrücklich pausiertes Pet. Keine verlässliche Offline-Zeit aus einem uninitialisierten Zähler ableiten.
 
 Es wurde keine Hardware bestellt, verdrahtet, geflasht oder vermessen.
+
+## Katalogerweiterung M4 / 15.09.2026
+
+Auf ausdrücklichen Wunsch werden alle Künstler aus SpriteCollab berücksichtigt. Der festgehaltene Tracker wurde vollständig anhand von Herkunft und Pflege-Framezahl geprüft: 129 geeignete Sets, 85 Pokémon, neun Abläufe je Set, 5.470 Frames. Gemeinsam mit dem eigenen Enton sind 130 Begleiter auswählbar. Quellen, quantitative Kriterien und Ausschlussgründe: [Grafikherkunft](../assets/README.md), [Katalog](../assets/ROSTER.md).
+
+Alle neuen Arten verwenden dieselben bestehenden Pflege- und Minispielregeln. Zusätzliche Entwicklungen werden nicht aus der Form oder Art abgeleitet; nur Evoli entwickelt sich wie bisher. Seitentasten blättern zyklisch, Halten wiederholt ausschließlich in Auswahl/Menü. V3 erweitert die zulässigen Art-IDs bei unverändert 44 Bytes; V1/V2 werden ausdrücklich migriert. Die Save-Anpassung ändert keine Pflegewerte.
+
+Die frühere allgemeine CC-BY-NC-Beschreibung ist durch die tatsächlichen historischen Credit-Kennungen PMDCollab_1, PMDCollab_2 und CC_BY-NC_4 je Set ersetzt. CHUNSOFT-/Mischmaterial bleibt ausgeschlossen.

@@ -6,7 +6,7 @@ enum class Motion : std::uint8_t { Idle, Walk, Hop, Happy, Sleep, Eat, Tired, Si
 constexpr unsigned motion_count = 9;
 struct SpriteFrame {
     Sprite sprite;
-    std::int8_t x, y;
+    std::int16_t x, y;
     std::uint16_t duration_ms;
 };
 unsigned frame_count(Species species, Motion motion);

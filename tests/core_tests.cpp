@@ -3,6 +3,7 @@
 #include "pet/sprite.hpp"
 #include "pet/profile.hpp"
 #include "pet/animation.hpp"
+#include "pet/catalog.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -237,8 +238,44 @@ int main() {
             }
         }
         static_assert(sizeof(Animator)<=32,"animator RAM budget");
-        check(animation_storage_bytes()<16384,"animation flash budget");
+        check(animation_storage_bytes()<1024*1024,"complete roster animation budget below 1 MiB");
         std::cout << "Animation host: Animator=" << sizeof(Animator) << " asset bytes=" << animation_storage_bytes() << '\n';
+    }
+    {
+        check(starter_count()==130,"all 129 imported sets plus project Enton selectable");
+        bool ids[256]{};
+        Game selection;
+        selection.button(Button::Left);
+        check(selection.state().starter==starter_at(starter_count()-1),"starter list wraps backward");
+        selection.button(Button::Right);
+        check(selection.state().starter==Species::Eevee,"starter list wraps forward");
+        for(unsigned i=0;i<starter_count();++i) {
+            const auto species=starter_at(i);const auto id=static_cast<unsigned>(species);
+            check(!ids[id] && starter_valid(species),"catalog IDs unique and valid");ids[id]=true;
+            State egg;egg.starter=species;
+            Game pet;check(pet.restore(egg),"every starter selection restores");
+            pet.button(Button::Confirm);pet.advance(60000,10);
+            check(pet.state().species==species && Game::valid(pet.state()),"every starter hatches correctly");
+            const auto bytes=encode(pet.state());State loaded;
+            check(decode(bytes.data(),bytes.size(),loaded) && loaded.species==species && loaded.starter==species,"every catalog ID survives V3 save");
+            if(species!=Species::Eevee) check(!pet.can_evolve(),"no invented evolution for new species");
+            for(unsigned m=0;m<motion_count;++m) for(unsigned f=0;f<frame_count(species,static_cast<Motion>(m));++f) {
+                const auto frame=animation_frame(species,static_cast<Motion>(m),f);
+                check(frame.duration_ms>0 && frame.sprite.width>0 && frame.sprite.height>0,"catalog frame valid");
+                bool visible=false;
+                for(unsigned y=0;y<frame.sprite.height;++y) for(unsigned x=0;x<frame.sprite.width;++x) {
+                    const auto pixel=frame.sprite.at(x,y);visible|=pixel!=0;
+                    check(pixel<frame.sprite.colors,"catalog palette bounds");
+                }
+                check(visible,"catalog frame visible");
+                int extra=species==Species::Eevee && m==2 ? (-15-frame.y)*2 : 0;
+                check(species_anchor(species)+frame.y*static_cast<int>(species_scale(species))+extra>=34 &&
+                    species_anchor(species)+(frame.y+frame.sprite.height)*static_cast<int>(species_scale(species))+extra<=212,"all catalog frames fit landscape");
+            }
+        }
+        check(!species_valid(static_cast<Species>(255)) && !starter_valid(Species::Egg),"unknown species rejected");
+        auto invalid=hatched();invalid.starter=starter_at(2);
+        check(!Game::valid(invalid),"unrelated species ancestry rejected");
     }
     // Long, deterministic adversarial sequence: invariants hold through care and time jumps.
     game.restore(hatched());

@@ -10,9 +10,11 @@ struct Sprite {
     std::uint8_t width;
     std::uint8_t height;
     std::uint8_t colors;
+    std::uint8_t bits = 4;
     std::uint8_t at(unsigned x, unsigned y) const {
         if (x >= width || y >= height) return 0;
         const unsigned index = y * width + x;
+        if (bits == 8) return pixels[index];
         return static_cast<std::uint8_t>((pixels[index / 2] >> (index % 2 == 0 ? 4 : 0)) & 15);
     }
 };

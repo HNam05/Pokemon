@@ -3,6 +3,7 @@
 #include "pet/profile.hpp"
 #include "pet/sprite.hpp"
 #include "pet/animation.hpp"
+#include "pet/catalog.hpp"
 #include <cstdio>
 #include <cstring>
 #include <new>
@@ -14,6 +15,7 @@
 #endif
 
 namespace {
+bool valid_species_id(unsigned id) { return id<256 && pet::species_valid(static_cast<pet::Species>(id)); }
 struct Session {
     pet::Game game;
     pet::Profile profile;
@@ -42,7 +44,7 @@ PET_EXPORT const char* pp_animation(Session* session) {
     return session->animation_json;
 }
 PET_EXPORT int pp_frame_info(unsigned species, unsigned motion, unsigned frame, unsigned property) {
-    if (species>4 || motion>=pet::motion_count) return 0;
+    if (!valid_species_id(species) || motion>=pet::motion_count) return 0;
     const auto s=static_cast<pet::Species>(species);
     const auto m=static_cast<pet::Motion>(motion);
     const auto f=pet::animation_frame(s,m,frame);
@@ -57,12 +59,19 @@ PET_EXPORT int pp_frame_info(unsigned species, unsigned motion, unsigned frame, 
     }
 }
 PET_EXPORT unsigned pp_frame_pixel(unsigned species,unsigned motion,unsigned frame,unsigned x,unsigned y) {
-    if (species>4 || motion>=pet::motion_count) return 0x10000u;
+    if (!valid_species_id(species) || motion>=pet::motion_count) return 0x10000u;
     const auto s=pet::animation_frame(static_cast<pet::Species>(species),static_cast<pet::Motion>(motion),frame).sprite;
     const auto index=s.at(x,y);
     return index==0 ? 0x10000u : s.palette[index];
 }
 PET_EXPORT unsigned pp_menu_count() { return pet::Game::menu_count; }
+PET_EXPORT unsigned pp_starter_count() { return pet::starter_count(); }
+PET_EXPORT unsigned pp_starter_at(unsigned index) { return static_cast<unsigned>(pet::starter_at(index)); }
+PET_EXPORT const char* pp_species_name(unsigned id) { return valid_species_id(id)?pet::species_name(static_cast<pet::Species>(id)):"Unbekannt"; }
+PET_EXPORT const char* pp_species_form(unsigned id) { return valid_species_id(id)?pet::species_form(static_cast<pet::Species>(id)):""; }
+PET_EXPORT const char* pp_species_credit(unsigned id) { return valid_species_id(id)?pet::species_credit(static_cast<pet::Species>(id)):""; }
+PET_EXPORT unsigned pp_species_scale(unsigned id) { return valid_species_id(id)?pet::species_scale(static_cast<pet::Species>(id)):1; }
+PET_EXPORT int pp_species_anchor(unsigned id) { return valid_species_id(id)?pet::species_anchor(static_cast<pet::Species>(id)):144; }
 PET_EXPORT const char* pp_menu_label(unsigned index) {
     return index < pet::Game::menu_count ? pet::action_name(pet::Game::menu_action(static_cast<std::uint8_t>(index))) : "";
 }
@@ -74,12 +83,12 @@ PET_EXPORT bool pp_menu_enabled(Session* session, unsigned index) {
 }
 PET_EXPORT const char* pp_care_hint(Session* session) { return session ? session->game.care_hint() : ""; }
 PET_EXPORT unsigned pp_sprite_size(unsigned species, bool height) {
-    if (species > static_cast<unsigned>(pet::Species::Psyduck)) return 0;
+    if (!valid_species_id(species)) return 0;
     const auto sprite = pet::sprite_for(static_cast<pet::Species>(species));
     return height ? sprite.height : sprite.width;
 }
 PET_EXPORT unsigned pp_sprite_pixel(unsigned species, unsigned x, unsigned y) {
-    if (species > static_cast<unsigned>(pet::Species::Psyduck)) return 0;
+    if (!valid_species_id(species)) return 0x10000u;
     const auto sprite = pet::sprite_for(static_cast<pet::Species>(species));
     const auto index = sprite.at(x, y);
     return index == 0 ? 0x10000u : sprite.palette[index]; // sentinel distinguishes transparency from black.

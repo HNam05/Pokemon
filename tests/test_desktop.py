@@ -24,7 +24,7 @@ class DesktopTests(unittest.TestCase):
         self.path = Path(self.directory.name) / 'pet.json'
 
     def test_independent_binary_contract(self):
-        expected = struct.pack('<4sHHIIIIHH12B', b'PET1', 2, 44, 0, 0, 0x50455431, 0,
+        expected = struct.pack('<4sHHIIIIHH12B', b'PET1', 3, 44, 0, 0, 0x50455431, 0,
                                480, 0, 75, 70, 85, 90, 100, 20, 0, 0, 0, 0, 1, 1)
         expected += struct.pack('<I', zlib.crc32(expected))
         self.assertEqual(self.engine.dump(), expected)
@@ -156,7 +156,7 @@ class DesktopTests(unittest.TestCase):
         self.assertEqual(assets['memory_bytes']['sprites'], 908)
         self.assertLessEqual(assets['memory_bytes']['game'], 128)
         self.assertLessEqual(assets['memory_bytes']['animator'], 32)
-        self.assertLess(assets['memory_bytes']['animations'], 16384)
+        self.assertLess(assets['memory_bytes']['animations'], 1024*1024)
         self.assertEqual(len(assets['animations'][1][0]), 2)
         self.assertEqual(len(assets['animations'][1][2]), 10)
         self.assertNotEqual(assets['animations'][4][3][0]['pixels'],assets['animations'][4][3][1]['pixels'])
@@ -181,6 +181,31 @@ class DesktopTests(unittest.TestCase):
         self.assertEqual(self.engine.view()['animation'],pose)
         self.engine.advance(2200)
         self.assertEqual(self.engine.view()['animation']['name'],'idle')
+
+    def test_v2_migration_and_old_version_species_boundary(self):
+        current=self.engine.dump()
+        old=bytearray(current);old[4:6]=struct.pack('<H',2)
+        old[40:]=struct.pack('<I',zlib.crc32(old[:40]))
+        self.engine.load(old)
+        self.assertEqual(self.engine.dump()[8:40],current[8:40])
+        self.assertEqual(self.engine.dump()[4:6],b'\x03\x00')
+        old[38]=5;old[40:]=struct.pack('<I',zlib.crc32(old[:40]))
+        with self.assertRaises(ValueError):self.engine.load(old)
+        old[4:6]=struct.pack('<H',3);old[40:]=struct.pack('<I',zlib.crc32(old[:40]))
+        self.engine.load(old)
+        self.assertEqual(self.engine.view()['starter'],5)
+
+    def test_catalog_metadata_and_lazy_assets(self):
+        catalog=self.engine.catalog()
+        self.assertEqual(len(catalog),130)
+        self.assertEqual(len({p['species'] for p in catalog}),130)
+        last=catalog[-1]
+        assets=self.engine.assets(last['species'])
+        self.assertEqual(assets['species_ids'],[last['species']])
+        self.assertEqual(len(assets['animations']),1)
+        self.assertEqual(len(assets['animations'][0]),9)
+        with self.assertRaises(ValueError):self.engine.assets(255)
+        self.assertEqual(self.engine.lib.pp_frame_info(256,0,0,0),0)
 
 
 if __name__ == '__main__':

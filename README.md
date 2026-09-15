@@ -4,11 +4,11 @@ Ein Pokémon-inspiriertes Tamagotchi für einen späteren ESP32 im aufklappbaren
 
 ## Jetzt spielbar
 
-Evoli oder Enton als Begleiter wählen, Ei ausbrüten, füttern und säubern, schlafen lassen, Krankheiten behandeln, Beeren fangen und Entons Denkpause spielen. Evoli kann sich zu Psiana oder Nachtara entwickeln. Mit scrollendem Menü, persönlichen Profilen, 240×320-Display-Simulation und kompakten gemeinsamen C++-Pixelgrafiken.
+Aus 130 Begleitern wählen: 129 SpriteCollab-Sets mit 85 Pokémon und ihren Formen sowie unser eigener Enton. Danach das Ei ausbrüten, füttern und säubern, schlafen lassen, Krankheiten behandeln, Beeren fangen und Entons Denkpause spielen. Evoli kann sich zu Psiana oder Nachtara entwickeln. Mit scrollendem Menü, persönlichen Profilen, 240×320-Display-Simulation und kompakten gemeinsamen C++-Pixelgrafiken.
 
 **Stand:** erster Desktop-Prototyp. ESP32-Treiber, endgültige Grafik und Hardwarevalidierung folgen nach Auswahl der Komponenten.
 
-Die Begleiter bewegen sich jetzt zustandsabhängig: zufälliges Gehen, Hüpfen, Umsehen und Freude mit Ruhepausen, Essreaktion nach dem Füttern sowie Schlaf-/Erschöpfungsposen. Evoli nutzt die Fanart-Variante von Emmuffin aus SpriteCollab, Enton eigene animierte Prototypposen. Die Auswahl und Zeitsteuerung laufen ebenfalls im C++-Kern. Details und Herkunft: [Animationen](docs/ANIMATION.md), [Grafik-Credits](assets/README.md).
+Die Begleiter bewegen sich jetzt zustandsabhängig: zufälliges Gehen, Hüpfen, Umsehen und Freude mit Ruhepausen, Essreaktion nach dem Füttern sowie Schlaf-/Erschöpfungsposen. Die Auswahl berücksichtigt Beiträge aller Künstler im geprüften SpriteCollab-Stand. Als Begleiter sind unter anderem Fynx, Bauz, Wolly und Felori dabei. Jedes importierte Set bietet neun Pflegeabläufe. Enton nutzt eigene animierte Prototypposen. Die Auswahl und Zeitsteuerung laufen ebenfalls im C++-Kern. Details und Herkunft: [Animationen](docs/ANIMATION.md), [Grafik-Credits](assets/README.md).
 
 ## Starten
 
@@ -41,7 +41,7 @@ Auf einem anderen Rechner entweder die CMake-Variante nutzen oder eine passende 
 
 Alle Aktionen sind mit drei Tasten erreichbar. Fünf Menüzeilen bleiben sichtbar; längere Listen scrollen mit. Kurzes OK bestätigt beim Loslassen, **OK halten (700 ms)** führt zurück. Im Menü gibt es zusätzlich „Zurück“. Im Beerenfang die Beere im markierten Fangbereich mit OK fangen; fünf Versuche. In Entons Denkpause drei Zeichen merken und über die drei Tasten wiederholen. `F` öffnet die Vollbildansicht, `Esc` verlässt sie.
 
-Neue Spielstände beginnen mit der Auswahl Evoli/Enton. Mit OK bestätigen, danach schlüpft das gewählte Ei nach zehn Spielminuten. Für den Einstieg im Simulator **+ 10 Minuten** drücken. Standard ist Echtzeit; Zeitraffer beschleunigt die Pflege, beide Minispiele behalten normale Reaktionszeiten. Pflegewerte stehen unter „Status“, konkrete Empfehlungen unter „Pflegehilfe“. Evoli-Entwicklung braucht 1 Tag, 70 Freundschaft, 60 EP und ein gesundes, waches Tier. Entons Entwicklung ist noch offen.
+Neue Spielstände beginnen mit der vollständigen Begleiterauswahl. Seitentasten wechseln einzeln; Halten blättert automatisch durch Auswahl oder Menü (450 ms Anlauf, anschließend alle 160 ms). Mit OK bestätigen, danach schlüpft das gewählte Ei nach zehn Spielminuten. Für den Einstieg im Simulator **+ 10 Minuten** drücken. Standard ist Echtzeit; Zeitraffer beschleunigt die Pflege, beide Minispiele behalten normale Reaktionszeiten. Pflegewerte stehen unter „Status“, konkrete Empfehlungen unter „Pflegehilfe“. Evoli-Entwicklung braucht 1 Tag, 70 Freundschaft, 60 EP und ein gesundes, waches Tier. Entwicklung weiterer Arten ist noch offen; neue Begleiter verwenden dieselben Pflegeregeln.
 
 ## Zwei persönliche Geräte
 
@@ -56,7 +56,7 @@ Ohne `--save` verwendet jedes Profil eine eigene gleichnamige Speicherdatei unte
 
 ## Speichern und Tests
 
-Spielstände liegen in `saves/pet.json`, automatisch alle 30 Sekunden und nach Eingaben. Beim Neustart werden höchstens acht Stunden reale Abwesenheit nachgerechnet. Kaputte/unbekannte Spielstände werden nicht überschrieben; der Server erklärt den Fehler. Für ein **separates neues Tier** einen neuen Pfad benutzen: `python desktop/server.py --save saves/zweites-tier.json`. Eine Betriebssystem-Sperre verhindert zwei Server mit derselben Speicherdatei.
+Spielstände liegen in `saves/pet.json`, automatisch alle 30 Sekunden und nach Eingaben. Beim Neustart werden höchstens acht Stunden reale Abwesenheit nachgerechnet. Kaputte/unbekannte Spielstände werden nicht überschrieben; der Server erklärt den Fehler. Für ein **separates neues Tier** einen neuen Pfad benutzen: `python desktop/server.py --save saves/zweites-tier.json`. Eine Betriebssystem-Sperre verhindert zwei Server mit derselben Speicherdatei. Das 44-Byte-Format V3 liest bestehende V1-/V2-Stände und erhält deren Begleiter. Vor einem Downgrade eine alte Sicherung verwenden.
 
 Der Build führt die C++-Tests aus. Weitere Adaptertests:
 
@@ -74,4 +74,4 @@ Browser-Testanleitung und tatsächlicher Prüfstand stehen in [docs/VALIDATION.m
 - [Git- und Modell-Zusammenarbeit](docs/COLLABORATION.md)
 - [Übergabe und nächste Schritte](progress.md)
 
-Privates, inoffizielles Fanprojekt. Pokémon-Namen und -Figuren gehören ihren jeweiligen Rechteinhabern. Keine Firmware oder Grafiken des MakerWorld-Projekts übernommen. Evoli-Fanart: Emmuffin / SpriteCollab, CC BY-NC 4.0 mit Namensnennung und dokumentierten Anpassungen; übrige Bilder sind eigene Prototypgrafiken. Die Rechte am Fanmaterial sind nicht durch eine pauschale Open-Source-Lizenz dieses Repositories freigegeben. Siehe [vollständige Grafik-Credits](assets/README.md).
+Privates, inoffizielles Fanprojekt. Pokémon-Namen und -Figuren gehören ihren jeweiligen Rechteinhabern. Keine Firmware oder Grafiken des MakerWorld-Projekts übernommen. SpriteCollab-Fanart: individuelle Künstler und historische Nutzungsbedingungen in [ROSTER.md](assets/ROSTER.md). Originale Credits, Lizenztexte und dokumentierte Anpassungen liegen bei; Ei, Enton und Evoli-Entwicklungen sind eigene Prototypgrafiken. Die Rechte am Fanmaterial sind nicht durch eine pauschale Open-Source-Lizenz dieses Repositories freigegeben. Siehe [vollständige Grafik-Credits](assets/README.md).

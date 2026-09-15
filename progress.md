@@ -57,3 +57,18 @@ Naechster Entwicklungsschritt: echtes Board festlegen und GPIO-/LCD-/NVS-Adapter
 - Screenshots: Schlaf, Freude, Essen, Umsehen, Gehen und Sprung kontrolliert. Spielstände vor Austausch der laufenden DLL gesichert.
 - Abschließender Develop-Web-Game-Skill-Client mit drei Sequenzen bestanden; Screenshots und Textzustand kontrolliert, keine Browserfehler.
 - Offen: eigener hochwertiger Enton-Animationssatz mit klarer Freigabe, seitliche Laufansichten, eigenständige Frames für Psiana/Nachtara, LCD-/GPIO-/Audioadapter, physische Hardwareprüfung. Lizenzhinweis bei Geräteweitergabe beilegen; Details in assets/README.md und docs/ANIMATION.md.
+
+## 15.09.2026 / OpenAI Codex / M4 Gesamter SpriteCollab-Fankatalog
+
+- Auftrag präzisiert: alle geeigneten Künstler aus SpriteCollab, nicht nur Emmuffin. Branch `codex/2026-09-15-expanded-roster`, Basis b8be91e.
+- Gepinnter Katalog vollständig auditiert; 210 detailliert geprüfte Fan-Kandidaten, davon 129 geeignet. 85 Pokémon in 129 Sets plus eigener Enton ergeben 130 Starter. Kriterien: vollständiger Upstream-Status, mindestens 25 Aktionen, neun Pflegeclips, mindestens 35 Frames, Walk/Hop >=4 und Sleep >=2; keine CHUNSOFT-/Mischcredits, keine unbekannten Bedingungen. Ausschlüsse vollständig in assets/roster.json.
+- Quell-PNGs/XML/Credits mit SHA-256 übernommen; historische PMDCollab_1/PMDCollab_2/CC_BY-NC_4-Texte beigelegt. Frühere pauschale CC-Zuordnung für Evoli präzisiert. Künstler je Set im UI und generiertem ROSTER.md genannt.
+- 5.470 Frames auf 2.455 einzigartige Bitmaps reduziert. Alle 129 Sets vier Bit pro Pixel, 770.930 Byte Pixel/Paletten. Mit Host-Tabellen und Enton-Posen 974.322 Byte; Game/State/Profile/Animator unverändert 64/32/25/20 Byte. Texte und Firmwaregesamtbedarf nicht darin enthalten.
+- C++-Katalog verwaltet Namen, Formen, IDs, Auswahl und Animationen. Drei-Tasten-Vertrag bleibt vollständig. Seitentasten halten blättert durch Auswahl/Menü. Browser/Server laden einzelne Sets bei Bedarf, maximal vier zusätzliche Sets im Cache. Neue Arten nutzen dieselben Pflegeregeln, keine erfundenen Entwicklungsketten.
+- V3 behält das 44-Byte-Layout und erweitert die gültigen Art-IDs; V1/V2-Migration ohne Zurücksetzen. Bestehende IDs nie ändern oder neu vergeben. Beide privaten Spielstände vor Update lokal gesichert.
+- Alle Frameausdehnungen geprüft; Evolis Anker auf Y=152 korrigiert, damit Sitz-/Müdigkeitspose nicht unten abgeschnitten wird.
+- Bestanden: warning-clean Build mit 3.492.014 C++-Checks, 17 Python-Tests, reproduzierbarer Import, unabhängiger Vergleich von 12.146.208 Quellpixeln. Browser: alle 130 Starter, Auswahl durch Halten, Schlüpfen, Animation, Save/Reload, Cachegrenzen, Mobilansicht und HTTP-Grenzen. Bisherige Pflege- und Animations-Smokes beider ursprünglicher Starter ebenfalls bestanden.
+- Alle sechs Auswahl-Kontaktübersichten und Mobilansicht visuell geprüft. Drei Sequenzen mit dem originalen Skill-Client bestanden; Canvas/Textzustand geprüft, keine Browserfehler.
+- Nächste Schritte: flüssige Seitenansichten, eigenständige hochwertige Enton-/Entwicklungssets, gegebenenfalls Lieblingsbegleiter für die zwei Geräte eingrenzen. Board festlegen, echtes Flash-/RAM-Budget und LCD-/GPIO-/NVS-/Audioadapter auf Hardware prüfen. Der komplette Katalog erhöht konstanten Speicher deutlich; vor Firmwareauslieferung Boardbudget messen.
+
+- Abschlussvorschau: beide persönlichen Instanzen auf 8765/8767 mit vorhandenen Tieren und ohne Speicherfehler gestartet. Separate neutrale Auswahl unter 8768 mit eigenem ignoriertem output-Spielstand; 130 Katalogeinträge auf allen Instanzen bestätigt. Lokale Profile/Sicherungen bleiben außerhalb von Git.
