@@ -80,7 +80,7 @@ main {
   gap:94px;
   margin:54px auto 50px;
   padding:0 48px;
-  align-items:center;
+  align-items:start;
 }
 
 .play-area {
@@ -310,6 +310,15 @@ kbd {
   gap:12px;
   margin-top:10px;
 }
+
+.care-values { margin:20px 0 8px; }
+.care-values label { display:flex; justify-content:space-between; font-size:12px; margin-top:10px; }
+.care-values label span { font-variant-numeric:tabular-nums; color:var(--muted); }
+.care-values meter { display:block; width:100%; height:12px; }
+.care-values meter::-webkit-meter-bar { background:#c8cbb5; border:0; border-radius:0; }
+.care-values meter::-webkit-meter-optimum-value { background:#516c49; }
+.care-values meter::-webkit-meter-suboptimum-value,.care-values meter::-webkit-meter-even-less-good-value { background:#a14131; }
+#care-receipt { min-height:18px; margin:4px 0; color:#48653f; font-size:12px; }
 
 .utility-buttons button,dialog button {
   background:transparent;

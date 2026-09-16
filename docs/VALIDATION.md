@@ -102,3 +102,13 @@ Diese Punkte sind nächste Integrationsschritte, keine behaupteten Testergebniss
 ## Optionaler Simulator-Reset / 15.09.2026
 
 21 Python-Tests bestanden: Reset standardmäßig gesperrt, frische Auswahl nach aktivem Minispiel, Profil/Sicherung erhalten, Save/Reload, bei Schreibfehlern unveränderte Datei und laufende Session plus sichtbarer Fehler. `node tests/reset_smoke.mjs` prüft fehlendes Flag/404, ungültige Bestätigung/400, Dialog-Abbruch, Reset, Sicherung, Neuladen, mobile Darstellung und ein neues spielbares Enton. Drei Sequenzen mit originalem Skill-Client bestanden, Screenshots/Textzustand geprüft. Keine Änderungen am C++-Kern, daher kein erneuter C++-Build. Die echte Testinstanz auf 8768 mit Flag gestartet und erfolgreich auf die Auswahl zurückgesetzt; persönliche Instanzen nicht zurückgesetzt.
+
+## Spiel- und Pflege-UX M7 / 16.09.2026
+
+- Warning-clean Zig-Release-Build und 3.562.287 C++-Checks bestanden. Neue Fälle: unabhängig berechnete Pflege-/Schlafraten, reale begrenzte Pflege-/Teilbelohnungen, kostenlose Anleitung, exakte Fanggrenzen 1.199/1.200/1.800 ms, keine Doppelwertung, Pause und Zeitraffer sowie wachsende Memory-Folge.
+- Alle 21 Python-Adaptertests bestanden, einschließlich Save-Kompatibilität, Lade-/Schreibfehler, Reset und Profiltrennung.
+- `tests/browser_smoke.mjs` für Evoli und Enton bestanden: beide vollständigen Spiele, Startkosten, Abbruch, capped Rewards, Menü, Zahlen/Balken, Eingaben, Speichern, Vollbild und Mobile.
+- Neuer `tests/ux_smoke.mjs`: sichtbare Zeichenpausen, ignorierte Vorführungs-Eingaben, wachsende gemeinsame Folge, Eingabebestätigung, Teilbelohnung, exakter Recall-Timeout, Schlafregeneration, fünf Stunden Pflegeverfall und gesperrte Spiele. DOM-Werte und tatsächliche Canvas-Pixel bei niedriger Sättigung geprüft. Fehlerfreiheit und mobile Breite ebenfalls geprüft.
+- Animations-Smokes beider ursprünglicher Arten, Reset-Smoke und Auswahl-Smoke aller 130 Starter bestanden. Neue UI verändert weder Katalogdaten noch Animator.
+- Originaler Develop-Web-Game-Client mit drei Sequenzen bestanden; Canvas-Screenshots und Textzustand unter `output/skill-ux` visuell geprüft. Menü, Anleitung, Fangfeld, Memory-Eingabe/Fehler/Ergebnis, niedrige Bedürfnisse und Mobile kontrolliert. Dabei fehlerhafte Zeichenkodierung und unnötigen oberen Leerraum korrigiert; anschließend betroffene Browserprüfungen wiederholt.
+- Gemessen am Host: Game 80 Byte, State darin 32 Byte, Profile 25 Byte, Animator 20 Byte. Save V3 bleibt 44 Byte. Keine Tests auf ESP32 oder physischem Display; Alltagstauglichkeit der Spielbalance weiter erproben.

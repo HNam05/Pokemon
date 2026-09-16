@@ -55,6 +55,7 @@ bool Game::restore(const State& state) {
     screen_ = state_.starter_chosen ? Screen::Home : Screen::Starter;
     selection_ = 0;
     mini_ = {};
+    feedback_ = {};
     message_ = "Willkommen zurueck.";
     return true;
 }
@@ -72,12 +73,12 @@ std::uint8_t Game::menu_start() const {
 const char* Game::care_hint() const {
     if (!state_.starter_chosen) return "Waehle deinen ersten Begleiter.";
     if (state_.species == Species::Egg) return "Dein Ei braucht zehn Minuten.";
-    if (state_.sick || state_.health < 40) return "Medizin, dann weiter pflegen.";
-    if (state_.waste > 0 || state_.hygiene < 25) return "Bitte saubermachen.";
+    if (state_.sick || state_.health < need_low[4]) return "Medizin, dann weiter pflegen.";
+    if (state_.waste > 0 || state_.hygiene < need_low[3]) return "Bitte saubermachen.";
     if (state_.sleeping) return "Schlafen fuellt Energie auf.";
-    if (state_.fullness < 25) return "Zeit fuer eine Beere.";
-    if (state_.energy < 25) return "Muede. Schlafen lassen.";
-    if (state_.happiness < 30) return "Ein kleines Spiel tut gut.";
+    if (state_.fullness < need_low[0]) return "Zeit fuer eine Beere.";
+    if (state_.energy < need_low[2]) return "Muede. Schlafen lassen.";
+    if (state_.happiness < need_low[1]) return "Ein kleines Spiel tut gut.";
     if (can_evolve()) return "Bereit fuer die Entwicklung!";
     return "Alles gut. Zeit zusammen!";
 }
@@ -107,8 +108,8 @@ const char* Game::action_hint(Action action) const {
     case Action::Clean: return "Sauberkeit voll. Abfall weg.";
     case Action::Sleep: return state_.sleeping ? "Sanft wecken." : "Schlaf: +1 Energie / 2 Min.";
     case Action::Medicine: return "Kuriert. Mind. 40 Gesundheit.";
-    case Action::Play: return "Fangen: Bindung und Erfahrung.";
-    case Action::Think: return "Drei Zeichen merken. Enton?!";
+    case Action::Play: return "Spielstart: -5 satt, -8 Energie.";
+    case Action::Think: return "2, 3, 4 Zeichen. Folge merken.";
     case Action::Stats: return "Alle Beduerfnisse ansehen.";
     case Action::Evolve: return "Dein Evoli ist bereit!";
     case Action::Guide: return care_hint();
@@ -124,8 +125,8 @@ bool Game::can_evolve() const {
 }
 
 bool Game::needs_attention() const {
-    return state_.species != Species::Egg && (state_.fullness < 25 || state_.energy < 25 ||
-        state_.happiness < 30 || state_.hygiene < 25 || state_.waste > 0 || state_.sick || state_.health < 40);
+    return state_.species != Species::Egg && (state_.fullness < need_low[0] || state_.energy < need_low[2] ||
+        state_.happiness < need_low[1] || state_.hygiene < need_low[3] || state_.waste > 0 || state_.sick || state_.health < need_low[4]);
 }
 
 void Game::minute() {
@@ -172,31 +173,16 @@ void Game::advance(std::uint32_t real_ms, std::uint32_t speed) {
     speed = std::min(speed, 3600u);
     if (speed == 0) return;
     if (!state_.starter_chosen) return;
-    if (screen_ == Screen::Memory) {
-        while (real_ms > 0 && screen_ == Screen::Memory) {
-            const auto deadline = mini_.recalling ? 10000u : 2400u;
-            const auto step = std::min(real_ms, deadline - mini_.elapsed_ms);
-            mini_.elapsed_ms += step;
-            real_ms -= step;
-            if (mini_.elapsed_ms == deadline) {
-                if (mini_.recalling) finish_memory(false);
-                else {
-                    mini_.recalling = true;
-                    mini_.elapsed_ms = 0;
-                    message_ = "Jetzt du: drei Tasten.";
-                }
-            }
-        }
-        return;
-    }
-    // Care time is frozen during a short skill game, even in accelerated mode.
-    if (screen_ == Screen::Game) {
-        std::uint32_t remaining = real_ms;
-        while (screen_ == Screen::Game && remaining > 0) {
-            const auto step = std::min(remaining, 1800u - mini_.elapsed_ms);
-            mini_.elapsed_ms += step;
-            remaining -= step;
-            if (mini_.elapsed_ms == 1800) next_round(false);
+    if (screen_ != Screen::Result)
+        feedback_.remaining_ms=static_cast<std::uint16_t>(real_ms>=feedback_.remaining_ms?0:feedback_.remaining_ms-real_ms);
+    if (screen_ == Screen::Instructions) return;
+    // Every game phase runs in real time; care never consumes the remaining tick.
+    if (screen_ == Screen::Game || screen_ == Screen::Memory) {
+        while(real_ms>0 && (screen_==Screen::Game || screen_==Screen::Memory)) {
+            const auto step=std::min(real_ms,mini_duration()-mini_.elapsed_ms);
+            mini_.elapsed_ms+=step;real_ms-=step;
+            mini_.input_ms=static_cast<std::uint16_t>(step>=mini_.input_ms?0:mini_.input_ms-step);
+            if(mini_.elapsed_ms==mini_duration()) step_minigame();
         }
         return;
     }
@@ -214,20 +200,90 @@ std::uint32_t Game::random() {
     return x;
 }
 
+const char* Game::menu_section(std::uint8_t index) {
+    return index<4?"PFLEGE":index<6?"SPIELZEIT":index<9?"MEIN BEGLEITER":"ZURUECK";
+}
+
+void Game::record_change(const State& before) {
+    feedback_={};
+    feedback_.fullness=static_cast<std::int8_t>(state_.fullness-before.fullness);
+    feedback_.happiness=static_cast<std::int8_t>(state_.happiness-before.happiness);
+    feedback_.energy=static_cast<std::int8_t>(state_.energy-before.energy);
+    feedback_.hygiene=static_cast<std::int8_t>(state_.hygiene-before.hygiene);
+    feedback_.health=static_cast<std::int8_t>(state_.health-before.health);
+    feedback_.friendship=static_cast<std::int8_t>(state_.friendship-before.friendship);
+    feedback_.experience=static_cast<std::uint8_t>(state_.experience-before.experience);
+    if(feedback_.fullness || feedback_.happiness || feedback_.energy || feedback_.hygiene ||
+        feedback_.health || feedback_.friendship || feedback_.experience) feedback_.remaining_ms=4000;
+}
+
+unsigned Game::mini_duration() const {
+    switch(mini_.phase) {
+    case MiniPhase::Ready:return 900;
+    case MiniPhase::Falling:return berry_duration_ms;
+    case MiniPhase::Watch:return mini_.length*symbol_ms;
+    case MiniPhase::Recall:return 6000+mini_.length*2000;
+    case MiniPhase::Feedback:return mini_.memory?900:450;
+    }
+    return 900;
+}
+int Game::memory_cue() const {
+    if(mini_.phase!=MiniPhase::Watch || mini_.elapsed_ms%symbol_ms>=symbol_on_ms) return -1;
+    const auto index=mini_.elapsed_ms/symbol_ms;
+    return index<mini_.length?mini_.pattern[index]:-1;
+}
+void Game::begin_game() {
+    const auto before=state_;
+    change(state_.energy,-8);change(state_.fullness,-5);
+    record_change(before);
+    screen_=mini_.memory?Screen::Memory:Screen::Game;
+    mini_.phase=MiniPhase::Ready;mini_.elapsed_ms=0;
+    if(mini_.memory) {
+        for(auto& symbol:mini_.pattern) symbol=static_cast<std::uint8_t>(random()%3);
+    } else mini_.target=static_cast<std::uint8_t>(random()%3);
+    message_="Bereit? Gleich geht es los.";
+}
 void Game::next_round(bool caught) {
-    if (caught) ++mini_.score;
+    mini_.success=caught;
+    if(caught) ++mini_.score;
     ++mini_.round;
-    mini_.elapsed_ms = 0;
-    if (mini_.round == 5) {
-        change(state_.happiness, mini_.score * 4);
-        change(state_.friendship, mini_.score * 2);
-        state_.experience = std::min(1000000u, state_.experience + mini_.score * 3u);
-        screen_ = Screen::Result;
-        message_ = mini_.score >= 3 ? "Gut gefangen!" : "Naechstes Mal klappt es!";
-    } else mini_.target = static_cast<std::uint8_t>(random() % 3);
+    mini_.elapsed_ms=0;mini_.phase=MiniPhase::Feedback;
+}
+void Game::finish_game() {
+    const auto before=state_;
+    change(state_.happiness,mini_.score*4);
+    change(state_.friendship,mini_.score*2);
+    state_.experience=std::min(1000000u,state_.experience+mini_.score*3u);
+    record_change(before);
+    screen_=Screen::Result;
+    message_=mini_.memory ? (mini_.score==3?"Enton: Hab ich auch gewusst!":"Enton: Ueben wir nochmal?")
+        : mini_.score>=3?"Gut gefangen!":"Naechstes Mal klappt es!";
+}
+void Game::step_minigame() {
+    mini_.elapsed_ms=0;
+    switch(mini_.phase) {
+    case MiniPhase::Ready:
+        if(mini_.memory) memory_pattern();
+        else {mini_.phase=MiniPhase::Falling;message_="Im Fangfeld OK druecken.";}
+        break;
+    case MiniPhase::Watch:
+        mini_.phase=MiniPhase::Recall;mini_.recalling=true;message_="Jetzt du. Gleiche Reihenfolge.";
+        break;
+    case MiniPhase::Recall:message_="Zeit vorbei.";finish_memory(false);break;
+    case MiniPhase::Falling:message_="Beere verpasst.";next_round(false);break;
+    case MiniPhase::Feedback:
+        if(mini_.memory) {
+            if(!mini_.success || mini_.round==3) finish_game();
+            else memory_pattern();
+        } else if(mini_.round==5) finish_game();
+        else {mini_.target=static_cast<std::uint8_t>(random()%3);mini_.phase=MiniPhase::Falling;message_="Naechste Beere!";}
+        break;
+    }
 }
 
 void Game::act(Action action) {
+    feedback_={};
+    const auto before=state_;
     if (const auto* reason = blocked_reason(action)) { message_ = reason; return; }
     screen_ = Screen::Home;
     if (action == Action::Back) return;
@@ -238,13 +294,13 @@ void Game::act(Action action) {
         state_.neglect_minutes = 0;
         state_.health = std::max<std::uint8_t>(40, state_.health);
         message_ = "Versorgt. Jetzt gut pflegen.";
-        return;
+        record_change(before);return;
     }
     if (action == Action::Clean) {
         state_.hygiene = 100;
         state_.waste = 0;
         message_ = "Wieder sauber!";
-        return;
+        record_change(before);return;
     }
     if (action == Action::Sleep) {
         state_.sleeping = !state_.sleeping;
@@ -259,18 +315,9 @@ void Game::act(Action action) {
         break;
     case Action::Play:
     case Action::Think:
-        change(state_.energy, -8);
-        change(state_.fullness, -5);
-        mini_ = {};
-        if (action == Action::Think) {
-            mini_.memory = true;
-            screen_ = Screen::Memory;
-            memory_pattern();
-        } else {
-            mini_.target = static_cast<std::uint8_t>(random() % 3);
-            screen_ = Screen::Game;
-            message_ = "Unter die Beere. OK: fangen.";
-        }
+        mini_={};mini_.memory=action==Action::Think;
+        screen_=Screen::Instructions;
+        message_=mini_.memory?"Folge ansehen, dann nachspielen.":"Bewege den Korb. Fang mit OK.";
         break;
     case Action::Evolve:
         if (can_evolve()) {
@@ -281,6 +328,7 @@ void Game::act(Action action) {
         break;
     default: break;
     }
+    record_change(before);
 }
 
 void Game::button(Button button) {
@@ -292,22 +340,29 @@ void Game::button(Button button) {
         } else state_.starter = next_starter(state_.starter,button==Button::Right);
         return;
     }
+    if(screen_==Screen::Instructions) {
+        if(button!=Button::Confirm) {screen_=Screen::Menu;return;}
+        if(const auto* reason=blocked_reason(mini_.memory?Action::Think:Action::Play)) {message_=reason;screen_=Screen::Menu;return;}
+        begin_game();return;
+    }
     if (screen_ == Screen::Memory) {
-        if (!mini_.recalling) return;
-        if (static_cast<std::uint8_t>(button) != mini_.pattern[mini_.entered]) { finish_memory(false); return; }
-        ++mini_.entered;
-        if (mini_.entered == 3) {
-            ++mini_.round;
-            if (mini_.round == 3) finish_memory(true);
-            else memory_pattern();
+        if(mini_.phase!=MiniPhase::Recall) return;
+        mini_.last_button=static_cast<std::uint8_t>(button);mini_.input_ms=250;
+        if (static_cast<std::uint8_t>(button) != mini_.pattern[mini_.entered]) {
+            message_="Fast! Die Folge war anders.";finish_memory(false);return;
         }
+        ++mini_.entered;
+        if(mini_.entered==mini_.length) {message_="Richtig gemerkt!";finish_memory(true);}
         return;
     }
     if (screen_ == Screen::Game) {
+        if(mini_.phase!=MiniPhase::Falling) return;
         if (button == Button::Left && mini_.lane > 0) --mini_.lane;
         if (button == Button::Right && mini_.lane < 2) ++mini_.lane;
         if (button == Button::Confirm) {
-            next_round(mini_.lane == mini_.target && mini_.elapsed_ms >= 900 && mini_.elapsed_ms < 1800);
+            const bool caught=mini_.lane==mini_.target && mini_.elapsed_ms>=catch_open_ms;
+            message_=mini_.elapsed_ms<catch_open_ms?"Zu frueh!":mini_.lane!=mini_.target?"Andere Spur!":"Gefangen!";
+            next_round(caught);
         }
         return;
     }
@@ -326,24 +381,18 @@ void Game::button(Button button) {
 void Game::back() {
     if (screen_ == Screen::Starter || screen_ == Screen::Home) return;
     if (screen_ == Screen::Game || screen_ == Screen::Memory) message_ = "Spiel beendet. Keine Belohnung.";
-    screen_ = screen_ == Screen::Guide ? Screen::Menu : Screen::Home;
+    screen_ = (screen_ == Screen::Guide || screen_==Screen::Instructions) ? Screen::Menu : Screen::Home;
 }
 
 void Game::memory_pattern() {
-    mini_.elapsed_ms = 0;
-    mini_.entered = 0;
-    mini_.recalling = false;
-    for (auto& symbol : mini_.pattern) symbol = static_cast<std::uint8_t>(random() % 3);
-    message_ = "Enton denkt nach. Merke dir das!";
+    mini_.elapsed_ms=0;mini_.entered=0;mini_.input_ms=0;mini_.last_button=3;
+    mini_.recalling=false;mini_.phase=MiniPhase::Watch;
+    mini_.length=static_cast<std::uint8_t>(2+mini_.round);
+    message_="Gut hinsehen. Die Folge waechst.";
 }
-
 void Game::finish_memory(bool success) {
-    mini_.score = success ? 3 : 0;
-    if (success) {
-        change(state_.happiness, 12); change(state_.friendship, 6);
-        state_.experience = std::min(1000000u, state_.experience + 9u);
-    }
-    message_ = success ? "Enton: Hab ich auch gewusst!" : "Enton: Aeh... was war nochmal?";
-    screen_ = Screen::Result;
+    mini_.success=success;mini_.recalling=false;
+    if(success) {++mini_.round;++mini_.score;}
+    mini_.elapsed_ms=0;mini_.phase=MiniPhase::Feedback;
 }
 } // namespace pet

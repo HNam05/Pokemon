@@ -32,7 +32,7 @@ Erster spielbarer Umfang: Ei → Evoli → Psiana oder Nachtara, eine Pflegeober
 | Gesundheit | 30 Min. am Stück ohne Sättigung/Energie oder mit Sauberkeit <20 machen krank. Krank oder vernachlässigt: −2 Gesundheit je 10 Min. Gute Versorgung regeneriert +1 je 10 Min. |
 | Erschöpfung | Bei 0 Gesundheit Pflege-/Medizinbedarf, kein permanenter Tod. Medizin kuriert Krankheit und stellt mindestens 40 Gesundheit her. Grundbedürfnisse weiter versorgen, sonst erneute Erkrankung. |
 | Bindung | Start 20; +2 pro gefangener Beere; bei Vernachlässigung −1 je Stunde. Kein endloser Bonus durch wiederholtes Saubermachen. |
-| Beerenfang | Drei Spuren, Links/Rechts bewegen, OK fängt. Fünf Beeren, je 1,8 Sek.; Fangfenster 0,9 bis <1,8 Sek. in richtiger Spur. Früh/zu spät/falsche Spur zählt als Fehlversuch. |
+| Beerenfang | Drei Spuren, Links/Rechts bewegen, OK fängt. Fünf Beeren, je 1,8 Sek.; Fangfenster seit M7 1,2 bis <1,8 Sek. in richtiger Spur. Früh/zu spät/falsche Spur zählt als Fehlversuch. |
 | Spielkosten | Mindestens 15 Sättigung/Energie, wach und gesund; Start kostet 8 Energie und 5 Sättigung. Je Treffer +4 Glück, +2 Bindung, +3 EP, Belohnung einmal nach fünf Versuchen. |
 | Entwicklung | Evoli, mindestens 1 Tag, 70 Bindung, 60 EP, 60 Gesundheit, gesund und wach. Menüaktion entwickelt 06:00 bis <20:00 zu Psiana, sonst Nachtara. Vereinfachte eigene Regeln. |
 
@@ -43,7 +43,7 @@ Im Minispiel pausiert die Pflegezeit; seine Reaktionszeit bleibt in jedem Zeitra
 - Evoli oder Enton auswählen, bevor die Ei-Uhr startet. Enton nutzt dieselben Pflegewerte; seine Entwicklung folgt später.
 - Zehn Menüeinträge, fünf sichtbare Zeilen; Links/Rechts bedeuten vorheriges/nächstes und im Menü hoch/runter. Kurzes OK bestätigt beim Loslassen, langes OK führt zurück oder bricht ein Spiel ohne Belohnung ab.
 - Neue Pflegehilfe und konkrete Hinweise. Aufmerksamkeitsgrenzen: satt <25, Energie <25, Freude <30, Hygiene <25, Gesundheit <40, Krankheit oder Abfall.
-- Zweites Spiel: Entons Denkpause. Drei Zeichen à 600 ms plus 200 ms Pause ansehen, innerhalb von zehn Sekunden über die drei Tasten wiederholen. Drei erfolgreiche Runden geben +12 Freude, +6 Bindung und +9 EP. Kosten wie Beerenfang, bei Fehler/Abbruch keine Belohnung. Pflegezeit währenddessen pausiert.
+- Zweites Spiel: Entons Denkpause. Ursprünglicher M2-Entwurf: drei Zeichen à 600 ms plus 200 ms Pause, zehn Sekunden Eingabezeit, drei Runden ohne Teilbelohnung. Seit M7 gelten die unten beschriebenen wachsenden Folgen und Teilbelohnungen.
 - Persönlicher Name als getrennte lokale Gerätekonfiguration, getrennte Spielstände für zwei Geräte.
 - Palettensprites als gemeinsame C++-Daten und explizite Speicherbudgets. Offizielle Espressif-Quellen und Hardwarestrategie in [UX_HARDWARE.md](UX_HARDWARE.md).
 
@@ -74,3 +74,16 @@ Auf ausdrücklichen Wunsch werden alle Künstler aus SpriteCollab berücksichtig
 Alle neuen Arten verwenden dieselben bestehenden Pflege- und Minispielregeln. Zusätzliche Entwicklungen werden nicht aus der Form oder Art abgeleitet; nur Evoli entwickelt sich wie bisher. Seitentasten blättern zyklisch, Halten wiederholt ausschließlich in Auswahl/Menü. V3 erweitert die zulässigen Art-IDs bei unverändert 44 Bytes; V1/V2 werden ausdrücklich migriert. Die Save-Anpassung ändert keine Pflegewerte.
 
 Die frühere allgemeine CC-BY-NC-Beschreibung ist durch die tatsächlichen historischen Credit-Kennungen PMDCollab_1, PMDCollab_2 und CC_BY-NC_4 je Set ersetzt. CHUNSOFT-/Mischmaterial bleibt ausgeschlossen.
+
+## Spielabläufe und Pflegefeedback M7 / 16.09.2026
+
+Eigene Designänderungen, keine übernommenen offiziellen Pokémon-Regeln:
+
+- Beide Spiele öffnen eine kostenlose Anleitung; Seitentasten/langes OK kehren ins Menü zurück. Erst kurzes OK startet, prüft die Zugangsvoraussetzungen erneut und zieht einmal 5 Satt und 8 Energie ab. Während Anleitung und Spiel pausiert die Pflegezeit.
+- 900 ms Vorbereitung ohne Eingaben. Beeren fallen jeweils 1.800 ms; Fangfenster ab exakt 1.200 ms bis vor 1.800 ms. Jeder Versuch erhält 450 ms Rückmeldung. Fünf Versuche, anschließend einmalige Belohnung. Tasten während Vorbereitung/Rückmeldung erzeugen keine weiteren Versuche.
+- Memory erzeugt eine gemeinsame Viererfolge und zeigt nacheinander deren erste zwei, drei und vier Zeichen. Ein Zeichen ist 650 ms sichtbar, danach 250 ms dunkel, damit Wiederholungen erkennbar bleiben. Eingabezeit: 10/12/14 Sekunden. Korrekte Eingaben blinken 250 ms auf; jede abgeschlossene Runde oder ein Fehler erhält 900 ms Rückmeldung.
+- Pro gefangener Beere oder vollständig gelöster Memory-Runde bis zu +4 Froh, +2 Bindung und +3 EP. Memory-Fehler und Zeitablauf behalten gelöste Runden. Manueller Abbruch bleibt ohne Belohnung; bezahlte Kosten bleiben bestehen. Grenzen: Pflege/Bindung 100, EP 1.000.000.
+- Ergebnis- und Pflegeanzeigen verwenden die tatsächlichen Differenzen nach Begrenzung, keine geschätzten `score * Faktor`-Werte im Browser. Pflegefeedback bleibt vier reale Sekunden sichtbar, Ergebnisse bis zum Verlassen. Die Pflege- und Schlafraten bleiben unverändert.
+- Warnschwellen kommen gemeinsam aus C++: Satt <25, Froh <30, Energie <25, Sauberkeit <25, Gesundheit <40. Die frühere pauschale Balkengrenze 25 zeigte insbesondere niedrige Freude zu spät an.
+
+Diese Zeiten sind am Desktop überprüft. Ob Fangfenster und Schriftgrößen am echten kleinen LCD angenehm sind, muss mit dem späteren Gerät erprobt werden.

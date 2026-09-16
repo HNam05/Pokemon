@@ -39,7 +39,11 @@ Auf einem anderen Rechner entweder die CMake-Variante nutzen oder eine passende 
 | Mitte / Enter | Menü | Bestätigen | Beere fangen |
 | Rechts / → oder ↓ | Status | Eine Zeile runter | Rechte Spur |
 
-Alle Aktionen sind mit drei Tasten erreichbar. Fünf Menüzeilen bleiben sichtbar; längere Listen scrollen mit. Kurzes OK bestätigt beim Loslassen, **OK halten (700 ms)** führt zurück. Im Menü gibt es zusätzlich „Zurück“. Im Beerenfang die Beere im markierten Fangbereich mit OK fangen; fünf Versuche. In Entons Denkpause drei Zeichen merken und über die drei Tasten wiederholen. `F` öffnet die Vollbildansicht, `Esc` verlässt sie.
+Alle Aktionen sind mit drei Tasten erreichbar. Fünf Menüzeilen bleiben sichtbar; längere Listen scrollen mit. Kategorien und Hinweise erklären die gewählte Aktion. Kurzes OK bestätigt beim Loslassen, **OK halten (700 ms)** führt zurück. Im Menü gibt es zusätzlich „Zurück“. `F` öffnet die Vollbildansicht, `Esc` verlässt sie.
+
+Beide Spiele zeigen zuerst eine kostenlose Anleitung. Erst **OK: Start** verbraucht 5 Satt und 8 Energie. Im Beerenfang den Korb bewegen und im markierten Fangfeld OK drücken; fünf Versuche mit kurzer Rückmeldung nach jeder Beere. In **Entons Denkpause** wächst dieselbe Folge von zwei auf drei und vier Zeichen. Erst ansehen, dann Links/OK/Rechts nachspielen. Bereits gelöste Runden zählen bei einem späteren Fehler oder Zeitablauf; manueller Abbruch bringt keine Belohnung. Ergebnisse zeigen den tatsächlichen Zuwachs nach Begrenzung auf die Maximalwerte.
+
+Satt, Froh und Energie haben Zahlenwerte und Balken auf Home und neben dem Simulator. Warnfarben entsprechen den Pflegegrenzen des C++-Kerns. Füttern, Säubern und Medizin zeigen kurz ihre tatsächliche Wirkung; Schlaf regeneriert Energie mit der Spielzeit.
 
 Neue Spielstände beginnen mit der vollständigen Begleiterauswahl. Seitentasten wechseln einzeln; Halten blättert automatisch durch Auswahl oder Menü (450 ms Anlauf, anschließend alle 160 ms). Mit OK bestätigen, danach schlüpft das gewählte Ei nach zehn Spielminuten. Für den Einstieg im Simulator **+ 10 Minuten** drücken. Standard ist Echtzeit; Zeitraffer beschleunigt die Pflege, beide Minispiele behalten normale Reaktionszeiten. Pflegewerte stehen unter „Status“, konkrete Empfehlungen unter „Pflegehilfe“. Evoli-Entwicklung braucht 1 Tag, 70 Freundschaft, 60 EP und ein gesundes, waches Tier. Entwicklung weiterer Arten ist noch offen; neue Begleiter verwenden dieselben Pflegeregeln.
 

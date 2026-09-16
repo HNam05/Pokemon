@@ -71,6 +71,8 @@ PET_EXPORT unsigned pp_frame_pixel(unsigned species,unsigned motion,unsigned fra
     return index==0 ? 0x10000u : s.palette[index];
 }
 PET_EXPORT unsigned pp_menu_count() { return pet::Game::menu_count; }
+PET_EXPORT const char* pp_menu_section(unsigned index) { return pet::Game::menu_section(static_cast<std::uint8_t>(index)); }
+PET_EXPORT unsigned pp_need_low(unsigned index) { return index<6?pet::Game::need_low[index]:0; }
 PET_EXPORT unsigned pp_scene_info(unsigned property) {
     const auto scene=pet::forest_scene(false);
     return property==0?scene.width:property==1?scene.height:property==2?static_cast<unsigned>(pet::scene_storage_bytes()):0;
@@ -137,6 +139,7 @@ PET_EXPORT const char* pp_view(Session* session) {
     const auto& g = session->game;
     const auto& s = g.state();
     const auto& m = g.mini();
+    const auto& f = g.feedback();
     // All strings are controlled constants without JSON metacharacters.
     const int count = std::snprintf(session->json, sizeof(session->json),
         "{\"species\":%u,\"name\":\"%s\",\"screen\":%u,\"selection\":%u,"
@@ -145,7 +148,10 @@ PET_EXPORT const char* pp_view(Session* session) {
         "\"waste\":%u,\"sleeping\":%s,\"sick\":%s,\"attention\":%s,\"can_evolve\":%s,"
         "\"message\":\"%s\",\"starter\":%u,\"starter_chosen\":%s,\"menu_start\":%u,"
         "\"mini\":{\"elapsed_ms\":%u,\"lane\":%u,\"target\":%u,\"round\":%u,\"score\":%u,"
-        "\"memory\":%s,\"recalling\":%s,\"entered\":%u,\"pattern\":[%u,%u,%u]}}",
+        "\"memory\":%s,\"recalling\":%s,\"entered\":%u,\"pattern\":[%u,%u,%u,%u],"
+        "\"phase\":%u,\"length\":%u,\"duration_ms\":%u,\"cue\":%d,\"last_button\":%u,\"input_ms\":%u,\"success\":%s,"
+        "\"catch_open_ms\":%u,\"fall_ms\":%u},"
+        "\"feedback\":{\"fullness\":%d,\"happiness\":%d,\"energy\":%d,\"hygiene\":%d,\"health\":%d,\"friendship\":%d,\"experience\":%u,\"remaining_ms\":%u}}",
         static_cast<unsigned>(s.species), pet::species_name(s.species), static_cast<unsigned>(g.screen()),
         static_cast<unsigned>(g.selection()), static_cast<unsigned>(s.age_minutes),
         static_cast<unsigned>(s.minute_of_day), static_cast<unsigned>(s.fullness),
@@ -157,7 +163,12 @@ PET_EXPORT const char* pp_view(Session* session) {
         static_cast<unsigned>(m.elapsed_ms), static_cast<unsigned>(m.lane), static_cast<unsigned>(m.target),
         static_cast<unsigned>(m.round), static_cast<unsigned>(m.score), m.memory ? "true" : "false",
         m.recalling ? "true" : "false", static_cast<unsigned>(m.entered),
-        static_cast<unsigned>(m.pattern[0]), static_cast<unsigned>(m.pattern[1]), static_cast<unsigned>(m.pattern[2]));
+        static_cast<unsigned>(m.pattern[0]), static_cast<unsigned>(m.pattern[1]), static_cast<unsigned>(m.pattern[2]),static_cast<unsigned>(m.pattern[3]),
+        static_cast<unsigned>(m.phase),static_cast<unsigned>(m.length),g.mini_duration(),g.memory_cue(),
+        static_cast<unsigned>(m.last_button),static_cast<unsigned>(m.input_ms),m.success?"true":"false",
+        pet::Game::catch_open_ms,pet::Game::berry_duration_ms,
+        static_cast<int>(f.fullness),static_cast<int>(f.happiness),static_cast<int>(f.energy),static_cast<int>(f.hygiene),
+        static_cast<int>(f.health),static_cast<int>(f.friendship),static_cast<unsigned>(f.experience),static_cast<unsigned>(f.remaining_ms));
     return count > 0 && static_cast<std::size_t>(count) < sizeof(session->json) ? session->json : "{}";
 }
 PET_EXPORT std::size_t pp_save(Session* session, std::uint8_t* output, std::size_t capacity) {

@@ -13,11 +13,13 @@
 - Save-Format oder öffentlichen C++-/C-ABI-Vertrag nicht nebenbei verändern; Version, Migration und Tests anpassen.
 - Die JavaScript-Ansicht bekommt keine zweite Pflege-/Entwicklungslogik. Regeln in C++ ändern und dort testen.
 
+Aktueller Softwarebranch: `codex/2026-09-16-game-experience` (M7: Spiele, Menue und Pflegefeedback). Gehaeusearbeiten werden separat gehalten.
+
 ## Zweiter Rechner
 
 ```powershell
 git fetch origin
-git switch --track origin/codex/2026-09-15-simulator-reset
+git switch --track origin/codex/2026-09-16-game-experience
 python scripts/build.py
 python desktop/server.py
 ```

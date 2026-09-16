@@ -30,13 +30,20 @@
       <div class="live-status"><span id="status-label">Verbindung wird hergestellt …</span><span id="game-clock">08:00</span></div>
       <p id="message" role="status" aria-live="polite">Der Spielkern startet.</p>
       <p id="care-hint">Dein Begleiter wartet auf dich.</p>
+      <div class="care-values" aria-label="Bedürfnisse deines Begleiters">
+        <label for="need-fullness">Satt <span id="value-fullness">75 / 100</span></label><meter id="need-fullness" min="0" max="100" low="25" high="100" optimum="100" value="75">75</meter>
+        <label for="need-happiness">Froh <span id="value-happiness">70 / 100</span></label><meter id="need-happiness" min="0" max="100" low="30" high="100" optimum="100" value="70">70</meter>
+        <label for="need-energy">Energie <span id="value-energy">85 / 100</span></label><meter id="need-energy" min="0" max="100" low="25" high="100" optimum="100" value="85">85</meter>
+      </div>
+      <p id="care-receipt" aria-live="polite"></p>
       <p id="error" role="alert" hidden></p>
       <dl class="summary"><div><dt>Alter</dt><dd id="age">0 h</dd></div><div><dt>Freundschaft</dt><dd id="bond">20 / 100</dd></div><div><dt>Erfahrung</dt><dd id="xp">0 EP</dd></div></dl>
       <details open>
         <summary>So spielst du</summary>
         <p><kbd>← / ↑</kbd> <kbd>Enter</kbd> <kbd>→ / ↓</kbd> sind deine drei Tasten. Im Menü scrollen die Seitentasten hoch und runter, beim Spielen bewegen sie dich links und rechts. <strong>OK</strong> bestätigt, <strong>OK halten</strong> führt zurück.</p>
         <p>Im Minispiel: Unter die fallende Beere bewegen und <strong>OK</strong> drücken, sobald sie im Fangbereich ist. Fünf Versuche pro Runde.</p>
-        <p>Entons Denkpause: Drei Zeichen merken und mit den drei Tasten wiederholen. Nach drei Runden weiß Enton bestimmt noch, worum es ging. Vielleicht.</p>
+        <p>Vor jedem Spiel siehst du Anleitung und Kosten. Erst <strong>OK: Start</strong> verbraucht 5 Sättigung und 8 Energie. Für jede gefangene Beere oder gemerkte Runde erhält dein Begleiter bis zu 4 Freude, 2 Bindung und 3 EP.</p>
+        <p>Entons Denkpause: Die Folge wächst von zwei auf drei und vier Zeichen. Erst ansehen, dann mit den drei Tasten wiederholen. Schon gelöste Runden zählen auch bei einem späteren Fehler.</p>
         <p>Dein Ei schlüpft nach zehn Spielminuten. Für einen schnellen Start kannst du unten zehn Minuten vorspulen.</p>
       </details>
       <div class="time-controls">

@@ -137,7 +137,7 @@ class DesktopTests(unittest.TestCase):
 
     def test_profiles_remain_separate_from_saves(self):
         first = server.Engine(server.find_library(), 'Ada')
-        second = server.Engine(server.find_library(), 'Jörg')
+        second = server.Engine(server.find_library(), 'JÃ¶rg')
         self.addCleanup(first.close)
         self.addCleanup(second.close)
         second.button(2)
@@ -145,7 +145,7 @@ class DesktopTests(unittest.TestCase):
         second.advance(600000)
         self.assertEqual(second.view()['name'], 'Enton')
         self.assertEqual(first.view()['trainer_name'], 'Ada')
-        self.assertEqual(second.view()['trainer_name'], 'Jörg')
+        self.assertEqual(second.view()['trainer_name'], 'JÃ¶rg')
         first.load(second.dump())
         self.assertEqual(first.view()['trainer_name'], 'Ada')
         with self.assertRaises(ValueError):
@@ -237,6 +237,9 @@ class DesktopTests(unittest.TestCase):
         self.engine.button(1)
         for _ in range(4):self.engine.button(2)
         self.engine.button(1)
+        self.assertEqual(self.engine.view()['screen'],8)
+        self.engine.button(1)
+        self.engine.advance(900)
         self.assertEqual(self.engine.view()['screen'],3)
         sim.speed=3600
         sim.save()

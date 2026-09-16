@@ -32,6 +32,8 @@ class Engine:
             'pp_name': ([pointer], ctypes.c_char_p),
             'pp_back': ([pointer], None),
             'pp_menu_count': ([], ctypes.c_uint),
+            'pp_menu_section': ([ctypes.c_uint], ctypes.c_char_p),
+            'pp_need_low': ([ctypes.c_uint], ctypes.c_uint),
             'pp_menu_label': ([ctypes.c_uint], ctypes.c_char_p),
             'pp_menu_hint': ([pointer, ctypes.c_uint], ctypes.c_char_p),
             'pp_menu_enabled': ([pointer, ctypes.c_uint], ctypes.c_bool),
@@ -78,6 +80,7 @@ class Engine:
         result['starter_form'] = self.lib.pp_species_form(result['starter']).decode('utf-8')
         result['care_hint'] = self.lib.pp_care_hint(self.handle).decode('utf-8')
         result['menu'] = [{'label': self.lib.pp_menu_label(i).decode('utf-8'),
+                           'section':self.lib.pp_menu_section(i).decode('utf-8'),
                            'hint': self.lib.pp_menu_hint(self.handle, i).decode('utf-8'),
                            'enabled': self.lib.pp_menu_enabled(self.handle, i)}
                           for i in range(self.lib.pp_menu_count())]
@@ -123,6 +126,7 @@ class Engine:
             scenes=[{'width':width,'height':height,'pixels':[
                 self.lib.pp_scene_pixel(night,x,y) for y in range(height) for x in range(width)]} for night in (False,True)]
         return {'sprites': sprites, 'animations':animations,'scenes':scenes,'scene_bytes':self.lib.pp_scene_info(2),'species_ids':list(ids),'catalog':self.catalog() if selected is None else [],
+                'need_low':[self.lib.pp_need_low(i) for i in range(6)],
                 'memory_bytes': dict(zip(('game', 'state', 'profile', 'sprites','animations','animator'),
                 (self.lib.pp_memory_bytes(i) for i in range(6))))}
 
@@ -343,7 +347,7 @@ def handler_for(simulator, port):
                     minutes = data.get('minutes')
                     if type(minutes) is not int or minutes not in (10, 60):
                         raise ValueError('Nur 10 oder 60 Minuten erlaubt.')
-                    if simulator.engine.view()['screen'] in (3, 7):
+                    if simulator.engine.view()['screen'] in (3, 7, 8):
                         raise ValueError('Zeitsprung erst nach dem Minispiel.')
                     simulator.engine.advance(minutes * 60000)
                     simulator.save()

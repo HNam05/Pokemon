@@ -11,6 +11,7 @@ Die beiden äußeren Tasten bedeuten **vorheriges/nächstes**. Das Display gibt 
 | Menü | Eine Zeile hoch | Aktion ausführen | Eine Zeile runter | Zuhause |
 | Status/Ergebnis | Zuhause | Zuhause | Zuhause | Zuhause |
 | Pflegehilfe | Menü | Menü | Menü | Menü |
+| Spielanleitung | Menü | Start und Kosten bezahlen | Menü | Menü |
 | Beerenfang | Linke Spur | Fangen | Rechte Spur | Abbrechen ohne Belohnung |
 | Denkpause, Eingabephase | Linkes Zeichen | Mittleres Zeichen | Rechtes Zeichen | Abbrechen ohne Belohnung |
 
@@ -35,7 +36,7 @@ Die neue Pflegehilfe priorisiert Krankheit, Hygiene, Schlaf, Hunger, Müdigkeit 
 
 Neue Spielstände wählen aus 130 Begleitern (129 importierte Sets plus eigener Enton). Die Wahl legt fest, was nach zehn Spielminuten schlüpft. Alte Spielstände behalten ihren Begleiter. Entons Weiterentwicklung ist noch nicht implementiert; die Oberfläche zeigt das ehrlich an.
 
-„Entons Denkpause“ ist ein zweites, bewusst einfaches Minispiel für alle Begleiter: drei Zeichen ansehen, in gleicher Reihenfolge mit Links/OK/Rechts eingeben, drei Runden gewinnen. Jedes Zeichen erscheint 600 ms, gefolgt von 200 ms Abstand. Für die Eingabe gibt es zehn Sekunden pro Runde. Falsche oder fehlende Eingaben enden mit Entons vergesslicher Reaktion. Erfolg: +12 Freude, +6 Bindung, +9 Erfahrung. Kosten wie Beerenfang; kein Gewinn durch Abbrechen. Während beider Spiele pausiert die Pflegezeit.
+„Entons Denkpause“ ist ein Minispiel für alle Begleiter: Dieselbe Folge wächst von zwei auf drei und vier Zeichen. Mit Links/OK/Rechts in gleicher Reihenfolge nachspielen. Jedes Zeichen erscheint 650 ms, gefolgt von 250 ms Abstand; Eingabezeit 10/12/14 Sekunden. Phasen und Eingaben erhalten eine sichtbare Rückmeldung. Falsche oder fehlende Eingaben beenden das Spiel; bereits gelöste Runden zählen. Je gelöster Runde bis zu +4 Froh, +2 Bindung, +3 Erfahrung. Kosten wie Beerenfang; kein Gewinn durch manuellen Abbruch. Während Anleitung und beider Spiele pausiert die Pflegezeit.
 
 Weitere Easter Eggs bleiben Ideen: seltene Enton-Kommentare, eine kleine Geschenk-Nachricht am Geburtstag, eine freischaltbare Quatsch-Animation. Dafür noch keine Datenmodelle oder Zufallsbelohnungen eingebaut.
 
@@ -66,7 +67,7 @@ Bereits umgesetzt:
 
 | Daten | Am Windows-x64-Build gemessen |
 |---|---:|
-| `sizeof(pet::Game)`, inklusive State und Minispiel | 64 Byte RAM |
+| `sizeof(pet::Game)`, inklusive State, Minispiel und Pflegefeedback | 80 Byte RAM |
 | `sizeof(pet::State)`, bereits in Game enthalten | 32 Byte |
 | `sizeof(pet::Profile)` | 25 Byte RAM |
 | Bisherige Standgrafiken | 908 Byte konstante Daten |

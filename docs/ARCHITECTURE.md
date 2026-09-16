@@ -58,7 +58,10 @@ Desktop-Hülle: JSON mit `version`, `saved_at` als Unix-Sekunden und hexkodierte
 - Menü: Seitentasten scrollen vertikal durch zehn Einträge mit fünf sichtbaren Zeilen; Mitte aktiviert. „Zurück“ ist ein expliziter Eintrag. Beschriftungen und Hinweise kommen aus C++.
 - Status/Ergebnis: beliebige Taste zurück.
 - Beerenfang: Links/Rechts bewegen begrenzt auf drei Spuren, Mitte ist ein Fangversuch.
-- Denkpause: drei Zeichen ansehen, dann über Links/OK/Rechts wiederholen; drei Runden, begrenzte Eingabezeit, Pflegezeit pausiert.
+- Spielanleitung: Seitentaste oder langes OK zurück ins Menü, kurzes OK startet und bezahlt erst dann die Kosten. Pflegezeit pausiert beim Lesen.
+- Denkpause: wachsende Folge mit zwei, drei, vier Zeichen ansehen, dann über Links/OK/Rechts wiederholen. Drei Runden, begrenzte Eingabezeit; gelöste Runden zählen auch nach Fehler/Zeitablauf. Pflegezeit pausiert.
+
+`MiniPhase` trennt Vorbereitung, fallende Beere, Vorführung, Eingabe und Rückmeldung. Zeitgrenzen, aktives Memory-Zeichen, Sequenzlänge, Treffer und Belohnungen werden ausschließlich vom Kern berechnet. Der Browser zeichnet diese Zustandsansicht. `CareChange` meldet tatsächliche Differenzen nach Begrenzung; die Anzeige läuft vier reale Sekunden, auf dem Ergebnisbild bleibt sie erhalten. `Game::need_low` liefert dieselben Warnschwellen an Pflegelogik und Darstellung. Diese UI-Zustände sind transient: Save V3 bleibt unverändert bei 44 Bytes. Host-Game jetzt 80 Bytes inklusive State und Minispiel, keine Heap-Allokation.
 
 Auf Hardware später active-low + Pull-up nach Schaltplan, Entprellung etwa 25–40 ms. Kurzes OK beim Loslassen; nach 700 ms einmal `Game::back()` und kurzes OK unterdrücken. Halten einer Seitentaste wiederholt in Auswahl und Menü nach 450 ms alle 160 ms; auf Home und im Minispiel keine Wiederholung. Diese Wiederholung gehört zum Eingabeadapter, die Auswahlreihenfolge in den C++-Kern. Keine Button-ISR führt Spiellogik aus. Der Simulator prüft diese UX, der echte GPIO-Adapter folgt mit der Boardintegration.
 

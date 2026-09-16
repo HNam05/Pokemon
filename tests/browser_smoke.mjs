@@ -40,13 +40,24 @@ try {
     await page.keyboard.press(name);
     await page.evaluate(() => window.advanceTime(0));
   }
-  async function menu(index) {
+  async function menu(index, start = true) {
     const current = await state();
     if (current.screen === 2 || current.screen === 4) await key('Enter');
     if ((await state()).screen === 0) await key('Enter');
     for (let attempt=0; (await state()).selection !== index && attempt < 10; attempt++) await key('ArrowDown');
     assert.equal((await state()).selection, index);
     await key('Enter');
+    if (start && (await state()).screen === 8) {
+      await key('Enter');
+      await page.evaluate(() => window.advanceTime(900));
+    }
+  }
+  async function checkNeeds() {
+    const current = await state();
+    for (const field of ['fullness', 'happiness', 'energy']) {
+      assert.equal(await page.locator(`#need-${field}`).evaluate(el => el.value), current[field]);
+      assert.equal(await page.locator(`#value-${field}`).textContent(), `${current[field]} / 100`);
+    }
   }
   assert.equal((await state()).screen,5);
   if (starter === 4) await key('ArrowRight');
@@ -68,8 +79,11 @@ try {
   // Some headless browser builds do not map Escape to fullscreen exit.
   if (await page.evaluate(() => document.fullscreenElement !== null)) await key('f');
   await page.waitForFunction(() => document.fullscreenElement === null);
+  const beforeFeed = await state();
   await menu(0);
   assert.equal((await state()).fullness, 100);
+  await checkNeeds();
+  assert.equal((await state()).feedback.fullness, 100-beforeFeed.fullness, 'feeding displays actual gain');
   await key('Enter');
   await page.screenshot({ path: path.join(output, '03-menu.png'), fullPage: true });
   await key('ArrowLeft');
@@ -86,35 +100,55 @@ try {
   assert.equal((await state()).fullness, 100, 'sleeping blocks feed');
   await menu(2);
   assert.equal((await state()).sleeping, false);
-  await menu(4); await waitFor(3);
+  const beforePlay = await state();
+  await menu(4, false); await waitFor(8);
+  assert.equal((await state()).energy, beforePlay.energy, 'instructions are free');
+  await page.screenshot({path:path.join(output,'13-game-intro.png'),fullPage:true});
+  await key('ArrowLeft'); await waitFor(1);
+  assert.equal((await state()).energy, beforePlay.energy, 'cancel instructions is free');
+  await key('Enter'); await waitFor(8);
+  await key('Enter'); await waitFor(3);
+  assert.equal((await state()).energy, beforePlay.energy - 8);
+  assert.equal((await state()).fullness, beforePlay.fullness - 5);
+  await checkNeeds();
+  await key('Enter');
+  assert.equal((await state()).mini.round, 0, 'ready phase ignores extra confirm');
+  await page.evaluate(() => window.advanceTime(900));
   for (let round=0; round<5; round++) {
     let s = await state();
     while (s.mini.lane !== s.mini.target) {
       await key(s.mini.lane < s.mini.target ? 'ArrowRight' : 'ArrowLeft');
       s = await state();
     }
-    await page.evaluate(() => window.advanceTime(1000));
+    await page.evaluate(() => window.advanceTime(1300));
     if (round === 0) await page.screenshot({ path: path.join(output, '05-catch.png'), fullPage: true });
     await key('Enter');
+    await page.evaluate(() => window.advanceTime(450));
   }
   await waitFor(4);
   assert.equal((await state()).mini.score, 5);
   assert.equal((await state()).experience, 15);
   assert.equal((await state()).friendship, 30);
+  await checkNeeds();
+  assert.equal((await state()).feedback.happiness, 20, 'five catches earn 20 happiness');
   await page.screenshot({ path: path.join(output, '06-result.png'), fullPage: true });
   await key('Enter');
   await menu(5); await waitFor(7);
   await page.screenshot({path:path.join(output,'10-memory-playback.png'),fullPage:true});
   for (let round=0;round<3;round++) {
-    await page.evaluate(()=>window.advanceTime(2400));
+    await page.evaluate(()=>window.advanceTime(JSON.parse(window.render_game_to_text()).mini.duration_ms));
     const s = await state();
     assert.equal(s.mini.recalling,true);
     if (round===0) await page.screenshot({path:path.join(output,'11-memory-recall.png'),fullPage:true});
-    for (const symbol of s.mini.pattern) await key(['ArrowLeft','Enter','ArrowRight'][symbol]);
+    assert.equal(s.mini.length, round+2);
+    for (const symbol of s.mini.pattern.slice(0,s.mini.length)) await key(['ArrowLeft','Enter','ArrowRight'][symbol]);
+    await page.evaluate(()=>window.advanceTime(900));
   }
   await waitFor(4);
   assert.equal((await state()).experience,24);
   assert.equal((await state()).friendship,36);
+  assert.equal((await state()).feedback.happiness,7,'memory reward is capped at 100 happiness');
+  await checkNeeds();
   await key('Enter');
   await menu(8); await waitFor(6);
   await page.screenshot({path:path.join(output,'12-care-guide.png'),fullPage:true});

@@ -18,6 +18,7 @@ void select(pet::Game& game, pet::Action action) {
     game.button(pet::Button::Confirm);
     while (game.menu_action(game.selection()) != action) game.button(pet::Button::Right);
     game.button(pet::Button::Confirm);
+    if(game.screen()==pet::Screen::Instructions) {game.button(pet::Button::Confirm);game.advance(900);}
 }
 pet::State hatched() {
     pet::State state;
@@ -84,8 +85,9 @@ int main() {
     for (int round = 0; round < 5; ++round) {
         while (game.mini().lane > game.mini().target) game.button(Button::Left);
         while (game.mini().lane < game.mini().target) game.button(Button::Right);
-        game.advance(1000, 3600);
+        game.advance(1300, 3600);
         game.button(Button::Confirm);
+        game.advance(450);
     }
     check(game.screen() == Screen::Result && game.mini().score == 5, "five catches complete game");
     check(game.state().experience == 15 && game.state().friendship == 30, "reward applied once");
@@ -94,7 +96,7 @@ int main() {
     game.button(Button::Confirm);
     check(game.state().experience == reward, "closing result cannot duplicate reward");
     select(game, Action::Play);
-    game.advance(9000);
+    game.advance(12000);
     check(game.screen() == Screen::Result && game.mini().score == 0, "missed berries time out");
     game.restore(hatched()); select(game, Action::Play);
     game.button(Button::Confirm);
@@ -154,21 +156,70 @@ int main() {
     duck.button(Button::Left);
     check(duck.mini().entered == 0, "memory playback ignores input");
     for (int round = 0; round < 3; ++round) {
-        duck.advance(2400, 3600);
+        duck.advance(duck.mini_duration(), 3600);
         check(duck.mini().recalling, "memory enters recall");
-        for (int i = 0; i < 3; ++i) duck.button(static_cast<Button>(duck.mini().pattern[i]));
+        const auto length=duck.mini().length;
+        for (unsigned i = 0; i < length; ++i) duck.button(static_cast<Button>(duck.mini().pattern[i]));
+        duck.advance(900);
     }
     check(duck.screen() == Screen::Result && duck.mini().score == 3 && duck.state().experience == 9, "memory success rewards once");
     check(duck.state().age_minutes == memory_age, "memory keeps care clock frozen");
     duck.back(); check(duck.state().experience == 9, "back cannot duplicate memory rewards");
     select(duck, Action::Think); duck.advance(60000);
     check(duck.screen() == Screen::Result && duck.mini().score == 0, "memory times out with long tick");
-    select(duck, Action::Think); duck.advance(2400);
+    select(duck, Action::Think); duck.advance(duck.mini_duration());
     duck.button(static_cast<Button>((duck.mini().pattern[0]+1)%3));
+    duck.advance(900);
     check(duck.screen() == Screen::Result && duck.mini().score == 0, "wrong memory answer fails");
     select(duck, Action::Think);
     const auto paid_energy = duck.state().energy;
     duck.back(); check(duck.screen() == Screen::Home && duck.state().energy == paid_energy, "cancel keeps paid game cost");
+
+    // Independently calculated care changes and clamped feedback.
+    state=hatched();state.fullness=50;state.happiness=50;state.energy=50;state.hygiene=100;
+    game.restore(state);game.advance(60000,60);
+    check(game.state().fullness==40 && game.state().happiness==45 && game.state().energy==40 && game.state().hygiene==94,"one hour awake has expected need decay");
+    state.sleeping=true;game.restore(state);game.advance(60000,60);
+    check(game.state().fullness==45 && game.state().happiness==50 && game.state().energy==80,"sleep restores energy, slows hunger, preserves happiness");
+    state=hatched();state.fullness=85;state.happiness=99;game.restore(state);select(game,Action::Feed);
+    check(game.state().fullness==100 && game.state().happiness==100 && game.feedback().fullness==15 && game.feedback().happiness==1,"receipt reports actual clamped feeding gains");
+    state=hatched();state.happiness=29;game.restore(state);check(game.needs_attention(),"happiness warning starts below 30");
+    state.happiness=30;game.restore(state);check(!game.needs_attention(),"happiness at 30 is not low");
+    game.button(Button::Confirm);
+    while(game.menu_action(game.selection())!=Action::Play)game.button(Button::Right);
+    const auto free_preview=encode(game.state());game.button(Button::Confirm);
+    check(game.screen()==Screen::Instructions && encode(game.state())==free_preview,"instructions cost nothing");
+    game.advance(60000,3600);check(encode(game.state())==free_preview,"instruction reading freezes care");
+    game.back();check(game.screen()==Screen::Menu && encode(game.state())==free_preview,"cancel intro retains resources");
+    game.button(Button::Confirm);game.button(Button::Confirm);
+    check(game.state().fullness==70 && game.state().energy==77,"start deducts game costs exactly once");
+    game.button(Button::Confirm);check(game.mini().round==0,"ready phase ignores accidental confirmation");
+    game.advance(900);game.advance(1199);game.button(Button::Confirm);
+    check(game.mini().score==0 && game.mini().phase==MiniPhase::Feedback,"catch before exact window rejected");
+    game.restore(hatched());select(game,Action::Play);
+    while(game.mini().lane>game.mini().target)game.button(Button::Left);
+    while(game.mini().lane<game.mini().target)game.button(Button::Right);
+    game.advance(1200);game.button(Button::Confirm);game.button(Button::Confirm);
+    check(game.mini().score==1 && game.mini().round==1,"exact catch boundary and duplicate input during feedback");
+    game.restore(hatched());select(game,Action::Play);game.advance(1800);game.button(Button::Confirm);
+    check(game.mini().phase==MiniPhase::Feedback && game.mini().round==1 && game.mini().score==0,"berry expires at exact upper boundary");
+    game.restore(hatched());select(game,Action::Think);
+    const auto frozen=game.mini().elapsed_ms;game.advance(60000,0);
+    check(game.mini().phase==MiniPhase::Watch && game.mini().elapsed_ms==frozen,"pause freezes active memory phase");
+    Game partitioned=game;game.advance(1000,3600);
+    for(unsigned i=0;i<10;++i)partitioned.advance(100,1);
+    check(game.mini().elapsed_ms==partitioned.mini().elapsed_ms && game.memory_cue()==partitioned.memory_cue() &&
+        encode(game.state())==encode(partitioned.state()),"memory timing independent of tick size and demo multiplier");
+    state=hatched();state.happiness=99;state.friendship=99;state.experience=999999;
+    game.restore(state);select(game,Action::Think);
+    game.advance(game.mini_duration());
+    for(unsigned i=0;i<2;++i)game.button(static_cast<Button>(game.mini().pattern[i]));
+    game.advance(900);check(game.mini().length==3,"memory grows from two to three symbols");
+    game.advance(game.mini_duration());game.button(static_cast<Button>((game.mini().pattern[0]+1)%3));game.advance(900);
+    check(game.screen()==Screen::Result && game.mini().score==1,"completed memory rounds retained after mistake");
+    check(game.state().happiness==100 && game.state().friendship==100 && game.state().experience==1000000 &&
+        game.feedback().happiness==1 && game.feedback().friendship==1 && game.feedback().experience==1,"result reports clamped partial rewards exactly");
+    const auto once=encode(game.state());game.button(Button::Confirm);check(encode(game.state())==once,"partial reward cannot duplicate");
 
     Profile profile;
     check(profile.set_name("Ada",3), "name accepted");
