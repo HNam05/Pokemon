@@ -1,0 +1,118 @@
+{
+  "sources": {
+    "hardware\\pokeball_v2\\build.py": "04156fe82089663b49e64c59b968b134c3a8e4027b868f05167c9ccea74e31ea",
+    "hardware\\pokeball_v1\\build.py": "281b1b7e55f163d3f8278f53b98e0eecd1942e1712b6db827975c41ffb87a508"
+  },
+  "meshes": {
+    "01_ball_lower": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "5fa5b7e41f25c34ba36f74cf600297cfe27877b044ac7caeab2be18a10547c45"
+    },
+    "02_ball_lid": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "7b5191b2f4e5a19a6cd47080c0f35e1eb89ae3245487e12f23e5ee2f1a760d4d"
+    },
+    "03_removable_cradle": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "e55b2abe1e4faf1220f342566e799c5b1c9c631fc9c7439f863c2417a2a95bf0"
+    },
+    "04_handheld_front": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "751b14dfd9b1c98a2961053375c703fc62077cf282c87d01c9e26ce34ec1dbc8"
+    },
+    "05_handheld_back": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "8a02ea4093ef5203405bfba54a4a48b81dc2ef0d9ca75f5c556d6d5b9cee380d"
+    },
+    "06_board_carrier": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "b012b6f9771d84f304690027ff62fbb9410b97764653a1265a2f5abc1ff7c4dd"
+    },
+    "07_button_left": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "c6a0c2784d6626a7911acbe8456c1a9ab656adda2df7a815ce16ca31cd156dd3"
+    },
+    "08_button_ok": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "800bb24d41e221294985f6e2b5e420b2d698802f04f2be323f34dcf9b6d83dbb"
+    },
+    "09_button_right": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "c6a0c2784d6626a7911acbe8456c1a9ab656adda2df7a815ce16ca31cd156dd3"
+    },
+    "10_switch_tray": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "14a568f431ca6c3b39d79a3e70b8ee34ecb5bdb3a8a4a5e52763ea1b762226d7"
+    },
+    "11_battery_tray": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "152fb75d97b55c266f1de6684a2fadede1dc0131f8678059f6ccc7d77dad98d4"
+    },
+    "12_ball_emblem": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "af54e00354352998caaee7f2463ba202c392c6c04e17df458c9781ea549fd745"
+    },
+    "13_button_fit_coupon": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "a978f716247f4142a55017c26a60d48d75c0a3de3c76cbd87e64eb32ac24c262"
+    },
+    "14_hinge_fit_coupon": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "ead2e41dc0620afdf8a50491b94d48c7e7149bb98c306bace4c55305372d36b5"
+    },
+    "15_cradle_fit_coupon": {
+      "watertight": true,
+      "winding": true,
+      "components": 1,
+      "volume_positive": true,
+      "sha256": "f3f5bf27e60b9e25ece638d6c3278a2820d75ef0276c70b723ccdcc2a1d7b93f"
+    }
+  },
+  "assembly_collisions": [],
+  "cover_motion_collisions": [],
+  "extraction_collisions": [],
+  "hardware_collisions": [],
+  "button_motion_collisions": []
+}

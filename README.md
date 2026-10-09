@@ -8,6 +8,10 @@ Aus 130 Begleitern wählen: 129 SpriteCollab-Sets mit 85 Pokémon und ihren Form
 
 **Stand:** erster Desktop-Prototyp. ESP32-Treiber, endgültige Grafik und Hardwarevalidierung folgen nach Auswahl der Komponenten.
 
+## 3D-Gehäuseprototyp
+
+V1 war ein integrierter Geräteentwurf. V2 setzt die bestätigte Idee um: Das Tamagotchi ist ein eigenständiges, herausnehmbares Handheld, das in der geöffneten Pokéball-Schutzhülle sitzt. CAD-Quellen, Maße, Montagehinweise und druckbare STL-/STEP-/3MF-Dateien: [V2-Prototyp](hardware/pokeball_v2/README.md) und [Druckpaket](hardware/pokeball_v2/release/README.md). Zuerst die Passproben drucken; digitale Passungsprüfungen ersetzen keine reale Montage.
+
 Die Begleiter bewegen sich jetzt zustandsabhängig: zufälliges Gehen, Hüpfen, Umsehen und Freude mit Ruhepausen, Essreaktion nach dem Füttern sowie Schlaf-/Erschöpfungsposen. Die Auswahl berücksichtigt Beiträge aller Künstler im geprüften SpriteCollab-Stand. Als Begleiter sind unter anderem Fynx, Bauz, Wolly und Felori dabei. Jedes importierte Set bietet neun Pflegeabläufe. Enton nutzt eigene animierte Prototypposen. Die Auswahl und Zeitsteuerung laufen ebenfalls im C++-Kern. Größere Begleiter stehen vor einer Pixelart-Waldlichtung mit Bach, Beeren und Tag-/Nachtfarben. Details und Herkunft: [Animationen](docs/ANIMATION.md), [Grafik-Credits](assets/README.md).
 
 ## Starten
