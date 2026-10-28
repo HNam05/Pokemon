@@ -153,7 +153,8 @@ canvas {
   border-color:#261f1a;
 }
 
-.buttons button:active {
+.buttons button:active,
+.buttons button.pressed {
   background:#ceb993;
 }
 
@@ -240,8 +241,9 @@ h1 span {
 }
 
 .summary {
-  display:flex;
-  justify-content:space-between;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px 12px;
   margin:0 0 26px;
 }
 

@@ -4,7 +4,12 @@
 #include "pet/profile.hpp"
 #include "pet/animation.hpp"
 #include "pet/catalog.hpp"
+#include "pet/device.hpp"
+#include "pet/input.hpp"
+#include "pet/render.hpp"
 #include <cstdlib>
+#include <cstring>
+#include <vector>
 #include <iostream>
 
 namespace {
@@ -178,9 +183,9 @@ int main() {
     // Independently calculated care changes and clamped feedback.
     state=hatched();state.fullness=50;state.happiness=50;state.energy=50;state.hygiene=100;
     game.restore(state);game.advance(60000,60);
-    check(game.state().fullness==40 && game.state().happiness==45 && game.state().energy==40 && game.state().hygiene==94,"one hour awake has expected need decay");
+    check(game.state().fullness==40 && game.state().happiness==45 && game.state().energy==44 && game.state().hygiene==94,"one hour awake has expected need decay");
     state.sleeping=true;game.restore(state);game.advance(60000,60);
-    check(game.state().fullness==45 && game.state().happiness==50 && game.state().energy==80,"sleep restores energy, slows hunger, preserves happiness");
+    check(game.state().fullness==47 && game.state().happiness==50 && game.state().energy==80,"sleep restores energy, slows hunger, preserves happiness");
     state=hatched();state.fullness=85;state.happiness=99;game.restore(state);select(game,Action::Feed);
     check(game.state().fullness==100 && game.state().happiness==100 && game.feedback().fullness==15 && game.feedback().happiness==1,"receipt reports actual clamped feeding gains");
     state=hatched();state.happiness=29;game.restore(state);check(game.needs_attention(),"happiness warning starts below 30");
@@ -340,6 +345,203 @@ int main() {
             changed+=day.palette[index]!=night.palette[index];
         }
         check(changed==240*178,"night palette changes entire scene");
+    }
+    // V4 care loop: calls, care mistakes, forgiveness, day rhythm, petting and growth.
+    {
+        auto pet = hatched(); pet.fullness = 20;
+        Game care; care.restore(pet);
+        care.advance(60000, 14);
+        check(care.calling() && care.state().call_minutes == 14 && care.state().care_mistakes == 0, "hungry pet calls before a mistake");
+        care.advance(60000, 1);
+        check(care.state().care_mistakes == 1 && care.state().friendship == 18 && (care.state().flags & 1), "ignored call becomes one care mistake");
+        care.advance(60000, 119);
+        check(care.state().care_mistakes == 1, "a waiting call is not punished every minute");
+        care.advance(60000, 1);
+        check(care.state().care_mistakes == 2, "a call ignored for two more hours counts again");
+        select(care, Action::Feed);
+        check(!care.calling() && care.state().call_minutes == 0 && care.state().friendship == 16, "late answer clears call without bonus");
+        pet = hatched(); pet.fullness = 20; care.restore(pet);
+        care.advance(60000, 5);
+        select(care, Action::Feed);
+        check(!care.calling() && care.state().friendship == 21, "answering a call in time strengthens the bond");
+
+        pet = hatched(); pet.minute_of_day = 6 * 60 + 59; pet.care_mistakes = 2; pet.sleeping = true; pet.energy = 100;
+        care.restore(pet); care.advance(60000, 1);
+        check(care.state().care_mistakes == 1 && !care.state().sleeping, "good day forgives one mistake and wakes at seven");
+        pet.flags = 1; care.restore(pet); care.advance(60000, 1);
+        check(care.state().care_mistakes == 2 && care.state().flags == 0, "day with a mistake forgives nothing");
+
+        pet = hatched(); pet.minute_of_day = 20 * 60 + 59; care.restore(pet);
+        care.advance(60000, 1);
+        check(care.state().sleeping && care.night() && !care.calling(), "pet falls asleep at bedtime");
+        care.advance(60000, 599);
+        check(care.state().sleeping && care.state().energy == 100, "full energy does not wake the pet at night");
+        care.advance(60000, 1);
+        check(!care.state().sleeping && care.state().minute_of_day == 7 * 60, "morning wakes the pet");
+        pet = hatched(); pet.minute_of_day = 23 * 60; pet.sleeping = true; care.restore(pet);
+        select(care, Action::Sleep);
+        check(!care.state().sleeping && care.state().happiness == 65, "waking at night makes the pet grumpy");
+        care.advance(60000, 1);
+        check(care.calling(), "awake at night calls for rest");
+        pet = hatched(); pet.energy = 1; pet.minute_of_day = 600; pet.age_minutes = 17; care.restore(pet);
+        care.advance(60000, 1);
+        check(care.state().energy == 0 && care.state().sleeping, "exhausted pet falls asleep by itself");
+
+        pet = hatched(); pet.happiness = 50; care.restore(pet);
+        select(care, Action::Pet);
+        check(care.state().happiness == 56 && care.state().friendship == 21 && care.state().pet_cooldown == 30, "petting cheers and bonds");
+        const auto petted = encode(care.state());
+        select(care, Action::Pet);
+        check(encode(care.state()) == petted && care.blocked_reason(Action::Pet), "petting has a cooldown");
+        care.advance(60000, 30);
+        check(!care.blocked_reason(Action::Pet), "petting available again after cooldown");
+        pet.sleeping = true; care.restore(pet);
+        check(care.blocked_reason(Action::Pet) != nullptr, "sleeping pet is not disturbed by petting");
+
+        pet = hatched();
+        check(Game::stage_of(pet) == Stage::Baby, "hatchling is a baby");
+        pet.age_minutes = 1440; check(Game::stage_of(pet) == Stage::Child, "one day makes a child");
+        pet.age_minutes = 4320; check(Game::stage_of(pet) == Stage::Adult, "three days make an adult");
+        pet.age_minutes = 1439; care.restore(pet); care.advance(60000, 1);
+        check(care.stage() == Stage::Child && std::string(care.message()) == "Aus dem Baby wird ein Kind!", "growth is announced");
+        check(Game::level_of(0) == 1 && Game::level_of(60) == 11 && Game::level_of(1000000) == 100, "level curve");
+        Device growth; growth.load(hatched());
+        const auto baby = place_frame(Species::Eevee, growth.pose(true), 2), adult = place_frame(Species::Eevee, growth.pose(true), 0);
+        check(baby.scale == 3 && adult.scale == 5, "young pets are drawn smaller");
+    }
+    // Evolution lines with audited art for every form.
+    {
+        const auto ready = [](Species species, std::uint16_t minute, std::uint8_t bond) {
+            State s; s.species = species; s.starter = species; s.starter_chosen = true;
+            s.age_minutes = 1440; s.experience = 60; s.friendship = bond; s.minute_of_day = minute; return s;
+        };
+        Game evo;
+        check(evo.restore(ready(static_cast<Species>(48), 600, 70)) && evo.can_evolve(), "Pichu ready");
+        select(evo, Action::Evolve);
+        check(evo.state().species == static_cast<Species>(43) && evo.screen() == Screen::Evolved &&
+            evo.evolved_from() == static_cast<Species>(48) && Game::valid(evo.state()), "Pichu becomes Pikachu with celebration");
+        evo.button(Button::Left); check(evo.screen() == Screen::Home, "celebration closes with any key");
+        check(evo.stage() == Stage::Adult && Game::evolution_of(evo.state().species) == Species::Egg, "evolved form is final");
+        evo.restore(ready(static_cast<Species>(36), 18 * 60, 70)); select(evo, Action::Evolve);
+        check(evo.state().species == static_cast<Species>(99), "Wuffels at dusk becomes dusk Wolwerock");
+        evo.restore(ready(static_cast<Species>(36), 10 * 60, 70)); select(evo, Action::Evolve);
+        check(evo.state().species == static_cast<Species>(98), "Wuffels by day becomes Wolwerock");
+        evo.restore(ready(static_cast<Species>(100), 600, 89));
+        check(!evo.can_evolve(), "Typ:Null needs a deeper bond");
+        evo.restore(ready(static_cast<Species>(100), 600, 90)); select(evo, Action::Evolve);
+        const auto silvally = static_cast<unsigned>(evo.state().species);
+        check(silvally >= 101 && silvally <= 118 && Game::valid(evo.state()), "Typ:Null becomes an Amigento form");
+        auto careless = ready(static_cast<Species>(28), 600, 70); careless.care_mistakes = 4;
+        evo.restore(careless); check(!evo.can_evolve(), "too many care mistakes block evolution");
+        careless.care_mistakes = 3; evo.restore(careless); check(evo.can_evolve(), "three care mistakes are tolerated");
+        auto foreign = ready(static_cast<Species>(28), 600, 70); foreign.species = static_cast<Species>(43);
+        check(!Game::valid(foreign), "evolution must belong to the starter line");
+        for (unsigned i = 0; i < starter_count(); ++i) {
+            const auto from = starter_at(i), to = Game::evolution_of(from);
+            if (to == Species::Egg) continue;
+            check(species_valid(to) && Game::evolves_into(from, to) && !Game::evolves_into(to, from), "evolution table targets real catalog art");
+        }
+    }
+    // Save V4 layout and migration.
+    {
+        auto pet = hatched(); pet.care_mistakes = 7; pet.call_minutes = 20; pet.pet_cooldown = 12; pet.flags = 1;
+        const auto bytes = encode(pet);
+        check(bytes.size() == 48 && bytes[4] == 4 && bytes[6] == 48 && bytes[40] == 7 && bytes[41] == 20 && bytes[42] == 12 && bytes[43] == 1, "V4 appends care fields before CRC");
+        State loaded; check(decode(bytes.data(), bytes.size(), loaded) && encode(loaded) == bytes, "V4 round trip");
+        auto v3 = bytes; v3[4] = 3; v3[6] = 44;
+        std::uint32_t crc = 0xffffffffu;
+        for (unsigned i = 0; i < 40; ++i) { crc ^= v3[i]; for (int b = 0; b < 8; ++b) crc = (crc >> 1) ^ (0xedb88320u & (0u - (crc & 1u))); }
+        crc = ~crc; for (unsigned i = 0; i < 4; ++i) v3[40 + i] = static_cast<std::uint8_t>(crc >> (8 * i));
+        check(decode(v3.data(), 44, loaded) && loaded.care_mistakes == 0 && loaded.call_minutes == 0 && loaded.fullness == pet.fullness, "V3 migrates with a clean care record");
+        check(!decode(v3.data(), 48, loaded) && !decode(bytes.data(), 44, loaded), "version and length must agree");
+        pet.care_mistakes = 100; check(!Game::valid(pet), "care mistakes bounded");
+        pet = hatched(); pet.pet_cooldown = 31; check(!Game::valid(pet), "petting cooldown bounded");
+        pet = hatched(); pet.flags = 2; check(!Game::valid(pet), "unknown flags rejected");
+        State egg; egg.call_minutes = 1; check(!Game::valid(egg), "eggs cannot call");
+    }
+    // Clock setting with three buttons.
+    {
+        Game clock; clock.restore(hatched());
+        select(clock, Action::Clock);
+        check(clock.screen() == Screen::Clock && clock.clock_edit() == 480 && clock.repeats_side_buttons(), "clock editor opens with current time");
+        clock.button(Button::Left); clock.button(Button::Confirm); clock.button(Button::Left);
+        const auto before = clock.state().minute_of_day;
+        clock.back();
+        check(clock.screen() == Screen::Menu && clock.state().minute_of_day == before, "long OK cancels clock change");
+        clock.button(Button::Confirm);
+        for (int i = 0; i < 15; ++i) clock.button(Button::Right);
+        clock.button(Button::Confirm); clock.button(Button::Left); clock.button(Button::Confirm);
+        check(clock.screen() == Screen::Home && clock.state().minute_of_day == 23 * 60 + 59, "hour wraps forward, minute wraps backward");
+        clock.advance(60000, 1); check(clock.calling(), "setting the clock to night asks for rest");
+    }
+    // Three-button decoder: debounce, short and long OK, side repeat.
+    {
+        InputDecoder in;
+        check(!in.update(1, 0, true).any() && !in.update(0, 20, true).any() && !in.update(0, 100, true).any(), "glitch shorter than debounce ignored");
+        in.update(2, 1000, false);
+        check(!in.update(2, 1030, false).any(), "OK does not fire on press");
+        in.update(0, 1200, false);
+        check(in.update(0, 1230, false).presses == 2, "short OK fires on release");
+        in.update(2, 2000, false); in.update(2, 2030, false);
+        check(in.update(2, 2729, false).back == false && in.update(2, 2730, false).back, "holding OK fires back at 700 ms");
+        check(!in.update(2, 4000, false).any(), "back fires only once");
+        in.update(0, 4100, false);
+        check(!in.update(0, 4130, false).any(), "release after hold does not confirm");
+        in.update(4, 5000, true);
+        check(in.update(4, 5030, true).presses == 4, "side press fires immediately after debounce");
+        check(!in.update(4, 5479, true).any() && in.update(4, 5480, true).presses == 4, "repeat starts after 450 ms");
+        check(in.update(4, 5640, true).presses == 4 && !in.update(4, 5700, true).any(), "repeat every 160 ms");
+        check(in.update(4, 9000, true).presses == 4 && !in.update(4, 9100, true).any(), "late tick yields one step, no burst");
+        in.update(0, 9200, true); in.update(0, 9230, true);
+        in.update(1, 10000, false); in.update(1, 10030, false);
+        check(!in.update(1, 11000, false).any(), "no repeat where not allowed");
+        InputDecoder wrap;
+        wrap.update(1, 0xfffffff0u, true);
+        check(wrap.update(1, 0x0000000fu, true).presses == 1, "debounce survives clock wrap");
+
+        Device device; device.input(0, 0);
+        device.input(2, 100); device.input(2, 130); device.input(0, 200);
+        check(device.input(0, 230) && device.game.screen() == Screen::Home, "decoder confirms starter through the device");
+        device.load(hatched());
+        device.press(Button::Confirm);
+        while (device.game.menu_action(device.game.selection()) != Action::Feed) device.press(Button::Right);
+        device.press(Button::Confirm);
+        check(device.take_event() == Event::Fed && device.pose(false).motion == Motion::Eat, "device turns feeding into eating animation");
+        check(device.take_event() == Event::None, "events are consumed once");
+    }
+    // Shared renderer: deterministic, band-independent, bounded, and every UI text has glyphs.
+    {
+        std::vector<std::uint16_t> full(screen_width * screen_height + 16, 0xbeef), stripes(full.size(), 0xbeef);
+        Device device; device.profile.set_name("Ada", 3);
+        const auto compare = [&](const char* what) {
+            device.render({full.data(), 0, screen_height}, false);
+            for (int top = 0; top < screen_height; top += 16)
+                device.render({stripes.data() + top * screen_width, top, 16}, false);
+            check(std::memcmp(full.data(), stripes.data(), sizeof(std::uint16_t) * screen_width * screen_height) == 0, what);
+            check(full[screen_width * screen_height] == 0xbeef && full.back() == 0xbeef, "renderer stays inside its band");
+        };
+        compare("starter screen identical in stripes");
+        device.press(Button::Confirm); compare("egg screen identical in stripes");
+        auto pet = hatched(); pet.fullness = 10; pet.waste = 2; pet.sick = true; device.load(pet);
+        device.advance(60000, 20); compare("calling sick home identical in stripes");
+        for (std::uint8_t i = 0; i < Game::menu_count; ++i) {
+            device.load(hatched()); device.press(Button::Confirm);
+            while (device.game.selection() != i) device.press(Button::Right);
+            compare("menu screen identical in stripes");
+            device.press(Button::Confirm); compare("every menu target renders identically in stripes");
+            device.advance(1000); compare("running screens render identically in stripes");
+        }
+        check(full[0] == ((56 >> 3) << 11 | (71 >> 2) << 5 | (56 >> 3)), "header banner color at origin");
+        for (std::uint8_t i = 0; i < Game::menu_count; ++i) {
+            check(text_supported(action_name(Game::menu_action(i))) && text_supported(Game::menu_section(i)), "menu text has glyphs");
+            check(text_supported(device.game.action_hint(Game::menu_action(i))), "hint text has glyphs");
+        }
+        for (unsigned i = 0; i < starter_count(); ++i) {
+            const auto species = starter_at(i);
+            check(text_supported(species_name(species)) && text_supported(species_form(species)), "every catalog name renders");
+        }
+        check(text_supported("ÄÖÜäöüß ♥★◀▶▲▼…·°") && !text_supported("\xe2\x82\xac"), "font covers German text and symbols only");
+        check(text_width("OK", 2) == 22 && text_width("", 1) == 0, "text metrics");
     }
     // Long, deterministic adversarial sequence: invariants hold through care and time jumps.
     game.restore(hatched());

@@ -15,6 +15,8 @@
 
 Aktueller Gehäuse-Prototypzweig: `codex/2026-10-09-removable-handheld` (auf dem Softwarestand `codex/2026-09-16-game-experience`).
 
+Anthropic-Runde 28.10.2026: `claude/2026-10-28-device-renderer-care-loop` auf Basis von `codex/2026-10-09-removable-handheld` (C++-Renderer, Tastendecoder, Pflegekreislauf V4, Spielstand V4).
+
 ## Zweiter Rechner
 
 ```powershell

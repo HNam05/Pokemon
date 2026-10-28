@@ -31,10 +31,15 @@ try {
   await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).connected);
   const state=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
   const advance=ms=>page.evaluate(ms=>window.advanceTime(ms),ms);
-  async function key(name) {await page.keyboard.press(name);await advance(0);}
+  // Raw levels pass the C++ decoder in real time: 30 ms debounce, 80 ms minimum press.
+  async function key(name) {await page.keyboard.press(name);await page.waitForTimeout(250);await advance(0);}
+  // Count care ticks in (from, to]: the rules decay on age multiples.
+  const ticks=(from,to,every)=>Math.floor(to/every)-Math.floor(from/every);
+  // The device frame is RGB565; expand like the simulator does.
+  const rgb565=([r,g,b])=>[Math.round((r>>3)*255/31),Math.round((g>>2)*255/63),Math.round((b>>3)*255/31),255];
   async function menu(index) {
     if((await state()).screen===0)await key('Enter');
-    for(let i=0;(await state()).selection!==index && i<10;i++)await key('ArrowDown');
+    for(let i=0;(await state()).selection!==index && i<14;i++)await key('ArrowDown');
     assert.equal((await state()).selection,index);
     await key('Enter');
   }
@@ -44,7 +49,7 @@ try {
   assert.equal((await state()).species,4);
   assert.equal(await page.locator('#left span').textContent(),'\u25c0');
   assert.equal(await page.locator('#status-label').textContent(),'F\u00fchlt sich wohl');
-  await menu(5);assert.equal((await state()).screen,8);
+  await menu(6);assert.equal((await state()).screen,8);
   await shot('01-memory-instructions');
   await key('Enter');await advance(900);
   const pattern=(await state()).mini.pattern;
@@ -76,37 +81,39 @@ try {
   assert.equal(await page.locator('#care-receipt').textContent(),'Froh +4  Bindung +2  EP +3');
   await shot('05-memory-partial-result');
   await key('Enter');
-  await menu(5);await key('Enter');await advance(900+1800+9999);
+  await menu(6);await key('Enter');await advance(900+1800+9999);
   assert.equal((await state()).mini.phase,3);
   await advance(1);assert.equal((await state()).mini.phase,4);
   await advance(900);assert.equal((await state()).mini.score,0);
   assert.equal((await state()).experience,3,'timeout adds no reward');
   await key('Enter');
   const beforeSleep=await state();
-  await menu(2);
+  await menu(3);
   await page.locator('#speed').selectOption('60');await advance(60000);
   const asleep=await state();
   assert.equal(asleep.energy,beforeSleep.energy+30);
-  assert.equal(asleep.fullness,beforeSleep.fullness-5);
+  assert.equal(asleep.fullness,beforeSleep.fullness-ticks(beforeSleep.age_minutes,asleep.age_minutes,20),'sleep slows hunger');
   assert.equal(asleep.happiness,beforeSleep.happiness);
   assert.equal(await page.locator('#need-energy').evaluate(el=>el.value),asleep.energy);
   await shot('06-sleep-recovery');
-  await page.locator('#screen').focus();await menu(2);
+  await page.locator('#screen').focus();await menu(3);
+  const awake=await state();
   for(let hour=0;hour<5;hour++)await advance(60000);
   const tired=await state();
-  assert.equal(tired.energy,asleep.energy-50);
-  assert.equal(tired.fullness,asleep.fullness-50);
-  assert.equal(tired.happiness,asleep.happiness-25);
+  assert.equal(tired.energy,awake.energy-ticks(awake.age_minutes,tired.age_minutes,9));
+  assert.equal(tired.fullness,awake.fullness-ticks(awake.age_minutes,tired.age_minutes,6));
+  assert(tired.happiness<=awake.happiness-ticks(awake.age_minutes,tired.age_minutes,12),'boredom grows while awake');
   const pixels=await page.locator('#screen').evaluate(canvas=>{
     const context=canvas.getContext('2d');
     return [10,23].map(x=>Array.from(context.getImageData(x,238,1,1).data));
   });
-  assert.deepEqual(pixels,[[161,65,49,255],[200,203,181,255]],'canvas shows low fullness and correct fill length');
+  assert(tired.fullness<20,'fixture reaches a short low fill');
+  assert.deepEqual(pixels,[rgb565([161,65,49]),rgb565([200,203,181])],'device frame shows low fullness and correct fill length');
   await shot('07-low-needs');
   // Low needs prevent spending resources on games and explain how to recover.
   await page.locator('#screen').focus();await key('Enter');
-  while((await state()).selection!==4)await key('ArrowDown');
-  assert.equal((await state()).menu[4].enabled,false);
+  while((await state()).selection!==5)await key('ArrowDown');
+  assert.equal((await state()).menu[5].enabled,false);
   await shot('08-blocked-game');
   await key('Enter');assert.equal((await state()).energy,tired.energy);
   await page.setViewportSize({width:390,height:844});

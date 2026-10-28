@@ -22,19 +22,18 @@ try {
   assert(ready,'server started');
   const page=await browser.newPage({viewport:{width:1100,height:850}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  const initial=await (await fetch(`${url}/api/assets`)).json();
-  assert.equal(initial.animations.length,5,'startup does not eagerly load full roster');
-  assert.equal(initial.catalog.length,130);
+  const initial=await (await fetch(`${url}/api/info`)).json();
+  assert.equal(initial.starters,130);
   await page.goto(url);await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).connected);
   const state=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
-  const key=async name=>{await page.keyboard.press(name);await page.evaluate(()=>window.advanceTime(0));};
+  // Raw key levels go through the C++ decoder in real time (30 ms debounce, 80 ms minimum press).
+  const key=async name=>{await page.keyboard.press(name);await page.waitForTimeout(250);await page.evaluate(()=>window.advanceTime(0));};
   const snapshots=[];
-  for(const [index,entry] of initial.catalog.entries()) {
-    const s=await state();assert.equal(s.starter,entry.species);assert.equal(s.starter_name,entry.name);
-    assert((await page.locator('#art-credit').textContent()).includes(entry.credit));
-    snapshots.push({label:`${index+1}. ${entry.name} ${entry.form}`,image:await page.locator('#screen').evaluate(canvas=>canvas.toDataURL())});
-    const size=await page.evaluate(()=>({loaded:assets.animations.filter(Boolean).length}));
-    assert(size.loaded<=9,'bounded client bitmap cache');
+  const seenStarters=new Set();
+  for(let index=0;index<initial.starters;index++) {
+    const s=await state();assert(!seenStarters.has(s.starter),'each starter shown once');seenStarters.add(s.starter);
+    assert((await page.locator('#art-credit').textContent()).includes(s.credit));
+    snapshots.push({label:`${index+1}. ${s.starter_name} ${s.starter_form}`,image:await page.locator('#screen').evaluate(canvas=>canvas.toDataURL())});
     await key('ArrowRight');
   }
   assert.equal((await state()).starter,1,'complete selection wraps');
@@ -42,7 +41,7 @@ try {
   await page.evaluate(()=>window.advanceTime(0));
   const held=(await state()).starter;assert.notEqual(held,4,'holding side button browses multiple entries');
   await page.waitForTimeout(300);assert.equal((await state()).starter,held,'release stops repeat');
-  await key('Enter');await page.locator('#skip').click();await page.evaluate(()=>window.advanceTime(0));
+  await page.waitForTimeout(200);await key('Enter');await page.locator('#skip').click();await page.evaluate(()=>window.advanceTime(0));
   assert.equal((await state()).species,held,'selected imported pet hatches');
   const frames=new Set();
   for(let i=0;i<80;i++){await page.evaluate(()=>window.advanceTime(100));frames.add(JSON.stringify((await state()).animation));}
@@ -53,7 +52,8 @@ try {
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(output,'mobile-new-pet.png'),fullPage:true});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no mobile overflow');
   assert.equal((await fetch(`${url}/api/assets/255`)).status,404);
-  assert.equal((await fetch(`${url}/api/assets/4294967297`)).status,404);
+  assert.equal((await fetch(`${url}/api/frame?reduced=2`)).status,404);
+  assert.equal((await fetch(`${url}/api/frame`)).headers.get('content-length'),String(240*320*2));
   assert.equal((await fetch(`${url}/credits`)).status,200);
   assert.deepEqual(errors,[]);
   const gallery=await browser.newPage({viewport:{width:1440,height:1050}});
@@ -64,6 +64,6 @@ try {
     },snapshots.slice(start,start+24));
     await gallery.screenshot({path:path.join(output,`contact-${start/24}.png`),fullPage:true});
   }
-  await fs.writeFile(path.join(output,'report.json'),JSON.stringify({starters:initial.catalog.length,errors,chosen:held},null,2));
-  console.log('PASS: all 130 starters, credits, lazy loading/cache, held navigation, hatch, animation, save/reload, mobile and HTTP bounds');
+  await fs.writeFile(path.join(output,'report.json'),JSON.stringify({starters:initial.starters,errors,chosen:held},null,2));
+  console.log('PASS: all 130 starters, credits, device frames, held navigation, hatch, animation, save/reload, mobile and HTTP bounds');
 }finally{await browser.close();server.kill();}

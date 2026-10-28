@@ -77,9 +77,10 @@ std::size_t animation_storage_bytes() {
     }
     return bytes;
 }
-FramePlacement place_frame(Species species, const AnimationView& view) {
+FramePlacement place_frame(Species species, const AnimationView& view, unsigned shrink) {
     const auto frame=animation_frame(species,view.motion,view.frame);
-    const int scale=static_cast<int>(species_scale(species));
+    const int base=static_cast<int>(species_scale(species));
+    const int scale=std::max(std::min(base,2),base-static_cast<int>(shrink));
     const int width=frame.sprite.width*scale, height=frame.sprite.height*scale;
     const int x=120+view.x+(view.flip?-frame.x-frame.sprite.width:frame.x)*scale;
     const int y=species_anchor(species)+view.y+frame.y*scale;
@@ -135,6 +136,12 @@ void Animator::fed(const State& state) {
     advance(state,0);
     if (condition(state) == Motion::Idle && state.species != Species::Egg) {
         resting_ = false; start(Motion::Eat,2200);
+    }
+}
+void Animator::petted(const State& state) {
+    advance(state,0);
+    if (condition(state) == Motion::Idle && state.species != Species::Egg) {
+        resting_ = false; flip_ = false; start(Motion::Happy,1800);
     }
 }
 AnimationView Animator::view(const State& state) const {

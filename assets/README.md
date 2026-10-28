@@ -61,3 +61,7 @@ Der Offline-Importer erzeugt `src/roster_frames.inc`, `roster_compiled.json` und
 ## Eigene Naturkulisse
 
 Die Waldlichtung wurde mit OpenAI Imagegen für das Projekt erstellt. Displayfassung, Quellbild, technischer Import und vollständiger Prompt: [backgrounds/README.md](backgrounds/README.md). Die größere Figurendarstellung verändert keine SpriteCollab-Quellbilder; der C++-Renderer begrenzt die Platzierung der skalierten Frames.
+
+## Pixelschrift des Geräts
+
+Die 5×9-Schrift in `scripts/make_font.py` (erzeugt `src/font.inc`) wurde am 28.10.2026 eigens für Pocket Pet gezeichnet; keine fremde Schriftdatei übernommen. Sie deckt ASCII, ÄÖÜäöüß und einige Symbole (♥ ★ ◀ ▶ ▲ ▼ … · °) ab.

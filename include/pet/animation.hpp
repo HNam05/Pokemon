@@ -20,13 +20,15 @@ struct AnimationView {
     bool flip = false;
 };
 struct FramePlacement { std::int16_t x, y; std::uint8_t scale; };
-FramePlacement place_frame(Species species, const AnimationView& view);
+// shrink lowers the integer scale for young growth stages (never below 2).
+FramePlacement place_frame(Species species, const AnimationView& view, unsigned shrink = 0);
 // Cosmetic state only. Its PRNG never consumes the gameplay PRNG or enters saves.
 class Animator {
 public:
     explicit Animator(std::uint32_t seed = 0xabc123u) : rng_(seed ? seed : 1) {}
     void advance(const State& state, std::uint32_t ms);
     void fed(const State& state);
+    void petted(const State& state);
     AnimationView view(const State& state) const;
 private:
     Motion motion_ = Motion::Idle;

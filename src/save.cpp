@@ -20,20 +20,21 @@ SaveBytes encode(const State& s) {
         for (unsigned i = 0; i < count; ++i) bytes[pos++] = static_cast<std::uint8_t>(value >> (8 * i));
     };
     put(0x31544550, 4); // PET1, explicit little-endian, never raw struct memory.
-    put(3, 2);
-    put(44, 2);
+    put(4, 2);
+    put(48, 2);
     put(s.age_minutes, 4); put(s.remainder_ms, 4); put(s.rng, 4); put(s.experience, 4);
     put(s.minute_of_day, 2); put(s.neglect_minutes, 2);
     put(s.fullness, 1); put(s.happiness, 1); put(s.energy, 1); put(s.hygiene, 1);
     put(s.health, 1); put(s.friendship, 1); put(s.waste, 1);
     put(static_cast<std::uint8_t>(s.species), 1); put(s.sleeping ? 1 : 0, 1); put(s.sick ? 1 : 0, 1);
     put(static_cast<std::uint8_t>(s.starter), 1); put(s.starter_chosen ? 1 : 0, 1);
-    put(crc32(bytes.data(), 40), 4);
+    put(s.care_mistakes, 1); put(s.call_minutes, 1); put(s.pet_cooldown, 1); put(s.flags, 1);
+    put(crc32(bytes.data(), 44), 4);
     return bytes;
 }
 
 bool decode(const std::uint8_t* bytes, std::size_t size, State& state) {
-    if (bytes == nullptr || (size != 42 && size != 44)) return false;
+    if (bytes == nullptr || (size != 42 && size != 44 && size != 48)) return false;
     std::size_t pos = 0;
     const auto get = [&](unsigned count) {
         std::uint32_t value = 0;
@@ -42,7 +43,8 @@ bool decode(const std::uint8_t* bytes, std::size_t size, State& state) {
     };
     if (get(4) != 0x31544550) return false;
     const auto version = get(2);
-    if (!((version == 1 && size == 42) || ((version == 2 || version == 3) && size == 44)) || get(2) != size) return false;
+    if (!((version == 1 && size == 42) || ((version == 2 || version == 3) && size == 44) ||
+        (version == 4 && size == 48)) || get(2) != size) return false;
     State candidate;
     candidate.age_minutes = get(4); candidate.remainder_ms = get(4);
     candidate.rng = get(4); candidate.experience = get(4);
@@ -64,6 +66,13 @@ bool decode(const std::uint8_t* bytes, std::size_t size, State& state) {
         const auto chosen = get(1);
         if (chosen > 1) return false;
         candidate.starter_chosen = chosen == 1;
+        if (version >= 4) {
+            // V4 appends the care-quality loop; older versions migrate with a clean record.
+            candidate.care_mistakes = static_cast<std::uint8_t>(get(1));
+            candidate.call_minutes = static_cast<std::uint8_t>(get(1));
+            candidate.pet_cooldown = static_cast<std::uint8_t>(get(1));
+            candidate.flags = static_cast<std::uint8_t>(get(1));
+        }
         if (version==2 && (static_cast<unsigned>(candidate.species)>4 ||
             (candidate.starter!=Species::Eevee && candidate.starter!=Species::Psyduck))) return false;
     } else {

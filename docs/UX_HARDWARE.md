@@ -9,13 +9,15 @@ Die beiden äußeren Tasten bedeuten **vorheriges/nächstes**. Das Display gibt 
 | Startauswahl | Vorheriges Pokémon | Ei wählen | Nächstes Pokémon | Keine Änderung |
 | Zuhause | Status | Menü öffnen | Status | Keine Änderung |
 | Menü | Eine Zeile hoch | Aktion ausführen | Eine Zeile runter | Zuhause |
+| Uhr stellen | Weniger | Weiter / übernehmen | Mehr | Abbrechen |
+| Entwicklung | Zuhause | Zuhause | Zuhause | Zuhause |
 | Status/Ergebnis | Zuhause | Zuhause | Zuhause | Zuhause |
 | Pflegehilfe | Menü | Menü | Menü | Menü |
 | Spielanleitung | Menü | Start und Kosten bezahlen | Menü | Menü |
 | Beerenfang | Linke Spur | Fangen | Rechte Spur | Abbrechen ohne Belohnung |
 | Denkpause, Eingabephase | Linkes Zeichen | Mittleres Zeichen | Rechtes Zeichen | Abbrechen ohne Belohnung |
 
-Das Menü hat zehn Einträge und fünf sichtbare Zeilen. Die Auswahl bleibt sichtbar; Positionszähler, Scrollmarkierung und die untere Tastenlegende helfen bei der Orientierung. Aktionen ohne Wirkung sind gedämpft, bleiben lesbar und erklären, warum sie gerade nicht möglich sind. Die Auswahl springt beim Aufrufen der Pflegehilfe und Zurückkehren nicht weg.
+Das Menü hat seit V4 zwölf Einträge (Pflege: Füttern, Streicheln, Saubermachen, Schlafen, Medizin; Spielzeit: Beerenfang, Denkpause; Mein Begleiter: Status, Entwickeln, Pflegehilfe; Gerät: Uhr stellen; Zurück) und fünf sichtbare Zeilen. Die Auswahl bleibt sichtbar; Positionszähler, Scrollmarkierung und die untere Tastenlegende helfen bei der Orientierung. Aktionen ohne Wirkung sind gedämpft, bleiben lesbar und erklären, warum sie gerade nicht möglich sind. Die Auswahl springt beim Aufrufen der Pflegehilfe und Zurückkehren nicht weg.
 
 Kurzes OK wird **beim Loslassen** ausgeführt. Nach 700 ms Halten wird genau einmal Zurück ausgelöst; Loslassen darf anschließend kein zusätzliches OK senden. Maus, Touch und Tastatur sind im Simulator berücksichtigt. Auf Hardware muss diese Semantik in einem entprellten GPIO-Adapter umgesetzt und mit echten Tastern geprüft werden. Links/Rechts wiederholen in Auswahl und Menü nach 450 ms alle 160 ms; Loslassen beendet das Blättern. Auf Home und im Minispiel bleiben es einzelne Eingaben.
 
@@ -37,6 +39,8 @@ Die neue Pflegehilfe priorisiert Krankheit, Hygiene, Schlaf, Hunger, Müdigkeit 
 Neue Spielstände wählen aus 130 Begleitern (129 importierte Sets plus eigener Enton). Die Wahl legt fest, was nach zehn Spielminuten schlüpft. Alte Spielstände behalten ihren Begleiter. Entons Weiterentwicklung ist noch nicht implementiert; die Oberfläche zeigt das ehrlich an.
 
 „Entons Denkpause“ ist ein Minispiel für alle Begleiter: Dieselbe Folge wächst von zwei auf drei und vier Zeichen. Mit Links/OK/Rechts in gleicher Reihenfolge nachspielen. Jedes Zeichen erscheint 650 ms, gefolgt von 250 ms Abstand; Eingabezeit 10/12/14 Sekunden. Phasen und Eingaben erhalten eine sichtbare Rückmeldung. Falsche oder fehlende Eingaben beenden das Spiel; bereits gelöste Runden zählen. Je gelöster Runde bis zu +4 Froh, +2 Bindung, +3 Erfahrung. Kosten wie Beerenfang; kein Gewinn durch manuellen Abbruch. Während Anleitung und beider Spiele pausiert die Pflegezeit.
+
+Seit V4 ruft der Begleiter mit einer blinkenden Sprechblase, wächst sichtbar vom Baby zum Erwachsenen, lässt sich streicheln und folgt einem Tag-/Nacht-Rhythmus. Regeln: [RESEARCH](RESEARCH.md).
 
 Weitere Easter Eggs bleiben Ideen: seltene Enton-Kommentare, eine kleine Geschenk-Nachricht am Geburtstag, eine freischaltbare Quatsch-Animation. Dafür noch keine Datenmodelle oder Zufallsbelohnungen eingebaut.
 
@@ -67,19 +71,23 @@ Bereits umgesetzt:
 
 | Daten | Am Windows-x64-Build gemessen |
 |---|---:|
-| `sizeof(pet::Game)`, inklusive State, Minispiel und Pflegefeedback | 80 Byte RAM |
-| `sizeof(pet::State)`, bereits in Game enthalten | 32 Byte |
+| `sizeof(pet::Game)`, inklusive State, Minispiel und Pflegefeedback | 88 Byte RAM |
+| `sizeof(pet::State)`, bereits in Game enthalten | 36 Byte |
+| `sizeof(pet::Device)`: Game, Profil, Animator, Tastendecoder | 184 Byte RAM |
+| Eigene Pixelschrift, 111 Zeichen à 9 Byte plus Codepunkt | ca. 1,2 KB konstante Daten |
 | `sizeof(pet::Profile)` | 25 Byte RAM |
 | Bisherige Standgrafiken | 908 Byte konstante Daten |
 | Importierte Pixel/Paletten | 770.930 Byte konstante Daten |
 | Animationen inklusive Host-Tabellen und Enton-Posen | 974.322 Byte, enthält importierte Pixel/Paletten |
 | Animator | 20 Byte RAM |
 | Waldlichtung, geteilte Pixel und zwei Paletten | 21.424 Byte |
-| Save V3 | 44 Byte |
+| Save V4 | 48 Byte |
 
 Dies sind keine Gesamtspeicherwerte der ESP32-Firmware. Code, Texte, Fonts, SDK, Treiber und Puffer fehlen in dieser Rechnung. Pointergrößen und Alignment können auf dem ESP32 abweichen. Tests begrenzen Game auf 128 Byte und Profile auf 25 Byte.
 
-Für den künftigen Displaytreiber: Ein RGB565-Vollbild 240×320 benötigt 153.600 Byte, ein Streifen mit acht Zeilen 3.840 Byte, zwei solcher Streifen 7.680 Byte. Plan ist ein kleiner, wiederverwendbarer Streifenpuffer und Aktualisierung betroffener Bereiche. Ein einzelner RGB565-Pixel braucht zwei Bytes; die Zahlen sind Berechnungen, kein gemessener Treiberverbrauch.
+Für den Displaytreiber: Ein RGB565-Vollbild 240×320 benötigt 153.600 Byte, ein Streifen mit 16 Zeilen 7.680 Byte. `pet::render` zeichnet jeden beliebigen Streifen pixelgleich zum Vollbild (in Tests für alle Bildschirme geprüft) und schreibt nie außerhalb des Streifens. Die Zahlen sind Berechnungen, kein gemessener Treiberverbrauch; Bildrate und SPI-Takt am Gerät messen.
+
+Schrift: eigene 5×9-Pixelschrift (`scripts/make_font.py`), Großbuchstaben 7 Pixel hoch, bei Skalierung 1 also ca. 1 mm auf dem 2-Zoll-Display. Überschriften und Menüeinträge nutzen Skalierung 2. Ob Hinweise in Skalierung 1 am echten LCD gut lesbar sind, muss am Gerät geprüft werden; der Renderer kann dann gezielt auf Skalierung 2 wechseln.
 
 SPI-/I2S-DMA-Puffer benötigen die passenden Speicherfähigkeiten und Alignmentbedingungen des konkreten Controllers. PSRAM nicht pauschal voraussetzen. [Espressif: Heap-Fähigkeiten](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/system/mem_alloc.html)
 

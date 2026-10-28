@@ -1,4 +1,20 @@
-# Validierung M2
+# Validierung
+
+## Stand 28.10.2026 (Anthropic Claude Opus 5.5)
+
+Windows x64, Zig 0.15.2/Clang, `-O2 -Wall -Wextra -Wpedantic -Werror`, Python 3.11, Node 24 mit Playwright 1.62/Chromium.
+
+| Prüfung | Ergebnis |
+|---|---|
+| C++-Build ohne Warnungen und Kerntests | 3.562.599 Checks bestanden |
+| Neue Kerntests | Rufe, Pflegefehler und Wiederholung nach 120 Min., Vergebung am Morgen, Schlafenszeit/Aufwachen, nächtliches Wecken, Einschlafen bei Energie 0, Streicheln mit Abklingzeit, Wachstumsstufen und Skalierung, Level-Kurve, alle sieben Entwicklungslinien inkl. Abend-/Zufallsform und Pflegefehlergrenze, V4-Layout, V3→V4-Migration, Grenzwerte, Uhr stellen, Tastendecoder (Prellen, kurzes/langes OK, Wiederholung, Uhrüberlauf), Streifen-Rendering aller Menüziele pixelgleich zum Vollbild ohne Schreiben außerhalb, Glyphenabdeckung aller Menü-, Hinweis- und Katalogtexte |
+| Python-Adaptertests | 23 Tests bestanden, darunter unabhängige V4-Binärprüfung mit `struct`/`zlib`, rohe Tasten über den Simulator und echte HTTP-Endpunkte `/api/frame`, `/api/info`, `/api/input` |
+| Browser-Smokes | `browser_smoke` (Evoli und Enton), `ux_smoke`, `animation_smoke`, `roster_smoke` (alle 130 Starter), `reset_smoke` bestanden; ohne Browserfehler |
+| Sichtprüfung | Alle Bildschirme (Auswahl, Ei, Home mit Ruf/Krankheit/Nacht, Menü, Status, Pflegehilfe, Anleitung, Beerenfang, Denkpause, Ergebnis, Uhr, Entwicklung Fynx → Rutena) als vergrößerte Renderings kontrolliert; im eingebauten Browser mit Tastatur und Maus bedient |
+
+Nicht geprüft: ESP32-Build, echtes LCD, Lesbarkeit der 1×-Schrift auf 2 Zoll, Stromverbrauch, mehrtägiges Spielen.
+
+## Validierung M2
 
 Ausgeführt am 14.–15.09.2026 auf Windows x64. Die folgenden Ergebnisse beziehen sich auf den Desktop-Prototyp einschließlich Enton, Profilen und Drei-Tasten-Erweiterung.
 

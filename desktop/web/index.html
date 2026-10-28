@@ -21,7 +21,7 @@
         </div>
         <div class="button-legend"><span id="left-label">LINKS</span><span>OK / HALTEN: ZURÜCK</span><span id="right-label">RECHTS</span></div>
       </div>
-      <p class="screen-note">240 × 320 Pixel <span>•</span> Drei Tasten. Dein kleiner Begleiter.</p>
+      <p class="screen-note">240 × 320 Pixel, gezeichnet vom Geräte-Renderer <span>•</span> Drei Tasten. Dein kleiner Begleiter.</p>
     </section>
     <section class="companion" aria-labelledby="title">
       <p class="eyebrow">Ein Abenteuer im Kleinen</p>
@@ -37,10 +37,12 @@
       </div>
       <p id="care-receipt" aria-live="polite"></p>
       <p id="error" role="alert" hidden></p>
-      <dl class="summary"><div><dt>Alter</dt><dd id="age">0 h</dd></div><div><dt>Freundschaft</dt><dd id="bond">20 / 100</dd></div><div><dt>Erfahrung</dt><dd id="xp">0 EP</dd></div></dl>
+      <dl class="summary"><div><dt>Alter</dt><dd id="age">Ei</dd></div><div><dt>Level</dt><dd id="level">–</dd></div><div><dt>Erfahrung</dt><dd id="xp">0 EP</dd></div><div><dt>Freundschaft</dt><dd id="bond">20 / 100</dd></div><div><dt>Pflegefehler</dt><dd id="mistakes">0</dd></div><div><dt>Entwicklung</dt><dd id="evolution">–</dd></div></dl>
       <details open>
         <summary>So spielst du</summary>
-        <p><kbd>← / ↑</kbd> <kbd>Enter</kbd> <kbd>→ / ↓</kbd> sind deine drei Tasten. Im Menü scrollen die Seitentasten hoch und runter, beim Spielen bewegen sie dich links und rechts. <strong>OK</strong> bestätigt, <strong>OK halten</strong> führt zurück.</p>
+        <p><kbd>← / ↑</kbd> <kbd>Enter</kbd> <kbd>→ / ↓</kbd> sind deine drei Tasten. Im Menü scrollen die Seitentasten hoch und runter, beim Spielen bewegen sie dich links und rechts. <strong>OK</strong> bestätigt, <strong>OK halten</strong> führt zurück. Entprellen, Halten und Blättern wertet derselbe C++-Code aus wie später am Gerät.</p>
+        <p><strong>Ruft dein Begleiter</strong> (Sprechblase mit „!“), braucht er etwas. Kümmerst du dich nicht binnen 15 Minuten, zählt ein Pflegefehler. Jeder Tag ohne Fehler verzeiht einen alten. Ab 21 Uhr schläft er von allein, um 7 Uhr wacht er auf. Die Uhr stellst du im Menü unter „Uhr stellen“.</p>
+        <p>Babys wachsen nach einem Tag zum Kind und nach drei Tagen zum Erwachsenen. Evoli, Pichu, Lilminip, Fynx, Psiau, Wuffels und Typ:Null können sich entwickeln, wenn Bindung, Erfahrung und Pflege stimmen. Streicheln stärkt die Bindung (alle 30 Minuten).</p>
         <p>Im Minispiel: Unter die fallende Beere bewegen und <strong>OK</strong> drücken, sobald sie im Fangbereich ist. Fünf Versuche pro Runde.</p>
         <p>Vor jedem Spiel siehst du Anleitung und Kosten. Erst <strong>OK: Start</strong> verbraucht 5 Sättigung und 8 Energie. Für jede gefangene Beere oder gemerkte Runde erhält dein Begleiter bis zu 4 Freude, 2 Bindung und 3 EP.</p>
         <p>Entons Denkpause: Die Folge wächst von zwei auf drei und vier Zeichen. Erst ansehen, dann mit den drei Tasten wiederholen. Schon gelöste Runden zählen auch bei einem späteren Fehler.</p>
@@ -59,7 +61,7 @@
     </section>
   </main>
   <footer><span id="art-credit">Fanart aus SpriteCollab.</span><a href="#about" id="about-link">Über diesen Prototyp</a></footer>
-  <dialog id="about"><h2>Über Pocket Pet</h2><p>Spielregeln und Animationsauswahl laufen in C++. Display und ESP32-Treiber folgen nach Auswahl der Hardware.</p><p>Alles bleibt auf diesem Rechner. Keine Konten, keine Analyse-Dienste, keine externen Schriftarten. Der Spielstand liegt im lokalen saves-Ordner. Das Programm läuft weiter, solange der lokale Server läuft.</p><p>Pokémon-Fanart verschiedener Künstler aus SpriteCollab. <a href="/credits" target="_blank" rel="noreferrer">Vollständiger Katalog mit Künstlern, Quellen und Nutzungsbedingungen</a>. Die Quellen wurden für diese Darstellung zugeschnitten, palettiert und zeitlich angepasst. Namensnennung und die jeweiligen nichtkommerziellen Nutzungsbedingungen bleiben erhalten. Enton, Ei und die bisherigen Entwicklungsvarianten sind eigene Prototypgrafiken. Die Waldlichtung wurde mit OpenAI Imagegen erstellt und für das kleine Display palettiert.</p><p>Pokémon-Figuren und Namen gehören ihren jeweiligen Rechteinhabern. Dieses Fanprojekt ist nicht offiziell. Die Fanart-Lizenz erteilt keine Rechte an der Pokémon-Marke.</p><form method="dialog"><button>Schließen</button></form></dialog>
+  <dialog id="about"><h2>Über Pocket Pet</h2><p>Spielregeln, Animationsauswahl, Tastenauswertung und das komplette Bild laufen in C++, genau wie später auf dem ESP32. Der Browser zeigt nur die fertigen 240 × 320 Pixel. Display- und GPIO-Treiber folgen nach Prüfung des Schaltplans.</p><p>Alles bleibt auf diesem Rechner. Keine Konten, keine Analyse-Dienste, keine externen Schriftarten. Der Spielstand liegt im lokalen saves-Ordner. Das Programm läuft weiter, solange der lokale Server läuft.</p><p>Pokémon-Fanart verschiedener Künstler aus SpriteCollab. <a href="/credits" target="_blank" rel="noreferrer">Vollständiger Katalog mit Künstlern, Quellen und Nutzungsbedingungen</a>. Die Quellen wurden für diese Darstellung zugeschnitten, palettiert und zeitlich angepasst. Namensnennung und die jeweiligen nichtkommerziellen Nutzungsbedingungen bleiben erhalten. Enton, Ei und die bisherigen Entwicklungsvarianten sind eigene Prototypgrafiken. Die Waldlichtung wurde mit OpenAI Imagegen erstellt und für das kleine Display palettiert.</p><p>Pokémon-Figuren und Namen gehören ihren jeweiligen Rechteinhabern. Dieses Fanprojekt ist nicht offiziell. Die Fanart-Lizenz erteilt keine Rechte an der Pokémon-Marke.</p><form method="dialog"><button>Schließen</button></form></dialog>
   <p class="sr-only">Naturkulisse: eine Waldlichtung mit Bach, Beeren und einem Pokéball-Wegschild. Mit OpenAI Imagegen erstellt.</p>
   <dialog id="reset-dialog" aria-labelledby="reset-title">
     <h2 id="reset-title">Testspielstand zurücksetzen?</h2>

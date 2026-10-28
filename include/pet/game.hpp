@@ -3,10 +3,14 @@
 
 namespace pet {
 enum class Species : std::uint8_t { Egg, Eevee, Espeon, Umbreon, Psyduck };
-enum class Screen : std::uint8_t { Home, Menu, Stats, Game, Result, Starter, Guide, Memory, Instructions };
+// Numeric values are part of the simulator view contract; append only.
+enum class Screen : std::uint8_t { Home, Menu, Stats, Game, Result, Starter, Guide, Memory, Instructions, Clock, Evolved };
 enum class MiniPhase : std::uint8_t { Ready, Falling, Watch, Recall, Feedback };
 enum class Button : std::uint8_t { Left, Confirm, Right };
-enum class Action : std::uint8_t { Feed, Clean, Sleep, Medicine, Play, Stats, Evolve, Back, Think, Guide };
+enum class Action : std::uint8_t { Feed, Clean, Sleep, Medicine, Play, Stats, Evolve, Back, Think, Guide, Pet, Clock };
+enum class Stage : std::uint8_t { Egg, Baby, Child, Adult };
+// One-shot notifications for cosmetic adapters (animation, sound, vibration).
+enum class Event : std::uint8_t { None, Fed, Petted, Hatched, Grew, Evolved, Mistake };
 
 struct State {
     std::uint32_t age_minutes = 0;
@@ -27,6 +31,11 @@ struct State {
     bool sick = false;
     Species starter = Species::Eevee;
     bool starter_chosen = false;
+    // Save V4: care quality loop.
+    std::uint8_t care_mistakes = 0;  // ignored calls, one forgiven per good day
+    std::uint8_t call_minutes = 0;   // minutes the current call waits; 0 = calm
+    std::uint8_t pet_cooldown = 0;   // minutes until petting helps again
+    std::uint8_t flags = 0;          // bit 0: a mistake happened since the last morning
 };
 
 struct MiniGame {
@@ -54,6 +63,9 @@ struct CareChange {
 class Game {
 public:
     static constexpr std::uint32_t max_age = 52560000; // 100 years; bounded saves.
+    static constexpr std::uint16_t bedtime = 21 * 60, wake_time = 7 * 60;
+    static constexpr std::uint8_t call_limit = 15, call_repeat = 120, max_mistakes = 99;
+    static constexpr std::uint8_t pet_cooldown_minutes = 30;
     const State& state() const { return state_; }
     Screen screen() const { return screen_; }
     std::uint8_t selection() const { return selection_; }
@@ -67,7 +79,7 @@ public:
     static const char* menu_section(std::uint8_t index);
     const char* message() const { return message_; }
     const char* care_hint() const;
-    static constexpr std::uint8_t menu_count = 10;
+    static constexpr std::uint8_t menu_count = 12;
     static constexpr std::uint8_t menu_rows = 5;
     static Action menu_action(std::uint8_t index);
     std::uint8_t menu_start() const;
@@ -79,25 +91,51 @@ public:
     bool restore(const State& state);
     bool can_evolve() const;
     bool needs_attention() const;
+    // True while the pet actively calls; adapters may blink, beep or wake the display.
+    bool calling() const { return state_.call_minutes > 0; }
+    bool night() const { return is_night(state_.minute_of_day); }
+    Stage stage() const { return stage_of(state_); }
+    unsigned level() const { return level_of(state_.experience); }
+    // Side buttons auto-repeat only in long lists and value editors.
+    bool repeats_side_buttons() const { return screen_==Screen::Menu || screen_==Screen::Starter || screen_==Screen::Clock; }
+    std::uint16_t clock_edit() const { return clock_edit_; }
+    std::uint8_t clock_field() const { return clock_field_; }
+    Species evolved_from() const { return evolved_from_; }
+    Event take_event() { const auto e=event_; event_=Event::None; return e; }
     static bool valid(const State& state);
+    static bool is_night(std::uint16_t minute) { return minute >= bedtime || minute < wake_time; }
+    static Stage stage_of(const State& state);
+    static unsigned level_of(std::uint32_t experience);
+    // First evolution target for a species, or Egg when it does not evolve.
+    static Species evolution_of(Species species);
+    static bool evolves_into(Species from, Species to);
 private:
     State state_{};
     Screen screen_ = Screen::Starter;
     std::uint8_t selection_ = 0;
+    std::uint8_t clock_field_ = 0;
+    Species evolved_from_ = Species::Egg;
+    Event event_ = Event::None;
+    std::uint16_t clock_edit_ = 0;
     MiniGame mini_{};
     CareChange feedback_{};
     const char* message_ = "Ein Ei wartet auf dich.";
     void minute();
+    void update_call(bool minute_passed);
+    bool wants_call() const;
     void act(Action action);
+    void evolve();
     void next_round(bool caught);
     void memory_pattern();
     void finish_memory(bool success);
     void begin_game();
     void finish_game();
     void step_minigame();
+    void clock_button(Button button);
     void record_change(const State& before);
     std::uint32_t random();
 };
 const char* species_name(Species species);
 const char* action_name(Action action);
+const char* stage_name(Stage stage);
 } // namespace pet

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import struct
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 import zlib
@@ -24,8 +25,8 @@ class DesktopTests(unittest.TestCase):
         self.path = Path(self.directory.name) / 'pet.json'
 
     def test_independent_binary_contract(self):
-        expected = struct.pack('<4sHHIIIIHH12B', b'PET1', 3, 44, 0, 0, 0x50455431, 0,
-                               480, 0, 75, 70, 85, 90, 100, 20, 0, 0, 0, 0, 1, 1)
+        expected = struct.pack('<4sHHIIIIHH16B', b'PET1', 4, 48, 0, 0, 0x50455431, 0,
+                               480, 0, 75, 70, 85, 90, 100, 20, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0)
         expected += struct.pack('<I', zlib.crc32(expected))
         self.assertEqual(self.engine.dump(), expected)
         self.engine.load(expected)
@@ -78,7 +79,7 @@ class DesktopTests(unittest.TestCase):
     def test_semantically_bad_save_with_valid_crc(self):
         bad = bytearray(self.engine.dump())
         bad[36] = 2  # sleeping bool
-        bad[40:] = struct.pack('<I', zlib.crc32(bad[:40]))
+        bad[44:] = struct.pack('<I', zlib.crc32(bad[:44]))
         original = self.engine.dump()
         with self.assertRaises(ValueError):
             self.engine.load(bad)
@@ -132,7 +133,7 @@ class DesktopTests(unittest.TestCase):
         view = self.engine.view()
         self.assertEqual((view['species'], view['starter'], view['age_minutes'], view['experience']), (3, 1, 1500, 60))
         self.assertTrue(view['starter_chosen'])
-        self.assertEqual(len(self.engine.dump()), 44)
+        self.assertEqual(len(self.engine.dump()), 48)
         self.assertEqual(self.engine.dump()[8:38], old[8:38])
 
     def test_profiles_remain_separate_from_saves(self):
@@ -152,16 +153,13 @@ class DesktopTests(unittest.TestCase):
             server.Engine(server.find_library(), 'x'*25)
 
     def test_shared_sprite_assets_and_memory_budget(self):
-        assets = self.engine.assets()
-        self.assertEqual(assets['memory_bytes']['sprites'], 908)
-        self.assertLessEqual(assets['memory_bytes']['game'], 128)
-        self.assertLessEqual(assets['memory_bytes']['animator'], 32)
-        self.assertLess(assets['memory_bytes']['animations'], 1024*1024)
-        self.assertEqual(len(assets['animations'][1][0]), 2)
-        self.assertEqual(len(assets['animations'][1][2]), 10)
-        self.assertNotEqual(assets['animations'][4][3][0]['pixels'],assets['animations'][4][3][1]['pixels'])
-        duck = assets['sprites'][4]
-        self.assertEqual((duck['width'], duck['height'], len(duck['pixels'])), (32,32,1024))
+        info = self.engine.info()
+        self.assertEqual(info['memory_bytes']['sprites'], 908)
+        self.assertLessEqual(info['memory_bytes']['game'], 128)
+        self.assertLessEqual(info['memory_bytes']['animator'], 32)
+        self.assertLess(info['memory_bytes']['animations'], 1024*1024)
+        self.assertEqual(info['memory_bytes']['scene'], 21424)
+        self.assertEqual(info['screen'], {'width': 240, 'height': 320, 'format': 'rgb565le'})
 
     def test_animation_is_cosmetic_and_follows_feeding(self):
         self.engine.advance(600000)
@@ -184,44 +182,88 @@ class DesktopTests(unittest.TestCase):
 
     def test_v2_migration_and_old_version_species_boundary(self):
         current=self.engine.dump()
-        old=bytearray(current);old[4:6]=struct.pack('<H',2)
+        old=bytearray(current[:44]);old[4:6]=struct.pack('<H',2);old[6:8]=struct.pack('<H',44)
         old[40:]=struct.pack('<I',zlib.crc32(old[:40]))
-        self.engine.load(old)
+        self.engine.load(bytes(old))
         self.assertEqual(self.engine.dump()[8:40],current[8:40])
-        self.assertEqual(self.engine.dump()[4:6],b'\x03\x00')
+        self.assertEqual(self.engine.dump()[4:8],b'\x04\x000\x00')
         old[38]=5;old[40:]=struct.pack('<I',zlib.crc32(old[:40]))
-        with self.assertRaises(ValueError):self.engine.load(old)
+        with self.assertRaises(ValueError):self.engine.load(bytes(old))
         old[4:6]=struct.pack('<H',3);old[40:]=struct.pack('<I',zlib.crc32(old[:40]))
-        self.engine.load(old)
+        self.engine.load(bytes(old))
         self.assertEqual(self.engine.view()['starter'],5)
+        self.assertEqual(self.engine.view()['care_mistakes'],0)
 
-    def test_catalog_metadata_and_lazy_assets(self):
+    def test_catalog_metadata_and_evolution_lines(self):
         catalog=self.engine.catalog()
         self.assertEqual(len(catalog),130)
         self.assertEqual(len({p['species'] for p in catalog}),130)
-        last=catalog[-1]
-        assets=self.engine.assets(last['species'])
-        self.assertEqual(assets['species_ids'],[last['species']])
-        self.assertEqual(len(assets['animations']),1)
-        self.assertEqual(len(assets['animations'][0]),9)
-        with self.assertRaises(ValueError):self.engine.assets(255)
-        self.assertEqual(self.engine.lib.pp_frame_info(256,0,0,0),0)
+        names={p['species']:p['name'] for p in catalog}
+        lines={(p['name'],names.get(p['evolves_to'],'Psiana')) for p in catalog if p['evolves_to']}
+        self.assertEqual(lines,{('Evoli','Psiana'),('Pichu','Pikachu'),('Lilminip','Dressella'),('Fynx','Rutena'),
+                                ('Psiau','Psiaugon'),('Wuffels','Wolwerock'),('Typ:Null','Amigento')})
+        self.assertEqual(self.engine.lib.pp_evolution_of(256),0)
+        self.assertEqual(self.engine.lib.pp_species_name(255),b'Unbekannt')
 
-    def test_scene_and_enlarged_placement(self):
-        assets=self.engine.assets()
-        self.assertEqual(assets['scene_bytes'],21424)
-        self.assertEqual(len(assets['scenes']),2)
-        for scene in assets['scenes']:
-            self.assertEqual((scene['width'],scene['height']),(240,178))
-            self.assertEqual(len(scene['pixels']),240*178)
-            self.assertTrue(all(0<=p<65536 for p in scene['pixels']))
-        self.assertNotEqual(assets['scenes'][0]['pixels'],assets['scenes'][1]['pixels'])
-        self.assertEqual(self.engine.assets(127)['scenes'],[])
-        self.assertEqual(self.engine.lib.pp_scene_pixel(False,240,0),65536)
+    def test_device_frame_and_growth_scale(self):
+        frame=self.engine.frame()
+        self.assertEqual(len(frame),240*320*2)
+        self.assertEqual(frame,self.engine.frame())
+        header=struct.unpack_from('<H',frame,0)[0]
+        self.assertEqual(header,(56>>3)<<11|(71>>2)<<5|(56>>3))
         self.engine.advance(60000,10)
+        self.assertNotEqual(self.engine.frame(),frame)
         a=self.engine.view()['animation']
-        self.assertEqual(a['scale'],5)
+        self.assertEqual((a['scale'],self.engine.view()['stage_name']),(3,'Baby'))
         self.assertGreaterEqual(a['draw_y'],42)
+        self.assertEqual(len(self.engine.frame(True)),240*320*2)
+        self.assertFalse(self.engine.lib.pp_render(self.engine.handle,None,0,False))
+
+    def test_raw_buttons_use_core_debounce_hold_and_repeat(self):
+        sim=server.Simulator(self.engine,self.path,manual=True)
+        self.engine.advance(600000)
+        def at(ms,raw):
+            with patch.object(server.time,'monotonic',return_value=1000+ms/1000):sim.set_buttons(raw)
+        at(0,2);at(20,0);at(60,0)
+        self.assertEqual(self.engine.view()['screen'],0,'glitch below debounce ignored')
+        at(100,2);at(130,2);at(200,0);at(230,0)
+        self.assertEqual(self.engine.view()['screen'],1,'short OK opens menu on release')
+        at(300,4);at(330,4)
+        self.assertEqual(self.engine.view()['selection'],1)
+        at(780,4);at(940,4)
+        self.assertEqual(self.engine.view()['selection'],3,'held side button repeats in menu')
+        at(1000,0);at(1030,0)
+        at(2000,2);at(2030,2);at(2730,2)
+        self.assertEqual(self.engine.view()['screen'],0,'holding OK goes back once')
+        at(2800,0);at(2830,0)
+        self.assertEqual(self.engine.view()['screen'],0,'release after hold does not confirm')
+        self.assertTrue(self.path.exists(),'reactions are saved')
+
+    def test_http_frame_info_and_input_endpoints(self):
+        import socket, threading, urllib.request
+        with socket.socket() as probe:
+            probe.bind(('127.0.0.1',0));port=probe.getsockname()[1]
+        sim=server.Simulator(self.engine,self.path,manual=True)
+        httpd=server.LocalServer(('127.0.0.1',port),server.handler_for(sim,port))
+        thread=threading.Thread(target=httpd.serve_forever,daemon=True);thread.start()
+        self.addCleanup(httpd.server_close);self.addCleanup(httpd.shutdown)
+        base=f'http://127.0.0.1:{port}'
+        def post(path,data):
+            request=urllib.request.Request(base+path,json.dumps(data).encode(),{'Content-Type':'application/json'})
+            return json.loads(urllib.request.urlopen(request,timeout=5).read())
+        with urllib.request.urlopen(base+'/api/frame',timeout=5) as response:
+            self.assertEqual(response.headers['Content-Type'],'application/octet-stream')
+            self.assertEqual(len(response.read()),240*320*2)
+        info=json.loads(urllib.request.urlopen(base+'/api/info',timeout=5).read())
+        self.assertEqual(info['starters'],130)
+        self.assertEqual(post('/api/input',{'pressed':2})['buttons'],2)
+        time.sleep(0.05);post('/api/input',{'pressed':2});post('/api/input',{'pressed':0})
+        time.sleep(0.05);view=post('/api/input',{'pressed':0})
+        self.assertTrue(view['starter_chosen'],'raw OK press confirms the starter')
+        with self.assertRaises(urllib.error.HTTPError) as error:post('/api/input',{'pressed':8})
+        self.assertEqual(error.exception.code,400)
+        with self.assertRaises(urllib.error.HTTPError) as error:urllib.request.urlopen(base+'/api/assets',timeout=5)
+        self.assertEqual(error.exception.code,404)
 
     def test_reset_is_disabled_by_default(self):
         sim=server.Simulator(self.engine,self.path)
@@ -235,7 +277,7 @@ class DesktopTests(unittest.TestCase):
         sim=server.Simulator(self.engine,self.path,manual=True,test_controls=True)
         self.engine.advance(60000,10)
         self.engine.button(1)
-        for _ in range(4):self.engine.button(2)
+        for _ in range(5):self.engine.button(2)
         self.engine.button(1)
         self.assertEqual(self.engine.view()['screen'],8)
         self.engine.button(1)

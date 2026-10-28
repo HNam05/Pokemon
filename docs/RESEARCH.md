@@ -87,3 +87,30 @@ Eigene Designänderungen, keine übernommenen offiziellen Pokémon-Regeln:
 - Warnschwellen kommen gemeinsam aus C++: Satt <25, Froh <30, Energie <25, Sauberkeit <25, Gesundheit <40. Die frühere pauschale Balkengrenze 25 zeigte insbesondere niedrige Freude zu spät an.
 
 Diese Zeiten sind am Desktop überprüft. Ob Fangfenster und Schriftgrößen am echten kleinen LCD angenehm sind, muss mit dem späteren Gerät erprobt werden.
+
+## Pflegekreislauf V4 / 28.10.2026 (Anthropic Claude Opus 5.5)
+
+Ausgangsbefund: Die Pflege hatte keine Folgen außer Krankheit, kein Wachstum nach dem Schlüpfen, keinen Tagesrhythmus und nur für Evoli eine Entwicklung. Für Spielspaß fehlte damit die zentrale Tamagotchi-Schleife „Rufen → Kümmern → Pflegequalität → Wachstum/Entwicklung“.
+
+Quellen für das Grundprinzip: [Tamagotchi Wiki: Care](https://tamagotchi.fandom.com/wiki/Care) und [Guide to Evolving Your Tamagotchi](https://vpetparadise.com/?p=360). Klassische Geräte melden ein leeres Bedürfnis über ein Aufmerksamkeitssymbol; bleibt es etwa 15 Minuten unbeantwortet, zählt ein Pflegefehler, und Pflegefehler bestimmen das spätere Erwachsenenstadium. Auch das Licht zur Schlafenszeit gehört dazu. Daraus abgeleitet, aber mit eigenen, für ein Geschenkgerät milderen Zahlen:
+
+| Bereich | Regel V4 |
+|---|---|
+| Rufen | Wach: Satt <25, Froh <30, Energie <25, Krankheit, Gesundheit <40 oder wach in der Nacht. Schlafend ruft es nur bei Krankheit/Gesundheit <40. Anzeige: blinkende Sprechblase „!“ und „RUFT DICH“. |
+| Pflegefehler | Nach 15 unbeantworteten Minuten +1 Fehler und −2 Bindung; dauert der Ruf weitere 120 Minuten, erneut. Kein Fehler pro Minute. Maximal 99. |
+| Rechtzeitig kümmern | Wird der Ruf durch eine Aktion vor Minute 15 aufgelöst: +1 Bindung. Löst er sich von selbst (z. B. Einschlafen), keine Belohnung. |
+| Vergebung | Jeden Morgen um 07:00 wird ein alter Fehler gestrichen, wenn seit dem letzten Morgen kein neuer hinzukam. |
+| Tagesrhythmus | Um 21:00 schläft der Begleiter von selbst ein, um 07:00 wacht er auf. Nachts weckt volle Energie ihn nicht. Nachts geweckt: −5 Froh. Bei Energie 0 schläft er tagsüber von selbst ein, statt durch Erschöpfung krank zu werden. |
+| Raten | Energie wach −1 je 9 Min. (vorher 6), damit ein 14-Stunden-Tag ohne Pflichtnickerchen möglich ist. Sättigung schlafend −1 je 20 Min. (vorher 12), damit eine Beere am Abend durch die Nacht reicht. Übrige Raten unverändert. |
+| Streicheln | +6 Froh, +1 Bindung, danach 30 Spielminuten Pause. Nicht im Schlaf. Eigene Idee nach „Pokémon Refresh“, billige Zuwendung ohne Spielkosten. |
+| Wachstum | Baby bis 1 Tag, Kind bis 3 Tage, danach Erwachsen. Babys werden zwei, Kinder eine Ganzzahlstufe kleiner gezeichnet (mindestens 2×). Entwickelte Formen sind erwachsen. |
+| Level | 1 + ⌊√(2·EP)⌋, höchstens 100. Rein abgeleitet, nicht gespeichert. 60 EP ergeben Level 11. |
+| Entwicklung | Ab 1 Tag, 60 EP, Gesundheit ≥60, gesund und wach, höchstens 3 Pflegefehler; Bindung 70 (Typ:Null 90). Auslösen weiter über „Entwickeln“, danach Feierbildschirm. |
+| Linien | Evoli → Psiana (06–20 Uhr) / Nachtara; Pichu → Pikachu; Lilminip → Dressella; Fynx → Rutena; Psiau → Psiaugon; Wuffels → Wolwerock, 17–20 Uhr Abendform; Typ:Null → zufällige Amigento-Typform. Nur Linien, deren Zielgrafik im geprüften SpriteCollab-Katalog liegt; keine erfundenen Grafiken. Die Pichu-„Spiky“-Form entwickelt sich in den Originalspielen nicht – hier ist es eine bewusste eigene Regel. |
+| Uhr stellen | Menü „Uhr stellen“: Stunde, dann Minute mit Links/Rechts (Halten blättert), OK übernimmt, OK halten bricht ab. Notwendig, weil das gewählte Board laut Herstellerseiten keinen RTC-Baustein nennt und Tag/Nacht sonst nicht zur echten Zeit passt. |
+
+Diese Werte sind am Desktop und in Tests geprüft, nicht im Alltag über Tage. Nach einigen echten Spieltagen Ruf- und Fehlerhäufigkeit beurteilen; besonders die 15-Minuten-Grenze kann für ein Geschenkgerät zu streng sein.
+
+### Hardware-Recherche Waveshare ESP32-S3-LCD-2 (28.10.2026)
+
+[Waveshare-Wiki](https://www.waveshare.com/wiki/ESP32-S3-LCD-2) und [Dokumentation](https://docs.waveshare.com/ESP32-S3-LCD-2): ESP32-S3R8, 8 MB PSRAM, 16 MB Flash, 2-Zoll-ST7789T3 per SPI, QMI8658-IMU, TF-Karte, Kameraanschluss, MX1.25-Akkuanschluss mit Ladechip, 22 herausgeführte GPIOs. Die Textseiten nennen **keine GPIO-Nummern** für LCD, Backlight, Akkumessung oder I2C, keinen RTC-Baustein und keinen Ein-/Ausschalter; diese Angaben stehen nur im Schaltplan-PDF (`ESP32-S3-Touch-LCD-2-SchDoc.pdf`, Name abweichend von der SKU) und in den Demo-Quellen. Daher weiterhin kein Pin-Mapping im Code. Folgerungen: Zeit über Tasten stellen (umgesetzt), Tasten auf RTC-fähige GPIOs legen, damit ein Druck den Deep Sleep beendet, und Akkuspannung erst nach Schaltplanprüfung auslesen. Die IMU erlaubt später „Schütteln zum Spielen“, ohne zusätzliche Hardware.

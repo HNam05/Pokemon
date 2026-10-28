@@ -1,7 +1,9 @@
 """Loopback-only PC simulator. Python transports data; all gameplay lives in C++."""
 import argparse
+import array
 import secrets
-from collections import OrderedDict
+import select
+import socket
 import ctypes
 import json
 import os
@@ -12,6 +14,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / 'desktop' / 'web'
+SCREEN_WIDTH, SCREEN_HEIGHT = 240, 320
+SAVE_BYTES = 48
 
 
 class Engine:
@@ -38,22 +42,18 @@ class Engine:
             'pp_menu_hint': ([pointer, ctypes.c_uint], ctypes.c_char_p),
             'pp_menu_enabled': ([pointer, ctypes.c_uint], ctypes.c_bool),
             'pp_care_hint': ([pointer], ctypes.c_char_p),
-            'pp_sprite_size': ([ctypes.c_uint, ctypes.c_bool], ctypes.c_uint),
-            'pp_sprite_pixel': ([ctypes.c_uint, ctypes.c_uint, ctypes.c_uint], ctypes.c_uint),
+            'pp_render': ([pointer, ctypes.POINTER(ctypes.c_uint16), ctypes.c_size_t, ctypes.c_bool], ctypes.c_bool),
+            'pp_input': ([pointer, ctypes.c_uint, ctypes.c_uint32], ctypes.c_bool),
             'pp_memory_bytes': ([ctypes.c_uint], ctypes.c_uint),
             'pp_animation_seed': ([pointer, ctypes.c_uint32], None),
             'pp_animation': ([pointer], ctypes.c_char_p),
-            'pp_frame_info': ([ctypes.c_uint]*4, ctypes.c_int),
-            'pp_frame_pixel': ([ctypes.c_uint]*5, ctypes.c_uint),
             'pp_starter_count': ([], ctypes.c_uint),
             'pp_starter_at': ([ctypes.c_uint], ctypes.c_uint),
             'pp_species_name': ([ctypes.c_uint], ctypes.c_char_p),
             'pp_species_form': ([ctypes.c_uint], ctypes.c_char_p),
             'pp_species_credit': ([ctypes.c_uint], ctypes.c_char_p),
             'pp_species_scale': ([ctypes.c_uint], ctypes.c_uint),
-            'pp_species_anchor': ([ctypes.c_uint], ctypes.c_int),
-            'pp_scene_info': ([ctypes.c_uint], ctypes.c_uint),
-            'pp_scene_pixel': ([ctypes.c_bool, ctypes.c_uint, ctypes.c_uint], ctypes.c_uint),
+            'pp_evolution_of': ([ctypes.c_uint], ctypes.c_uint),
         }
         for name, (arguments, result) in declarations.items():
             method = getattr(self.lib, name)
@@ -79,6 +79,10 @@ class Engine:
         result['starter_name'] = self.lib.pp_species_name(result['starter']).decode('utf-8')
         result['starter_form'] = self.lib.pp_species_form(result['starter']).decode('utf-8')
         result['care_hint'] = self.lib.pp_care_hint(self.handle).decode('utf-8')
+        shown = result['starter'] if result['screen'] == 5 else result['species']
+        result['credit'] = self.lib.pp_species_credit(shown).decode('utf-8')
+        result['evolves_to_name'] = (self.lib.pp_species_name(result['evolves_to']).decode('utf-8')
+                                     if result['evolves_to'] else '')
         result['menu'] = [{'label': self.lib.pp_menu_label(i).decode('utf-8'),
                            'section':self.lib.pp_menu_section(i).decode('utf-8'),
                            'hint': self.lib.pp_menu_hint(self.handle, i).decode('utf-8'),
@@ -93,42 +97,29 @@ class Engine:
             entries.append({'species':species,'name':self.lib.pp_species_name(species).decode('utf-8'),
                 'form':self.lib.pp_species_form(species).decode('utf-8'),
                 'credit':self.lib.pp_species_credit(species).decode('utf-8'),
-                'scale':self.lib.pp_species_scale(species),'anchor_y':self.lib.pp_species_anchor(species)})
+                'scale':self.lib.pp_species_scale(species),
+                'evolves_to':self.lib.pp_evolution_of(species)})
         return entries
 
-    def assets(self, selected=None):
-        ids=range(5) if selected is None else [selected]
-        if selected is not None and selected not in {0,1,2,3,4,*[e['species'] for e in self.catalog()]}:
-            raise ValueError('Unbekanntes Pokemon.')
-        sprites = []
-        for species in ids:
-            width = self.lib.pp_sprite_size(species, False)
-            height = self.lib.pp_sprite_size(species, True)
-            pixels = [self.lib.pp_sprite_pixel(species, x, y) for y in range(height) for x in range(width)]
-            sprites.append({'width': width, 'height': height, 'pixels': pixels})
-        animations = []
-        for species in ids:
-            clips = []
-            for motion in range(9):
-                frames = []
-                for frame in range(self.lib.pp_frame_info(species,motion,0,5)):
-                    width,height,x,y,duration = (self.lib.pp_frame_info(species,motion,frame,p) for p in range(5))
-                    frames.append({'width':width,'height':height,'x':x,'y':y,'duration':duration,
-                        'draw_x':self.lib.pp_frame_info(species,motion,frame,6),
-                        'draw_y':self.lib.pp_frame_info(species,motion,frame,7),
-                        'scale':self.lib.pp_frame_info(species,motion,frame,8),
-                        'pixels':[self.lib.pp_frame_pixel(species,motion,frame,px,py) for py in range(height) for px in range(width)]})
-                clips.append(frames)
-            animations.append(clips)
-        scenes=[]
-        if selected is None:
-            width,height=(self.lib.pp_scene_info(i) for i in range(2))
-            scenes=[{'width':width,'height':height,'pixels':[
-                self.lib.pp_scene_pixel(night,x,y) for y in range(height) for x in range(width)]} for night in (False,True)]
-        return {'sprites': sprites, 'animations':animations,'scenes':scenes,'scene_bytes':self.lib.pp_scene_info(2),'species_ids':list(ids),'catalog':self.catalog() if selected is None else [],
-                'need_low':[self.lib.pp_need_low(i) for i in range(6)],
-                'memory_bytes': dict(zip(('game', 'state', 'profile', 'sprites','animations','animator'),
-                (self.lib.pp_memory_bytes(i) for i in range(6))))}
+    def info(self):
+        return {'screen': {'width': SCREEN_WIDTH, 'height': SCREEN_HEIGHT, 'format': 'rgb565le'},
+                'starters': self.lib.pp_starter_count(),
+                'need_low': [self.lib.pp_need_low(i) for i in range(6)],
+                'memory_bytes': dict(zip(('game', 'state', 'profile', 'sprites', 'animations', 'animator', 'device', 'scene'),
+                                         (self.lib.pp_memory_bytes(i) for i in range(8))))}
+
+    def frame(self, reduced_motion=False):
+        # The device UI is drawn by C++; Python only moves the finished pixels.
+        buffer = (ctypes.c_uint16 * (SCREEN_WIDTH * SCREEN_HEIGHT))()
+        if not self.lib.pp_render(self.handle, buffer, len(buffer), reduced_motion):
+            raise RuntimeError('Bildschirm konnte nicht gezeichnet werden.')
+        pixels = array.array('H', bytes(buffer))
+        if sys.byteorder != 'little':
+            pixels.byteswap()
+        return pixels.tobytes()
+
+    def input(self, raw, now_ms):
+        return bool(self.lib.pp_input(self.handle, raw, now_ms & 0xffffffff))
 
     def advance(self, milliseconds, speed=1):
         while milliseconds > 0:
@@ -141,9 +132,9 @@ class Engine:
             raise ValueError('Ungueltige Taste.')
 
     def dump(self):
-        buffer = (ctypes.c_uint8 * 44)()
+        buffer = (ctypes.c_uint8 * SAVE_BYTES)()
         size = self.lib.pp_save(self.handle, buffer, len(buffer))
-        if size != 44:
+        if size != SAVE_BYTES:
             raise RuntimeError('Spielstand konnte nicht kodiert werden.')
         return bytes(buffer)
 
@@ -160,6 +151,8 @@ class Simulator:
         self.speed = 1
         self.storage_error = None
         self.offline_minutes = 0
+        self.buttons = 0
+        self.sample_until = 0.0
         if save_path.exists():
             if save_path.stat().st_size > 4096:
                 raise ValueError('Spielstand ist zu gross. Datei bleibt erhalten.')
@@ -169,7 +162,7 @@ class Simulator:
             timestamp = data.get('saved_at')
             if type(timestamp) is not int or not 0 <= timestamp <= 253402300799:
                 raise ValueError('Ungueltiger Speicherzeitpunkt.')
-            if not isinstance(data.get('payload'), str) or len(data['payload']) not in (84, 88):
+            if not isinstance(data.get('payload'), str) or len(data['payload']) not in (84, 88, 96):
                 raise ValueError('Ungueltige Spielstanddaten.')
             engine.load(bytes.fromhex(data['payload']))
             # Clock rollback never subtracts age; offline care is capped at 8 hours.
@@ -188,7 +181,19 @@ class Simulator:
             # Suspend/resume is real offline time, never multiplied by a demo speed.
             speed = self.speed if milliseconds < 5000 or self.speed == 0 else 1
             self.engine.advance(min(milliseconds, 8 * 3600000), speed)
-        if now - self.last_save >= 30:
+        reacted = self.poll_buttons()
+        if reacted or now - self.last_save >= 30:
+            self.save()
+
+    def poll_buttons(self):
+        # Same debounce, long-press and repeat decoder as the GPIO firmware, fed with raw levels.
+        # Buttons are physical and always use real monotonic time, even with a manual game clock.
+        return self.engine.input(self.buttons, int(time.monotonic() * 1000))
+
+    def set_buttons(self, raw):
+        self.buttons = raw
+        self.sample_until = time.monotonic() + 0.2  # settle debounce promptly after any edge
+        if self.poll_buttons():
             self.save()
 
     def write_save(self, data):
@@ -237,15 +242,14 @@ class Simulator:
             fresh.close()
 
     def view(self):
-        return {**self.engine.view(), 'speed': self.speed, 'manual_clock': self.manual,
+        return {**self.engine.view(), 'speed': self.speed, 'manual_clock': self.manual, 'buttons': self.buttons,
                 'test_controls': self.test_controls,
                 'storage_error': self.storage_error, 'offline_minutes': self.offline_minutes}
 
 
 def handler_for(simulator, port):
-    assets = simulator.engine.assets()
-    asset_cache = OrderedDict()
-    allowed_hosts = {f'127.0.0.1:{port}', f'localhost:{port}'}
+    info = simulator.engine.info()
+    allowed_hosts = {f'127.0.0.1:{port}', f'localhost:{port}', f'[::1]:{port}'}
     allowed_origins = {f'http://{host}' for host in allowed_hosts}
 
     class Handler(BaseHTTPRequestHandler):
@@ -278,22 +282,12 @@ def handler_for(simulator, port):
             if self.path == '/api/state':
                 self.send_body(200, simulator.view())
                 return
-            if self.path == '/api/assets':
-                self.send_body(200, assets)
+            if self.path == '/api/info':
+                self.send_body(200, info)
                 return
-            if self.path.startswith('/api/assets/'):
-                token=self.path.removeprefix('/api/assets/')
-                if not token.isascii() or not token.isdecimal() or len(token)>3:
-                    self.send_body(404,{'error':'Unbekannte Grafik.'}); return
-                species=int(token)
-                try:
-                    if species not in asset_cache:
-                        asset_cache[species]=simulator.engine.assets(species)
-                        if len(asset_cache)>4: asset_cache.popitem(last=False)
-                    asset_cache.move_to_end(species)
-                    self.send_body(200,asset_cache[species])
-                except ValueError as error:
-                    self.send_body(404,{'error':str(error)})
+            if self.path in ('/api/frame', '/api/frame?reduced=1'):
+                frame = simulator.engine.frame(self.path.endswith('=1'))
+                self.send_body(200, frame, 'application/octet-stream')
                 return
             if self.path == '/credits':
                 self.send_body(200,(ROOT/'assets/ROSTER.md').read_bytes(),'text/plain; charset=utf-8')
@@ -330,6 +324,11 @@ def handler_for(simulator, port):
                         raise ValueError('Taste muss 0, 1 oder 2 sein.')
                     simulator.engine.button(button)
                     simulator.save()
+                elif self.path == '/api/input':
+                    pressed = data.get('pressed')
+                    if type(pressed) is not int or not 0 <= pressed <= 7:
+                        raise ValueError('Tastenmaske muss zwischen 0 und 7 liegen.')
+                    simulator.set_buttons(pressed)
                 elif self.path == '/api/back':
                     simulator.engine.lib.pp_back(simulator.engine.handle)
                     simulator.save()
@@ -347,7 +346,7 @@ def handler_for(simulator, port):
                     minutes = data.get('minutes')
                     if type(minutes) is not int or minutes not in (10, 60):
                         raise ValueError('Nur 10 oder 60 Minuten erlaubt.')
-                    if simulator.engine.view()['screen'] in (3, 7, 8):
+                    if simulator.engine.view()['screen'] in (3, 5, 7, 8):
                         raise ValueError('Zeitsprung erst nach dem Minispiel.')
                     simulator.engine.advance(minutes * 60000)
                     simulator.save()
@@ -376,6 +375,20 @@ class LocalServer(HTTPServer):
         connection, address = super().get_request()
         connection.settimeout(2)
         return connection, address
+
+
+class LocalServer6(LocalServer):
+    address_family = socket.AF_INET6
+
+
+def loopback_servers(port, handler):
+    """IPv4 loopback plus ::1, so 'localhost' does not wait for an IPv6 fallback."""
+    servers = [LocalServer(('127.0.0.1', port), handler)]
+    try:
+        servers.append(LocalServer6(('::1', port), handler))
+    except OSError:
+        pass  # No IPv6 loopback on this host; 127.0.0.1 still works.
+    return servers
 
 
 class SaveLock:
@@ -443,17 +456,23 @@ def main():
     try:
         with SaveLock(args.save.resolve()):
             simulator = Simulator(engine, args.save.resolve(), args.manual_clock, args.test_controls)
-            with LocalServer(('127.0.0.1', args.port), handler_for(simulator, args.port)) as server:
-                server.timeout = 0.05
-                print(f'Pocket Pet: http://127.0.0.1:{args.port} | Strg+C beendet und speichert.', flush=True)
-                try:
-                    while True:
-                        simulator.tick()
+            servers = loopback_servers(args.port, handler_for(simulator, args.port))
+            print(f'Pocket Pet: http://127.0.0.1:{args.port} | Strg+C beendet und speichert.', flush=True)
+            try:
+                while True:
+                    simulator.tick()
+                    # Sample held buttons like a GPIO task; idle loops stay cheap.
+                    sampling = simulator.buttons or time.monotonic() < simulator.sample_until
+                    ready, _, _ = select.select(servers, [], [], 0.01 if sampling else 0.05)
+                    for server in ready:
                         server.handle_request()
-                except KeyboardInterrupt:
-                    simulator.save()
-                    if simulator.storage_error:
-                        print(simulator.storage_error, flush=True)
+            except KeyboardInterrupt:
+                simulator.save()
+                if simulator.storage_error:
+                    print(simulator.storage_error, flush=True)
+            finally:
+                for server in servers:
+                    server.server_close()
     finally:
         engine.close()
 

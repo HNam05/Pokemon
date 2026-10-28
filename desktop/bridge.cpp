@@ -1,8 +1,6 @@
-#include "pet/game.hpp"
+#include "pet/device.hpp"
 #include "pet/save.hpp"
-#include "pet/profile.hpp"
 #include "pet/sprite.hpp"
-#include "pet/animation.hpp"
 #include "pet/catalog.hpp"
 #include <cstdio>
 #include <cstring>
@@ -17,27 +15,27 @@
 namespace {
 bool valid_species_id(unsigned id) { return id<256 && pet::species_valid(static_cast<pet::Species>(id)); }
 struct Session {
-    pet::Game game;
-    pet::Profile profile;
-    pet::Animator animator;
+    pet::Device device;
     char animation_json[192]{};
-    char json[2048]{};
+    char json[2560]{};
 };
 }
 PET_EXPORT Session* pp_create() { return new (std::nothrow) Session; }
 PET_EXPORT void pp_destroy(Session* session) { delete session; }
 PET_EXPORT bool pp_set_name(Session* session, const char* name, std::size_t size) {
-    return session && session->profile.set_name(name, size);
+    return session && session->device.profile.set_name(name, size);
 }
-PET_EXPORT const char* pp_name(Session* session) { return session ? session->profile.name() : ""; }
-PET_EXPORT void pp_back(Session* session) { if (session) session->game.back(); }
+PET_EXPORT const char* pp_name(Session* session) { return session ? session->device.profile.name() : ""; }
+PET_EXPORT void pp_back(Session* session) { if (session) session->device.back(); }
 PET_EXPORT void pp_animation_seed(Session* session, std::uint32_t seed) {
-    if (session) session->animator = pet::Animator(seed);
+    if (session) session->device.reseed(seed);
 }
 PET_EXPORT const char* pp_animation(Session* session) {
     if (!session) return "{}";
-    const auto a = session->animator.view(session->game.state());
-    const auto placement=pet::place_frame(session->game.state().species,a);
+    const auto& game = session->device.game;
+    const auto a = session->device.pose(false);
+    const unsigned shrink = game.stage() == pet::Stage::Baby ? 2 : game.stage() == pet::Stage::Child ? 1 : 0;
+    const auto placement=pet::place_frame(game.state().species,a,shrink);
     std::snprintf(session->animation_json,sizeof(session->animation_json),
         "{\"clip\":%u,\"name\":\"%s\",\"frame\":%u,\"x\":%d,\"y\":%d,\"flip\":%s,\"draw_x\":%d,\"draw_y\":%d,\"scale\":%u}",
         static_cast<unsigned>(a.motion),pet::motion_name(a.motion),static_cast<unsigned>(a.frame),
@@ -45,70 +43,32 @@ PET_EXPORT const char* pp_animation(Session* session) {
         static_cast<int>(placement.x),static_cast<int>(placement.y),static_cast<unsigned>(placement.scale));
     return session->animation_json;
 }
-PET_EXPORT int pp_frame_info(unsigned species, unsigned motion, unsigned frame, unsigned property) {
-    if (!valid_species_id(species) || motion>=pet::motion_count) return 0;
-    const auto s=static_cast<pet::Species>(species);
-    const auto m=static_cast<pet::Motion>(motion);
-    const auto f=pet::animation_frame(s,m,frame);
-    const auto placement=pet::place_frame(s,{m,static_cast<std::uint8_t>(frame%pet::frame_count(s,m))});
-    switch (property) {
-    case 0: return f.sprite.width;
-    case 1: return f.sprite.height;
-    case 2: return f.x;
-    case 3: return f.y;
-    case 4: return f.duration_ms;
-    case 5: return static_cast<int>(pet::frame_count(s,m));
-    case 6: return placement.x;
-    case 7: return placement.y;
-    case 8: return placement.scale;
-    default: return 0;
-    }
-}
-PET_EXPORT unsigned pp_frame_pixel(unsigned species,unsigned motion,unsigned frame,unsigned x,unsigned y) {
-    if (!valid_species_id(species) || motion>=pet::motion_count) return 0x10000u;
-    const auto s=pet::animation_frame(static_cast<pet::Species>(species),static_cast<pet::Motion>(motion),frame).sprite;
-    const auto index=s.at(x,y);
-    return index==0 ? 0x10000u : s.palette[index];
+// Device-identical screen: 240x320 native-endian RGB565, rendered by the shared C++ UI.
+PET_EXPORT bool pp_render(Session* session, std::uint16_t* output, std::size_t count, bool reduced_motion) {
+    if (!session || !output || count < static_cast<std::size_t>(pet::screen_width * pet::screen_height)) return false;
+    session->device.render({output, 0, pet::screen_height}, reduced_motion);
+    return true;
 }
 PET_EXPORT unsigned pp_menu_count() { return pet::Game::menu_count; }
 PET_EXPORT const char* pp_menu_section(unsigned index) { return pet::Game::menu_section(static_cast<std::uint8_t>(index)); }
 PET_EXPORT unsigned pp_need_low(unsigned index) { return index<6?pet::Game::need_low[index]:0; }
-PET_EXPORT unsigned pp_scene_info(unsigned property) {
-    const auto scene=pet::forest_scene(false);
-    return property==0?scene.width:property==1?scene.height:property==2?static_cast<unsigned>(pet::scene_storage_bytes()):0;
-}
-PET_EXPORT unsigned pp_scene_pixel(bool night,unsigned x,unsigned y) {
-    const auto scene=pet::forest_scene(night);
-    return x<scene.width && y<scene.height ? scene.palette[scene.at(x,y)] : 0x10000u;
-}
 PET_EXPORT unsigned pp_starter_count() { return pet::starter_count(); }
 PET_EXPORT unsigned pp_starter_at(unsigned index) { return static_cast<unsigned>(pet::starter_at(index)); }
 PET_EXPORT const char* pp_species_name(unsigned id) { return valid_species_id(id)?pet::species_name(static_cast<pet::Species>(id)):"Unbekannt"; }
 PET_EXPORT const char* pp_species_form(unsigned id) { return valid_species_id(id)?pet::species_form(static_cast<pet::Species>(id)):""; }
 PET_EXPORT const char* pp_species_credit(unsigned id) { return valid_species_id(id)?pet::species_credit(static_cast<pet::Species>(id)):""; }
 PET_EXPORT unsigned pp_species_scale(unsigned id) { return valid_species_id(id)?pet::species_scale(static_cast<pet::Species>(id)):1; }
-PET_EXPORT int pp_species_anchor(unsigned id) { return valid_species_id(id)?pet::species_anchor(static_cast<pet::Species>(id)):144; }
+PET_EXPORT unsigned pp_evolution_of(unsigned id) { return valid_species_id(id)?static_cast<unsigned>(pet::Game::evolution_of(static_cast<pet::Species>(id))):0; }
 PET_EXPORT const char* pp_menu_label(unsigned index) {
     return index < pet::Game::menu_count ? pet::action_name(pet::Game::menu_action(static_cast<std::uint8_t>(index))) : "";
 }
 PET_EXPORT const char* pp_menu_hint(Session* session, unsigned index) {
-    return session && index < pet::Game::menu_count ? session->game.action_hint(pet::Game::menu_action(static_cast<std::uint8_t>(index))) : "";
+    return session && index < pet::Game::menu_count ? session->device.game.action_hint(pet::Game::menu_action(static_cast<std::uint8_t>(index))) : "";
 }
 PET_EXPORT bool pp_menu_enabled(Session* session, unsigned index) {
-    return session && index < pet::Game::menu_count && !session->game.blocked_reason(pet::Game::menu_action(static_cast<std::uint8_t>(index)));
+    return session && index < pet::Game::menu_count && !session->device.game.blocked_reason(pet::Game::menu_action(static_cast<std::uint8_t>(index)));
 }
-PET_EXPORT const char* pp_care_hint(Session* session) { return session ? session->game.care_hint() : ""; }
-PET_EXPORT unsigned pp_sprite_size(unsigned species, bool height) {
-    if (!valid_species_id(species)) return 0;
-    const auto sprite = pet::sprite_for(static_cast<pet::Species>(species));
-    return height ? sprite.height : sprite.width;
-}
-PET_EXPORT unsigned pp_sprite_pixel(unsigned species, unsigned x, unsigned y) {
-    if (!valid_species_id(species)) return 0x10000u;
-    const auto sprite = pet::sprite_for(static_cast<pet::Species>(species));
-    const auto index = sprite.at(x, y);
-    return index == 0 ? 0x10000u : sprite.palette[index]; // sentinel distinguishes transparency from black.
-}
+PET_EXPORT const char* pp_care_hint(Session* session) { return session ? session->device.game.care_hint() : ""; }
 PET_EXPORT unsigned pp_memory_bytes(unsigned kind) {
     switch (kind) {
     case 0: return sizeof(pet::Game);
@@ -117,36 +77,38 @@ PET_EXPORT unsigned pp_memory_bytes(unsigned kind) {
     case 3: return static_cast<unsigned>(pet::sprite_storage_bytes());
     case 4: return static_cast<unsigned>(pet::animation_storage_bytes());
     case 5: return sizeof(pet::Animator);
+    case 6: return sizeof(pet::Device);
+    case 7: return static_cast<unsigned>(pet::scene_storage_bytes());
     default: return 0;
     }
 }
 PET_EXPORT void pp_advance(Session* session, std::uint32_t ms, std::uint32_t speed) {
-    if (session) {
-        session->game.advance(ms, speed);
-        session->animator.advance(session->game.state(), speed && session->game.screen()==pet::Screen::Home ? ms : 0);
-    }
+    if (session) session->device.advance(ms, speed);
 }
 PET_EXPORT bool pp_button(Session* session, int button) {
     if (!session || button < 0 || button > 2) return false;
-    const auto fullness=session->game.state().fullness;
-    session->game.button(static_cast<pet::Button>(button));
-    session->animator.advance(session->game.state(),0);
-    if (session->game.state().fullness > fullness) session->animator.fed(session->game.state());
+    session->device.press(static_cast<pet::Button>(button));
     return true;
+}
+// Raw levels (bit 0 left, bit 1 OK, bit 2 right) plus a monotonic clock in ms.
+PET_EXPORT bool pp_input(Session* session, unsigned raw, std::uint32_t now_ms) {
+    return session && raw < 8 && session->device.input(static_cast<std::uint8_t>(raw), now_ms);
 }
 PET_EXPORT const char* pp_view(Session* session) {
     if (!session) return "{}";
-    const auto& g = session->game;
+    const auto& g = session->device.game;
     const auto& s = g.state();
     const auto& m = g.mini();
     const auto& f = g.feedback();
-    // All strings are controlled constants without JSON metacharacters.
+    // All strings are controlled UTF-8 constants without JSON metacharacters.
     const int count = std::snprintf(session->json, sizeof(session->json),
         "{\"species\":%u,\"name\":\"%s\",\"screen\":%u,\"selection\":%u,"
         "\"age_minutes\":%u,\"minute_of_day\":%u,\"fullness\":%u,\"happiness\":%u,"
         "\"energy\":%u,\"hygiene\":%u,\"health\":%u,\"friendship\":%u,\"experience\":%u,"
         "\"waste\":%u,\"sleeping\":%s,\"sick\":%s,\"attention\":%s,\"can_evolve\":%s,"
         "\"message\":\"%s\",\"starter\":%u,\"starter_chosen\":%s,\"menu_start\":%u,"
+        "\"care_mistakes\":%u,\"call_minutes\":%u,\"calling\":%s,\"pet_cooldown\":%u,\"night\":%s,"
+        "\"stage\":%u,\"stage_name\":\"%s\",\"level\":%u,\"evolves_to\":%u,\"clock_edit\":%u,\"clock_field\":%u,\"evolved_from\":%u,"
         "\"mini\":{\"elapsed_ms\":%u,\"lane\":%u,\"target\":%u,\"round\":%u,\"score\":%u,"
         "\"memory\":%s,\"recalling\":%s,\"entered\":%u,\"pattern\":[%u,%u,%u,%u],"
         "\"phase\":%u,\"length\":%u,\"duration_ms\":%u,\"cue\":%d,\"last_button\":%u,\"input_ms\":%u,\"success\":%s,"
@@ -160,6 +122,11 @@ PET_EXPORT const char* pp_view(Session* session) {
         static_cast<unsigned>(s.waste), s.sleeping ? "true" : "false", s.sick ? "true" : "false",
         g.needs_attention() ? "true" : "false", g.can_evolve() ? "true" : "false", g.message(),
         static_cast<unsigned>(s.starter), s.starter_chosen ? "true" : "false", static_cast<unsigned>(g.menu_start()),
+        static_cast<unsigned>(s.care_mistakes), static_cast<unsigned>(s.call_minutes), g.calling() ? "true" : "false",
+        static_cast<unsigned>(s.pet_cooldown), g.night() ? "true" : "false",
+        static_cast<unsigned>(g.stage()), pet::stage_name(g.stage()), g.level(),
+        static_cast<unsigned>(pet::Game::evolution_of(s.species)), static_cast<unsigned>(g.clock_edit()),
+        static_cast<unsigned>(g.clock_field()), static_cast<unsigned>(g.evolved_from()),
         static_cast<unsigned>(m.elapsed_ms), static_cast<unsigned>(m.lane), static_cast<unsigned>(m.target),
         static_cast<unsigned>(m.round), static_cast<unsigned>(m.score), m.memory ? "true" : "false",
         m.recalling ? "true" : "false", static_cast<unsigned>(m.entered),
@@ -173,13 +140,11 @@ PET_EXPORT const char* pp_view(Session* session) {
 }
 PET_EXPORT std::size_t pp_save(Session* session, std::uint8_t* output, std::size_t capacity) {
     if (!session || !output || capacity < pet::SaveBytes{}.size()) return 0;
-    const auto bytes = pet::encode(session->game.state());
+    const auto bytes = pet::encode(session->device.game.state());
     std::memcpy(output, bytes.data(), bytes.size());
     return bytes.size();
 }
 PET_EXPORT bool pp_load(Session* session, const std::uint8_t* input, std::size_t size) {
     pet::State state;
-    if (!session || !pet::decode(input,size,state) || !session->game.restore(state)) return false;
-    session->animator.advance(state,0);
-    return true;
+    return session && pet::decode(input,size,state) && session->device.load(state);
 }

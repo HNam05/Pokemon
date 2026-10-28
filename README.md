@@ -4,9 +4,9 @@ Ein Pokémon-inspiriertes Tamagotchi für einen späteren ESP32 im aufklappbaren
 
 ## Jetzt spielbar
 
-Aus 130 Begleitern wählen: 129 SpriteCollab-Sets mit 85 Pokémon und ihren Formen sowie unser eigener Enton. Danach das Ei ausbrüten, füttern und säubern, schlafen lassen, Krankheiten behandeln, Beeren fangen und Entons Denkpause spielen. Evoli kann sich zu Psiana oder Nachtara entwickeln. Mit scrollendem Menü, persönlichen Profilen, 240×320-Display-Simulation und kompakten gemeinsamen C++-Pixelgrafiken.
+Aus 130 Begleitern wählen: 129 SpriteCollab-Sets mit 85 Pokémon und ihren Formen sowie unser eigener Enton. Danach das Ei ausbrüten, füttern, streicheln und säubern, schlafen lassen, Krankheiten behandeln, Beeren fangen und Entons Denkpause spielen. Der Begleiter **ruft**, wenn er etwas braucht; ignorierte Rufe werden zu Pflegefehlern, ein guter Tag verzeiht einen. Er wächst vom Baby zum Kind und zum Erwachsenen, steigt im Level, schläft ab 21 Uhr und wacht um 7 Uhr auf. Sieben Linien können sich bei guter Pflege entwickeln: Evoli, Pichu, Lilminip, Fynx, Psiau, Wuffels und Typ:Null.
 
-**Stand:** erster Desktop-Prototyp. ESP32-Treiber, endgültige Grafik und Hardwarevalidierung folgen nach Auswahl der Komponenten.
+**Stand:** Desktop-Prototyp mit gerätefertigem Kern. Seit 28.10.2026 erzeugt C++ den kompletten 240×320-Bildschirm und wertet die drei Tasten aus; der Browser zeigt nur noch die fertigen Pixel. ESP32-Treiber (LCD, GPIO, NVS) und Hardwarevalidierung folgen nach Prüfung des Schaltplans.
 
 ## 3D-Gehäuseprototyp
 
@@ -43,7 +43,7 @@ Auf einem anderen Rechner entweder die CMake-Variante nutzen oder eine passende 
 | Mitte / Enter | Menü | Bestätigen | Beere fangen |
 | Rechts / → oder ↓ | Status | Eine Zeile runter | Rechte Spur |
 
-Alle Aktionen sind mit drei Tasten erreichbar. Fünf Menüzeilen bleiben sichtbar; längere Listen scrollen mit. Kategorien und Hinweise erklären die gewählte Aktion. Kurzes OK bestätigt beim Loslassen, **OK halten (700 ms)** führt zurück. Im Menü gibt es zusätzlich „Zurück“. `F` öffnet die Vollbildansicht, `Esc` verlässt sie.
+Alle Aktionen sind mit drei Tasten erreichbar. Fünf Menüzeilen bleiben sichtbar; die zwölf Einträge scrollen mit. Entprellung (30 ms), langes OK und Blättern wertet derselbe C++-Decoder aus, der später die GPIO-Pegel liest. Unter „Uhr stellen“ lässt sich die Tageszeit mit den drei Tasten einstellen. Kategorien und Hinweise erklären die gewählte Aktion. Kurzes OK bestätigt beim Loslassen, **OK halten (700 ms)** führt zurück. Im Menü gibt es zusätzlich „Zurück“. `F` öffnet die Vollbildansicht, `Esc` verlässt sie.
 
 Beide Spiele zeigen zuerst eine kostenlose Anleitung. Erst **OK: Start** verbraucht 5 Satt und 8 Energie. Im Beerenfang den Korb bewegen und im markierten Fangfeld OK drücken; fünf Versuche mit kurzer Rückmeldung nach jeder Beere. In **Entons Denkpause** wächst dieselbe Folge von zwei auf drei und vier Zeichen. Erst ansehen, dann Links/OK/Rechts nachspielen. Bereits gelöste Runden zählen bei einem späteren Fehler oder Zeitablauf; manueller Abbruch bringt keine Belohnung. Ergebnisse zeigen den tatsächlichen Zuwachs nach Begrenzung auf die Maximalwerte.
 
@@ -74,13 +74,16 @@ Ohne `--save` verwendet jedes Profil eine eigene gleichnamige Speicherdatei unte
 
 ## Speichern und Tests
 
-Spielstände liegen in `saves/pet.json`, automatisch alle 30 Sekunden und nach Eingaben. Beim Neustart werden höchstens acht Stunden reale Abwesenheit nachgerechnet. Kaputte/unbekannte Spielstände werden nicht überschrieben; der Server erklärt den Fehler. Für ein **separates neues Tier** einen neuen Pfad benutzen: `python desktop/server.py --save saves/zweites-tier.json`. Eine Betriebssystem-Sperre verhindert zwei Server mit derselben Speicherdatei. Das 44-Byte-Format V3 liest bestehende V1-/V2-Stände und erhält deren Begleiter. Vor einem Downgrade eine alte Sicherung verwenden.
+Spielstände liegen in `saves/pet.json`, automatisch alle 30 Sekunden und nach Eingaben. Beim Neustart werden höchstens acht Stunden reale Abwesenheit nachgerechnet. Kaputte/unbekannte Spielstände werden nicht überschrieben; der Server erklärt den Fehler. Für ein **separates neues Tier** einen neuen Pfad benutzen: `python desktop/server.py --save saves/zweites-tier.json`. Eine Betriebssystem-Sperre verhindert zwei Server mit derselben Speicherdatei. Das 48-Byte-Format V4 liest bestehende V1-/V2-/V3-Stände, erhält deren Begleiter und Werte und startet mit sauberer Pflegebilanz. Vor einem Downgrade eine alte Sicherung verwenden; ältere Programmstände können V4 nicht lesen.
 
-Der Build führt die C++-Tests aus. Weitere Adaptertests:
+Der Build führt die C++-Tests aus. Weitere Adaptertests und Browser-Smokes (Playwright/Chromium):
 
 ```powershell
 python -m unittest discover -s tests -p "test_*.py" -v
+node tests/browser_smoke.mjs
 ```
+
+Weitere Smokes: `ux_smoke.mjs`, `animation_smoke.mjs`, `roster_smoke.mjs`, `reset_smoke.mjs`. Nach Änderungen an der Pixelschrift `python scripts/make_font.py` ausführen.
 
 Browser-Testanleitung und tatsächlicher Prüfstand stehen in [docs/VALIDATION.md](docs/VALIDATION.md). Builds und Tests auf weiteren Betriebssystemen sind noch nicht bestätigt.
 

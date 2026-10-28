@@ -36,15 +36,17 @@ try {
   await page.waitForFunction(() => JSON.parse(window.render_game_to_text()).connected);
   const state = () => page.evaluate(() => JSON.parse(window.render_game_to_text()));
   async function waitFor(screen) { await page.waitForFunction(s => JSON.parse(window.render_game_to_text()).screen === s, screen); }
+  // Raw levels pass the C++ decoder in real time: 30 ms debounce, 80 ms minimum press.
   async function key(name) {
     await page.keyboard.press(name);
+    await page.waitForTimeout(250);
     await page.evaluate(() => window.advanceTime(0));
   }
   async function menu(index, start = true) {
     const current = await state();
     if (current.screen === 2 || current.screen === 4) await key('Enter');
     if ((await state()).screen === 0) await key('Enter');
-    for (let attempt=0; (await state()).selection !== index && attempt < 10; attempt++) await key('ArrowDown');
+    for (let attempt=0; (await state()).selection !== index && attempt < 14; attempt++) await key('ArrowDown');
     assert.equal((await state()).selection, index);
     await key('Enter');
     if (start && (await state()).screen === 8) {
@@ -87,21 +89,21 @@ try {
   await key('Enter');
   await page.screenshot({ path: path.join(output, '03-menu.png'), fullPage: true });
   await key('ArrowLeft');
-  assert.equal((await state()).selection, 9, 'menu wraps left');
-  assert.equal((await state()).menu_start,5,'menu scrolls to last entry');
+  assert.equal((await state()).selection, 11, 'menu wraps left');
+  assert.equal((await state()).menu_start,7,'menu scrolls to last entry');
   await page.screenshot({path:path.join(output,'09-menu-scrolled.png'),fullPage:true});
   await key('Enter'); await waitFor(0);
   await key('ArrowRight'); await waitFor(2);
   await page.screenshot({ path: path.join(output, '04-stats.png'), fullPage: true });
   await key('Enter');
-  await menu(2);
+  await menu(3);
   assert.equal((await state()).sleeping, true);
   await menu(0);
   assert.equal((await state()).fullness, 100, 'sleeping blocks feed');
-  await menu(2);
+  await menu(3);
   assert.equal((await state()).sleeping, false);
   const beforePlay = await state();
-  await menu(4, false); await waitFor(8);
+  await menu(5, false); await waitFor(8);
   assert.equal((await state()).energy, beforePlay.energy, 'instructions are free');
   await page.screenshot({path:path.join(output,'13-game-intro.png'),fullPage:true});
   await key('ArrowLeft'); await waitFor(1);
@@ -133,7 +135,7 @@ try {
   assert.equal((await state()).feedback.happiness, 20, 'five catches earn 20 happiness');
   await page.screenshot({ path: path.join(output, '06-result.png'), fullPage: true });
   await key('Enter');
-  await menu(5); await waitFor(7);
+  await menu(6); await waitFor(7);
   await page.screenshot({path:path.join(output,'10-memory-playback.png'),fullPage:true});
   for (let round=0;round<3;round++) {
     await page.evaluate(()=>window.advanceTime(JSON.parse(window.render_game_to_text()).mini.duration_ms));
@@ -150,18 +152,19 @@ try {
   assert.equal((await state()).feedback.happiness,7,'memory reward is capped at 100 happiness');
   await checkNeeds();
   await key('Enter');
-  await menu(8); await waitFor(6);
+  await menu(9); await waitFor(6);
   await page.screenshot({path:path.join(output,'12-care-guide.png'),fullPage:true});
   async function holdOK() {
     await page.keyboard.down('Enter');
     await page.waitForTimeout(800);
     await page.keyboard.up('Enter');
+    await page.waitForTimeout(150);
     await page.evaluate(()=>window.advanceTime(0));
   }
   await holdOK(); await waitFor(1);
-  assert.equal((await state()).selection,8,'long OK preserves parent menu selection');
+  assert.equal((await state()).selection,9,'long OK preserves parent menu selection');
   await holdOK(); await waitFor(0);
-  await menu(5); await waitFor(7);
+  await menu(6); await waitFor(7);
   const experience = (await state()).experience;
   await holdOK(); await waitFor(0);
   assert.equal((await state()).experience,experience,'cancel grants no reward');
@@ -183,15 +186,17 @@ try {
   await page.screenshot({path:path.join(output,'07-mobile.png'),fullPage:true});
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no mobile overflow');
   await page.locator('#confirm').click();
+  await page.waitForTimeout(250); await page.evaluate(() => window.advanceTime(0));
   await waitFor(1);
   // Keyboard navigation continues after clicking a device button.
   await key('ArrowRight');
-  assert.equal((await state()).selection, 6);
+  assert.equal((await state()).selection, 7);
   const box = await page.locator('#confirm').boundingBox();
   await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
   await page.mouse.down();
   await page.waitForTimeout(800);
   await page.mouse.up();
+  await page.waitForTimeout(150);
   await page.evaluate(()=>window.advanceTime(0));
   assert.equal((await state()).screen,0,'pointer long OK does not also send a short OK');
   await page.locator('#about-link').click();
