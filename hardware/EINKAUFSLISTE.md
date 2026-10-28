@@ -20,25 +20,34 @@ Seit 1. Juli 2026 erhebt die EU auf Sendungen bis 150 € einen pauschalen Zoll 
 
 Temu ließ sich nicht prüfen, weil dort schon die Suche eine Anmeldung verlangt. AliExpress führt alle Teile außer dem Akku, das passende Board sogar vom Waveshare-Partner SpotPear.
 
-## Bestellung 1: AliExpress (alles außer Akku)
+## Bestellung 1: AliExpress – Klickliste (alles außer Akku)
 
-| # | Teil | Menge | Preis gesehen | Link / Suchbegriff |
+Einen fertig gefüllten Warenkorb als Link bieten weder AliExpress noch eBay an; der Warenkorb gehört immer zu einem angemeldeten Konto. Deshalb hier jeder Link mit genau der Variante und Menge, die man auswählen muss: Link öffnen → Variante wählen → Menge einstellen → „In den Warenkorb“. Am Ende alles zusammen bezahlen. Alle Angebote zeigten am 28.10.2026 kostenlosen Versand nach Deutschland und Lieferung etwa 4.–18. November.
+
+| # | Teil | Variante auswählen | Menge | Preis gesehen |
 |---|---|---|---|---|
-| 1 | Waveshare ESP32-S3-LCD-2, Variante **„No Touch-No-Camera“**, Verkäufer SpotPear Electronics | 2 (optional 3 als Ersatz) | 25,99 €, ab 2 Stück 23,39 €/Stück, Versand kostenlos, Lieferung ca. 4.–7. Nov. | [AliExpress 1005008497879276](https://de.aliexpress.com/item/1005008497879276.html) |
-| 1b | Alternative: gleiches Board, Variante „ESP32-S3-LCD-2“, Funkeydo Store | 2 | 22,99 €/Stück, Versandkosten nicht angezeigt, Lieferung ca. 5.–13. Nov. | [AliExpress 1005008460109655](https://de.aliexpress.com/item/1005008460109655.html) |
-| 2 | Adapterkabel MX1.25 (2-pol.) auf JST-PH 2.0 | 1 Pack (10 Stück) | 8,01 € | Suche „MX1.25 PH2.0 2pin cable“ |
-| 2b | Alternative: MX1.25-Kabel mit einem Stecker, 28 AWG (selbst an Akkukabel löten) | 1 Pack (20 Stück) | 2,95 € | Suche „MX1.25 2pin single head cable“ |
-| 3 | Taster 6 × 6 × 4,3 mm, 4 Pins, THT | 1 Pack | ab 2,69 € | Suche „6x6x4.3 tactile switch“ (Höhe **4,3 mm** wählen) |
-| 4 | Lochrasterplatine FR4 doppelseitig 2 × 8 cm | 1 Pack (5 Stück) | 3,99 € | Suche „double sided pcb prototype board“ |
-| 5 | Silikonlitze 30 AWG, mehrere Farben | 1 Set | 5,99 € | Suche „30awg silicone wire“ |
-| 6 | Innensechskant-Schraubensortiment M1,6–M8 (enthält M2 und M3) | 1 Set (692 Stück) | 8,19 € | Suche „M2 M3 hex socket screw assortment“ |
-| 7 | Senkkopfschrauben M2 × 6 und M3 × 8 (je kleines Pack) | je 1 | ca. 2–5 €, nicht einzeln geprüft | Suche „M2x6 countersunk“, „M3x8 countersunk“ |
-| 8 | Schraube M3 × 45 (Scharnierachse) mit Mutter und Scheiben | 1 Pack | 3,85 € | Suche „M3x45 screw“ |
-| 9 | Klettband 10 mm, Rolle 5 m (Halteband im Ball) | 1 | 2,09 € | Suche „velcro 10mm roll“ |
-| 10 | Optional Ton: MAX98357A I2S-Verstärker | 2 | 1,99 € (ab 2 Stück 1,88 €) | Suche „MAX98357A“ |
-| 11 | Optional Ton: Lautsprecher 2030 oval, 8 Ω, 1 W | 1 Pack (5 Stück) | 3,19 € | Suche „2030 speaker 8ohm 1w“ |
+| 1 | [Waveshare ESP32-S3-LCD-2 (SpotPear)](https://de.aliexpress.com/item/1005008497879276.html) | Farbe: **No Touch-No-Camera** | **2** (3 mit Ersatz) | 23,39 €/Stück ab 2 |
+| 2 | [MX1.25-Kabel 2-pol., 20 Stück (Pai-Pai)](https://de.aliexpress.com/item/1005005277872548.html) | red black, Länge 100 mm | 1 | 2,95 € |
+| 3 | [JST-PH 2.0 Stecker + Buchse mit Kabel, 10 Stück (Z7)](https://de.aliexpress.com/item/1005007292597698.html) | 2P, 150 mm, Single head | 1 | ca. 1–2 € (Variantenpreis prüfen) |
+| 4 | [Taster 6×6 mm (YT Technology)](https://de.aliexpress.com/item/1005005937822191.html) | 10PCS, Größe **6X6X4.3** | 1 | 2,69 € |
+| 5 | [Lochrasterplatine doppelseitig 2×8 cm, 10 Stück (alinsin)](https://de.aliexpress.com/item/1005009006745424.html) | 2X8CM | 1 | 1,79 € |
+| 6 | [Silikonlitze, 5 Rollen (100MillioFang)](https://de.aliexpress.com/item/1005008467990750.html) | Spezifikation **30AWG x10m x5 rolls** | 1 | ca. 9,69 € (Variantenpreis prüfen) |
+| 7 | [M2-Schraubenset Innensechskant, 692 Teile (JYG)](https://de.aliexpress.com/item/1005010249990703.html) | **M2 692pcs set** | 1 | 7,79 € |
+| 8 | [M2/M3 Senkkopf-Set mit Muttern, 400 Teile](https://de.aliexpress.com/item/1005006904727350.html) | countersunk head | 1 | 6,39 € |
+| 9 | [M3 × 45 DIN 912 (Scharnierachse)](https://de.aliexpress.com/item/1005004912301752.html) | **20pcs M3x45 half** (Teilgewinde) | 1 | ab 3,85 € (Variantenpreis prüfen) |
+| 10 | [Klettband 5 m (YOUBO)](https://de.aliexpress.com/item/1005009828366776.html) | 1 Roll, **Width 10mm** | 1 | 1,49 € |
+| 11 | Optional Ton: [MAX98357A-Verstärker](https://de.aliexpress.com/item/1005010228868375.html) | 1pcs | **2** | 1,99 €/Stück |
+| 12 | Optional Ton: [Lautsprecher 2030, 8 Ω, 1 W](https://de.aliexpress.com/item/1005009984830273.html) | 5 Stück | 1 | 3,19 € |
 
-Zwischensumme mit Position 1, 2, 3–11: etwa **93 €** zuzüglich Zoll. Ohne Ton (10, 11) etwa 86 €.
+Zwischensumme etwa **92 €** (ohne Ton etwa 85 €), zuzüglich EU-Zoll von 3 € je Artikelart; AliExpress zeigt ihn an der Kasse.
+
+Hinweise zu den Teilen:
+
+- **Akkuadapter (2 + 3):** Das Akkukabel endet in einer JST-PH-Buchse. Aus einem MX1.25-Kabel (2) und dem passenden PH-Gegenstück aus dem Paar-Set (3) einen kurzen Adapter löten und mit Schrumpfschlauch isolieren. Vorteil gegenüber einem fertigen Adapter: Die Polarität bestimmst du selbst. Plus am Akku an Plus am Board-Anschluss – mit dem Multimeter prüfen, bevor der Akku das erste Mal steckt.
+- **Schrauben (7–9):** Set 7 liefert M2 × 4/5/6 mit Zylinderkopf, Set 8 die Senkkopfschrauben M2 × 6 und M3 × 8 sowie M3 × 6/10 und M3-Muttern. Die beiden M3-Unterlegscheiben pro Scharnier sind in keinem Set sicher enthalten; im Baumarkt kosten sie Cent-Beträge, das Scharnier funktioniert notfalls auch ohne.
+- **Taster (4):** Unbedingt die Größe 6X6X4.3 wählen; vorausgewählt ist 6X6X5.
+- Die Ton-Teile (11, 12) haben noch keine Halterung im Gehäuse. Wer Zoll sparen will, lässt sie weg.
+- Ausgewichen wurde bewusst: ein 20er-Pack M3 × 45 für 11,79 € und ein „Adapter“, der sich als USB-Kabel herausstellte.
 
 Günstiger, aber nicht über AliExpress: Waveshare direkt listet das Board für 13,99–17,99 USD ([waveshare.com](https://www.waveshare.com/esp32-s3-lcd-2.htm)); Versand, Einfuhrumsatzsteuer und Zoll kommen dazu und wurden nicht geprüft.
 
@@ -46,8 +55,8 @@ Günstiger, aber nicht über AliExpress: Waveshare direkt listet das Board für 
 
 | # | Teil | Menge | Preis gesehen | Link |
 |---|---|---|---|---|
-| 12 | PKCell LP-503562, 3,7 V, 1200 mAh, Schutzschaltung, JST-PH 2-pol. | 2 | 2 Stück à 4,99 € + 2,50 € Versand, 2–3 Tage | [eBay 135283921460](https://www.ebay.de/itm/135283921460) |
-| 12b | Gleiche Zelle bei BerryBase (zuletzt nicht lieferbar) | 2 | 5,50 €/Stück | [BerryBase LP-503562](https://www.berrybase.de/en/lp-503562-lithium-polymer-lipo-battery-3.7v-1200mah-with-2-pin-jst-connector) |
+| 13 | PKCell LP-503562, 3,7 V, 1200 mAh, Schutzschaltung, JST-PH 2-pol. | **2** (Angebot „2 Stück“) | 2 Stück à 4,99 € + 2,50 € Versand, 2–3 Tage | [eBay 135283921460](https://www.ebay.de/itm/135283921460) |
+| 13b | Gleiche Zelle bei BerryBase (zuletzt nicht lieferbar) | 2 | 5,50 €/Stück | [BerryBase LP-503562](https://www.berrybase.de/en/lp-503562-lithium-polymer-lipo-battery-3.7v-1200mah-with-2-pin-jst-connector) |
 
 Etwa **12,50 €**.
 
