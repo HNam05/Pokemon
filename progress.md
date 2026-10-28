@@ -162,3 +162,10 @@ Naechster Entwicklungsschritt: echtes Board festlegen und GPIO-/LCD-/NVS-Adapter
 - Geprüft: warning-clean Build, 3.562.599 C++-Checks, 23 Python-Tests, alle sechs Playwright-Smokes (Chromium jetzt verfügbar), Sichtprüfung aller Bildschirme als Renderings und im eingebauten Browser mit Tastatur/Maus. Siehe VALIDATION.
 - Nicht geprüft/offen: ESP32-Build und Flash (keine ESP-IDF-Toolchain hier), echtes LCD inkl. Lesbarkeit der 1×-Schrift und Bildrate, GPIO-Pins (Schaltplan-PDF prüfen), Akku-/Deep-Sleep-Strategie, mehrtägige Balance der Rufe. Gehäuse unverändert; Empfehlung: Tasten auf RTC-fähige GPIOs für Weckfunktion aus dem Deep Sleep.
 - Nächste Schritte: Schaltplan auswerten und Pinbelegung dokumentieren; ESP-IDF-App mit `esp_lcd`-ST7789, Streifen-DMA, GPIO-Abtasttask, NVS-Speicher und Deep Sleep; dann am Gerät Lesbarkeit und Ruf-Balance testen. Kein Commit/Push in dieser Runde.
+
+## 28.10.2026 / Anthropic Claude Opus 5.5 / Einkaufsliste Hardware
+
+- Auftrag: benötigte Hardware durchdenken, Einkaufsliste mit günstigen Bezugsquellen (bevorzugt China, möglichst ein Shop). Ergebnis: `hardware/EINKAUFSLISTE.md`.
+- Geprüft im Browser: Waveshare ESP32-S3-LCD-2 „No Touch-No-Camera“ bei SpotPear auf AliExpress (23,39 € ab 2 Stück, Versand frei); Kleinteile auf AliExpress; Akku PKCell LP-503562 auf eBay.de (einzelne LiPo-Zellen auf AliExpress für DE praktisch nicht verfügbar). Temu verlangt für die Suche eine Anmeldung, nicht geprüft. EU-Pauschalzoll 3 € je Artikelart seit 1.7.2026 in der Kostenschätzung berücksichtigt.
+- Nichts bestellt. Preise sind Momentaufnahmen. Offen: Senkkopfschrauben nicht einzeln geprüft, Akkupolarität am MX1.25-Adapter vor Inbetriebnahme messen, Tastenpins im Schaltplan auf Weckfähigkeit prüfen.
+
